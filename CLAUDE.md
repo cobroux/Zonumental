@@ -1,7 +1,8 @@
 # Zonumental
 
 > Stack : **Java + Spring Boot** (`backend/`, Maven Wrapper) et **Angular** (`frontend/`). Versions et détails : `docs/ARCHITECTURE.md` + ADR des tech leads.
-> Cahier des charges : `docs/fonctionnel/cahier-des-charges.md`.
+> **Cahier des charges (source de vérité produit) : `docs/fonctionnel/cahier-des-charges.md` — à lire en début de session avant toute décision produit ou technique.**
+> Produit : Pokédex des monuments (France d'abord), PWA mobile-first, releases R0→R7 (§3 du cahier).
 
 ## Équipe d'agents (`.claude/agents/`)
 
@@ -45,6 +46,7 @@ Statuts : `todo → in-progress → review → done`, uniquement vers l'avant.
 
 - Commits : Conventional Commits avec l'ID de story (`feat(auth-flow-2): ...`).
 - Une branche par story : `story/<story-id>`.
+- **Code rangé par fonctionnalité** : backend `fr.zonumental.<module>` (compte, catalogue, capture, progression), frontend `src/app/features/<feature>` + `shared/`. Jamais de dossiers globaux `controllers/`, `services/`. Détail : §9 du cahier des charges.
 - Décisions techniques : ADR dans `docs/adr/`.
 - Aucun secret commité ; `.env.example` seulement.
 
