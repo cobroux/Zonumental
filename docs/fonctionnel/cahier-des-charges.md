@@ -160,6 +160,8 @@ Garde-fous du repo : voir `CLAUDE.md` (hooks git, CI).
 
 Maquettes : canvas Design « Zonumental — Directions artistiques » (https://claude.ai/artifact/QTVhut8zxVu9uHTFXLQkph, privé).
 
+**Les maquettes des pages v4, v5 et v6 du canvas font référence. Les pages v1 à v3 (dont « Système visuel » v2) sont des explorations. En cas de désaccord entre une maquette v4-v6 et un ADR ou un autre document, la maquette prime (décision client du 2026-10-19). Exemples : bouton principal encre de 54 px avec un arrondi de 14 px, champs avec un arrondi de 12 px, cartes arrondies entre 16 et 22 px.**
+
 - **Direction retenue : B « Carnet d'explorateur »**, version pro (v2+). La v1 (papier quadrillé, polices machine à écrire/manuscrite) est rejetée car trop générique.
 - **Validé :** la story à partager (photo + tampon + ligne façon zone lisible des passeports `ZNM<…`) ; les tampons réalistes (encre irrégulière, une forme par type de monument, une encre par rareté), y compris le tampon « CAPTURÉ » posé sur la photo.
 - **Système :** Gloock (titres) + Geist (interface) + Geist Mono (numéros, dates, tampons). Papier visa #F4F1EA, encre #1A1C20, marine #1F3A5F, bordeaux #8C2F39, sapin #2F5D4A, ocre #8A5E1E pour le texte et #B07A2A pour les fonds (légendaire uniquement). Guilloches façon passeport.
