@@ -14,6 +14,6 @@
 | r0-socle-3 | Design system dans le code à partir des tokens validés | 3 | done |
 | r0-socle-4 | Contrat OpenAPI et client Angular généré | 3 | todo |
 | r0-socle-12 | Pages légales publiques (CGU, confidentialité, mentions) | 2 | todo |
-| r0-socle-18 | Import du catalogue Wikidata + Mérimée avec quotas paramétrables | 5 | in-progress |
+| r0-socle-18 | Import du catalogue Wikidata + Mérimée avec quotas paramétrables | 5 | done |
 
 ## Total Points: 19

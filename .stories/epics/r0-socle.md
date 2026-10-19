@@ -47,6 +47,6 @@ Livrer une application en ligne, avec son style (direction B « Carnet d'explora
 | r0-socle-15 | Avertissement et suppression des comptes inactifs | todo |
 | r0-socle-16 | Onboarding : Bienvenue, création du carnet, vérifie ton e-mail | todo |
 | r0-socle-17 | Onboarding : explication de la localisation avant la demande système | todo |
-| r0-socle-18 | Import du catalogue Wikidata + Mérimée avec quotas paramétrables | in-progress |
+| r0-socle-18 | Import du catalogue Wikidata + Mérimée avec quotas paramétrables | done |
 | r0-socle-19 | Numéros fixes jamais réutilisés et rareté calculée à l'import | todo |
 | r0-socle-20 | Sources, licences et stats des fiches du catalogue | todo |
