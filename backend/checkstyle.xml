@@ -16,8 +16,9 @@
     <module name="NeedBraces"/>
     <module name="ModifierOrder"/>
     <module name="UpperEll"/>
+    <!-- Cahier §9 : aucun package par couche technique. -->
     <module name="PackageName">
-      <property name="format" value="^[a-z]+(\.[a-z][a-z0-9]*)*$"/>
+      <property name="format" value="^(?!.*\.(controllers?|services?|repository|repositories|entity|entities|dto|dtos)(\.|$))[a-z]+(\.[a-z][a-z0-9]*)*$"/>
     </module>
     <module name="TypeName"/>
     <module name="MethodName"/>
