@@ -1,0 +1,677 @@
+openapi: 3.1.0
+info:
+  title: Zonumental API
+  version: 0.1.0-r0
+  summary: Contrat R0 « Socle » — premier jet tech-lead-back, à relire par tech-lead-front.
+  description: |
+    Premier jet écrit à la main (contrat d'abord). Dès que les contrôleurs existent,
+    la sortie springdoc remplace ce fichier et la CI vérifie qu'ils restent identiques
+    (voir docs/architecture/backend.md, r0-socle-4).
+
+    Authentification : jeton d'accès JWT (15 min) en `Authorization: Bearer`, gardé en
+    mémoire par le front. Session de renouvellement : cookie `zonumental_session`
+    (HttpOnly, Secure, SameSite=Strict, Path=/api/auth, 30 jours glissants).
+
+    Erreurs : toujours `application/problem+json` (RFC 9457), schéma `Probleme`.
+    Le front s'appuie uniquement sur le champ `code` ; les textes affichés sont côté front.
+servers:
+  - url: /
+    description: Même origine que le front (reverse proxy, /api -> backend)
+security:
+  - jwt: []
+tags:
+  - name: sante
+  - name: auth
+    description: Connexion, renouvellement, déconnexion
+  - name: compte
+    description: Inscription, vérification, mot de passe, profil, consentements, RGPD
+  - name: catalogue
+    description: Monuments en lecture
+
+paths:
+  /api/health:
+    get:
+      tags: [sante]
+      operationId: sante
+      summary: État de santé de l'application (public)
+      security: []
+      responses:
+        '200':
+          description: Application disponible
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [status]
+                properties:
+                  status:
+                    type: string
+                    examples: [UP]
+        '503':
+          description: Application indisponible
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    examples: [DOWN]
+
+  # ---------------------------------------------------------------- auth
+  /api/auth/connexion:
+    post:
+      tags: [auth]
+      operationId: connexion
+      summary: Connexion par e-mail et mot de passe (RG-008, RG-009)
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/Identifiants' }
+      responses:
+        '200':
+          description: Connecté ; le cookie de session est posé.
+          headers:
+            Set-Cookie: { $ref: '#/components/headers/CookieSession' }
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/JetonAcces' }
+        '400': { $ref: '#/components/responses/Validation' }
+        '401':
+          description: '`identifiants-invalides` (même réponse si l''e-mail est inconnu)'
+          content:
+            application/problem+json:
+              schema: { $ref: '#/components/schemas/Probleme' }
+        '409':
+          description: '`suppression-en-cours` : identifiants corrects, compte en attente de suppression ; proposer l''annulation (RG-014, Q-9)'
+          content:
+            application/problem+json:
+              schema: { $ref: '#/components/schemas/ProblemeSuppression' }
+        '429': { $ref: '#/components/responses/ConnexionBloquee' }
+
+  /api/auth/renouvellement:
+    post:
+      tags: [auth]
+      operationId: renouvellement
+      summary: Nouveau jeton d'accès à partir du cookie de session (RG-010)
+      description: Prolonge la session de 30 jours et renvoie le cookie. À appeler au démarrage de l'appli et sur un 401.
+      security:
+        - cookieSession: []
+      responses:
+        '200':
+          description: Nouveau jeton d'accès
+          headers:
+            Set-Cookie: { $ref: '#/components/headers/CookieSession' }
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/JetonAcces' }
+        '401':
+          description: '`session-expiree` : cookie absent, expiré, révoqué ou compte en suppression ; le cookie est effacé.'
+          content:
+            application/problem+json:
+              schema: { $ref: '#/components/schemas/Probleme' }
+
+  /api/auth/deconnexion:
+    post:
+      tags: [auth]
+      operationId: deconnexion
+      summary: Ferme la session courante (RG-010), idempotent
+      security:
+        - cookieSession: []
+      responses:
+        '204':
+          description: Session fermée, cookie effacé
+          headers:
+            Set-Cookie: { $ref: '#/components/headers/CookieSession' }
+
+  # ---------------------------------------------------------------- inscription et vérification
+  /api/compte/inscription:
+    post:
+      tags: [compte]
+      operationId: inscrire
+      summary: Création du carnet (RG-002 à RG-006)
+      description: |
+        Réponse 202 identique que l'adresse soit nouvelle ou déjà utilisée (RG-004).
+        L'utilisateur n'est pas connecté : le front affiche « vérifie ton e-mail ».
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/DemandeInscription' }
+      responses:
+        '202':
+          description: « Si cette adresse est valide, un e-mail t'a été envoyé. »
+        '400': { $ref: '#/components/responses/Validation' }
+        '409':
+          description: '`pseudo-deja-pris` (RG-005) ou `version-texte-obsolete` (le texte légal a changé : recharger)'
+          content:
+            application/problem+json:
+              schema: { $ref: '#/components/schemas/Probleme' }
+        '422':
+          description: '`age-minimum` (RG-002) ou `consentement-obligatoire` (RG-003)'
+          content:
+            application/problem+json:
+              schema: { $ref: '#/components/schemas/Probleme' }
+
+  /api/compte/email/verification:
+    post:
+      tags: [compte]
+      operationId: verifierEmail
+      summary: Confirme l'adresse avec le jeton reçu par e-mail (RG-007)
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/Jeton' }
+      responses:
+        '204':
+          description: E-mail confirmé
+        '400': { $ref: '#/components/responses/JetonInvalide' }
+        '409': { $ref: '#/components/responses/JetonDejaUtilise' }
+        '410': { $ref: '#/components/responses/JetonExpire' }
+
+  /api/compte/email/verification/renvoi:
+    post:
+      tags: [compte]
+      operationId: renvoyerVerification
+      summary: Renvoie un lien de vérification ; l'ancien ne fonctionne plus (RG-007)
+      description: Réponse 202 dans tous les cas (adresse inconnue, déjà vérifiée, ou demande de moins de 60 s).
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/Email' }
+      responses:
+        '202':
+          description: Demande prise en compte
+        '400': { $ref: '#/components/responses/Validation' }
+
+  # ---------------------------------------------------------------- mot de passe
+  /api/compte/mot-de-passe/oubli:
+    post:
+      tags: [compte]
+      operationId: demanderReinitialisation
+      summary: Envoie un lien de réinitialisation valable 1 h (RG-011)
+      description: Réponse 202 identique que l'adresse existe ou non.
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/Email' }
+      responses:
+        '202':
+          description: Demande prise en compte
+        '400': { $ref: '#/components/responses/Validation' }
+
+  /api/compte/mot-de-passe/reinitialisation:
+    post:
+      tags: [compte]
+      operationId: reinitialiserMotDePasse
+      summary: Nouveau mot de passe ; ferme toutes les sessions (RG-006, RG-010, RG-011)
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/Reinitialisation' }
+      responses:
+        '204':
+          description: Mot de passe changé, sessions fermées ; l'utilisateur doit se reconnecter
+        '400':
+          description: '`validation` (mot de passe hors règle) ou `jeton-invalide`'
+          content:
+            application/problem+json:
+              schema: { $ref: '#/components/schemas/Probleme' }
+        '409': { $ref: '#/components/responses/JetonDejaUtilise' }
+        '410': { $ref: '#/components/responses/JetonExpire' }
+
+  # ---------------------------------------------------------------- profil et consentements
+  /api/compte/moi:
+    get:
+      tags: [compte]
+      operationId: monCompte
+      summary: Profil de l'explorateur connecté (expose `emailVerifie`, RG-007)
+      responses:
+        '200':
+          description: Profil
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Profil' }
+        '401': { $ref: '#/components/responses/NonAuthentifie' }
+
+  /api/compte/consentements:
+    get:
+      tags: [compte]
+      operationId: mesConsentements
+      summary: État courant des consentements facultatifs (RG-003, RG-012)
+      responses:
+        '200':
+          description: Consentements facultatifs
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ConsentementsFacultatifs' }
+        '401': { $ref: '#/components/responses/NonAuthentifie' }
+    put:
+      tags: [compte]
+      operationId: modifierConsentements
+      summary: Active ou retire les consentements facultatifs, effet immédiat et daté (RG-012)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/ConsentementsFacultatifs' }
+      responses:
+        '200':
+          description: Nouvel état
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ConsentementsFacultatifs' }
+        '400': { $ref: '#/components/responses/Validation' }
+        '401': { $ref: '#/components/responses/NonAuthentifie' }
+
+  # ---------------------------------------------------------------- RGPD
+  /api/compte/export:
+    get:
+      tags: [compte]
+      operationId: exporterMesDonnees
+      summary: Archive zip de mes données (RG-013)
+      description: |
+        Zip contenant `donnees.json` (schéma `ExportDonnees`) et, à partir de R1, `photos/<numero>.webp`.
+        Ne contient ni mot de passe, ni jeton, ni position GPS.
+      responses:
+        '200':
+          description: Archive
+          headers:
+            Content-Disposition:
+              schema:
+                type: string
+                examples: ['attachment; filename="zonumental-export-2026-10-19.zip"']
+          content:
+            application/zip:
+              schema:
+                type: string
+                contentMediaType: application/zip
+        '401': { $ref: '#/components/responses/NonAuthentifie' }
+
+  /api/compte/suppression:
+    post:
+      tags: [compte]
+      operationId: demanderSuppression
+      summary: Demande la suppression du compte (RG-014)
+      description: Compte désactivé immédiatement, toutes les sessions fermées, e-mail de confirmation. Effacement définitif sous 30 jours.
+      responses:
+        '202':
+          description: Suppression programmée
+          headers:
+            Set-Cookie: { $ref: '#/components/headers/CookieSession' }
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/SuppressionProgrammee' }
+        '401': { $ref: '#/components/responses/NonAuthentifie' }
+
+  /api/compte/suppression/annulation:
+    post:
+      tags: [compte]
+      operationId: annulerSuppression
+      summary: Annule une suppression en cours et connecte (Q-9)
+      description: Mêmes identifiants et même limite de tentatives que la connexion.
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/Identifiants' }
+      responses:
+        '200':
+          description: Suppression annulée, connecté
+          headers:
+            Set-Cookie: { $ref: '#/components/headers/CookieSession' }
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/JetonAcces' }
+        '400': { $ref: '#/components/responses/Validation' }
+        '401':
+          description: '`identifiants-invalides`'
+          content:
+            application/problem+json:
+              schema: { $ref: '#/components/schemas/Probleme' }
+        '429': { $ref: '#/components/responses/ConnexionBloquee' }
+
+  # ---------------------------------------------------------------- catalogue
+  /api/catalogue/monuments:
+    get:
+      tags: [catalogue]
+      operationId: listerMonuments
+      summary: Tous les monuments, triés par numéro (~120, sans pagination)
+      responses:
+        '200':
+          description: Monuments
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/MonumentResume' }
+        '401': { $ref: '#/components/responses/NonAuthentifie' }
+
+  /api/catalogue/monuments/{numero}:
+    get:
+      tags: [catalogue]
+      operationId: lireMonument
+      summary: Fiche complète d'un monument (RG-022, RG-023)
+      parameters:
+        - name: numero
+          in: path
+          required: true
+          schema: { type: integer, minimum: 1 }
+      responses:
+        '200':
+          description: Fiche
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Monument' }
+        '401': { $ref: '#/components/responses/NonAuthentifie' }
+        '404':
+          description: '`introuvable`'
+          content:
+            application/problem+json:
+              schema: { $ref: '#/components/schemas/Probleme' }
+
+components:
+  securitySchemes:
+    jwt:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+    cookieSession:
+      type: apiKey
+      in: cookie
+      name: zonumental_session
+
+  headers:
+    CookieSession:
+      description: '`zonumental_session=<opaque>; HttpOnly; Secure; SameSite=Strict; Path=/api/auth; Max-Age=2592000` (Max-Age=0 pour l''effacer)'
+      schema: { type: string }
+
+  responses:
+    Validation:
+      description: '`validation` : un ou plusieurs champs invalides, détaillés dans `erreurs`'
+      content:
+        application/problem+json:
+          schema: { $ref: '#/components/schemas/Probleme' }
+    NonAuthentifie:
+      description: '`non-authentifie` : jeton d''accès absent ou expiré ; renouveler puis rejouer'
+      content:
+        application/problem+json:
+          schema: { $ref: '#/components/schemas/Probleme' }
+    ConnexionBloquee:
+      description: '`connexion-bloquee` : 5 échecs consécutifs, blocage 15 min (RG-009)'
+      headers:
+        Retry-After:
+          description: Secondes avant le prochain essai possible
+          schema: { type: integer }
+      content:
+        application/problem+json:
+          schema: { $ref: '#/components/schemas/Probleme' }
+    JetonInvalide:
+      description: '`jeton-invalide` : lien inconnu ou remplacé par un plus récent'
+      content:
+        application/problem+json:
+          schema: { $ref: '#/components/schemas/Probleme' }
+    JetonDejaUtilise:
+      description: '`jeton-deja-utilise`'
+      content:
+        application/problem+json:
+          schema: { $ref: '#/components/schemas/Probleme' }
+    JetonExpire:
+      description: '`jeton-expire` : proposer un renvoi'
+      content:
+        application/problem+json:
+          schema: { $ref: '#/components/schemas/Probleme' }
+
+  schemas:
+    # ------------------------------------------------------------ erreurs
+    Probleme:
+      type: object
+      description: Problem Details (RFC 9457) + extensions `code` et `erreurs`.
+      required: [type, title, status, code]
+      properties:
+        type:
+          type: string
+          format: uri
+          examples: ['https://zonumental.fr/erreurs/pseudo-deja-pris']
+        title: { type: string, examples: ['Pseudo déjà pris'] }
+        status: { type: integer, examples: [409] }
+        detail: { type: string, description: "Texte technique, non destiné à l'affichage" }
+        instance: { type: string, examples: ['/api/compte/inscription'] }
+        code: { $ref: '#/components/schemas/CodeErreur' }
+        erreurs:
+          type: array
+          description: Présent uniquement pour `validation`
+          items: { $ref: '#/components/schemas/ErreurChamp' }
+    ProblemeSuppression:
+      allOf:
+        - $ref: '#/components/schemas/Probleme'
+        - type: object
+          required: [suppressionDefinitiveLe]
+          properties:
+            suppressionDefinitiveLe: { type: string, format: date-time }
+    CodeErreur:
+      type: string
+      enum:
+        - validation
+        - age-minimum
+        - consentement-obligatoire
+        - version-texte-obsolete
+        - pseudo-deja-pris
+        - jeton-invalide
+        - jeton-expire
+        - jeton-deja-utilise
+        - identifiants-invalides
+        - connexion-bloquee
+        - suppression-en-cours
+        - session-expiree
+        - non-authentifie
+        - introuvable
+        - erreur-interne
+    ErreurChamp:
+      type: object
+      required: [champ, code]
+      properties:
+        champ: { type: string, examples: [motDePasse] }
+        code:
+          type: string
+          enum: [obligatoire, format, trop-court, trop-long, date-invalide]
+          description: Code de contrainte (liste fermée, le front en dérive le texte affiché)
+          examples: [trop-court]
+        message: { type: string, description: "Texte technique, non destiné à l'affichage" }
+
+    # ------------------------------------------------------------ compte
+    Email:
+      type: object
+      required: [email]
+      properties:
+        email: { type: string, format: email, maxLength: 254 }
+    Identifiants:
+      type: object
+      required: [email, motDePasse]
+      properties:
+        email: { type: string, format: email, maxLength: 254 }
+        motDePasse: { type: string, format: password, minLength: 1, maxLength: 128 }
+    MotDePasse:
+      type: string
+      format: password
+      minLength: 12
+      maxLength: 128
+      description: 12 à 128 caractères, espaces et accents acceptés, pas de règle de composition (RG-006).
+    Pseudo:
+      type: string
+      minLength: 3
+      maxLength: 20
+      pattern: '^[A-Za-z0-9_-]{3,20}$'
+      description: Unique sans tenir compte de la casse (RG-005, Q-12).
+    DemandeInscription:
+      type: object
+      required: [pseudo, email, motDePasse, dateNaissance, consentements]
+      properties:
+        pseudo: { $ref: '#/components/schemas/Pseudo' }
+        email: { type: string, format: email, maxLength: 254 }
+        motDePasse: { $ref: '#/components/schemas/MotDePasse' }
+        dateNaissance:
+          type: string
+          format: date
+          description: Au moins 15 ans révolus à la date du jour, Europe/Paris (RG-002).
+        consentements:
+          type: object
+          required: [cgu, confidentialite, versionCgu, versionConfidentialite, classement, emails]
+          properties:
+            cgu: { type: boolean, description: Doit être vrai }
+            confidentialite: { type: boolean, description: Doit être vrai }
+            versionCgu: { type: string, examples: ['2026-10-19'] }
+            versionConfidentialite: { type: string, examples: ['2026-10-19'] }
+            classement: { type: boolean, default: false }
+            emails: { type: boolean, default: false }
+    Jeton:
+      type: object
+      required: [jeton]
+      properties:
+        jeton: { type: string, minLength: 1, maxLength: 100 }
+    Reinitialisation:
+      type: object
+      required: [jeton, nouveauMotDePasse]
+      properties:
+        jeton: { type: string, minLength: 1, maxLength: 100 }
+        nouveauMotDePasse: { $ref: '#/components/schemas/MotDePasse' }
+    JetonAcces:
+      type: object
+      required: [jetonAcces, expireDans]
+      properties:
+        jetonAcces: { type: string, description: "JWT à envoyer en `Authorization: Bearer`" }
+        expireDans: { type: integer, description: Durée de validité en secondes, examples: [900] }
+    Profil:
+      type: object
+      required: [id, pseudo, email, emailVerifie]
+      properties:
+        id: { type: string, format: uuid }
+        pseudo: { type: string }
+        email: { type: string, format: email }
+        emailVerifie: { type: boolean }
+    ConsentementsFacultatifs:
+      type: object
+      required: [classement, emails]
+      properties:
+        classement: { type: boolean }
+        emails: { type: boolean }
+    SuppressionProgrammee:
+      type: object
+      required: [suppressionDefinitiveLe]
+      properties:
+        suppressionDefinitiveLe: { type: string, format: date-time }
+    TypeConsentement:
+      type: string
+      enum: [CGU, CONFIDENTIALITE, CLASSEMENT, EMAILS]
+    ExportDonnees:
+      description: Contenu de `donnees.json` dans l'archive d'export (non renvoyé directement par l'API).
+      type: object
+      required: [exporteLe, compte, consentements, captures]
+      properties:
+        exporteLe: { type: string, format: date-time }
+        compte:
+          type: object
+          required: [pseudo, email, dateNaissance, emailVerifieLe, creeLe]
+          properties:
+            pseudo: { type: string }
+            email: { type: string, format: email }
+            dateNaissance: { type: string, format: date }
+            emailVerifieLe: { type: [string, 'null'], format: date-time }
+            creeLe: { type: string, format: date-time }
+        consentements:
+          type: array
+          description: Historique complet, du plus ancien au plus récent
+          items:
+            type: object
+            required: [type, accorde, versionTexte, horodatage]
+            properties:
+              type: { $ref: '#/components/schemas/TypeConsentement' }
+              accorde: { type: boolean }
+              versionTexte: { type: string }
+              horodatage: { type: string, format: date-time }
+        captures:
+          type: array
+          description: Vide en R0 ; en R1 numéro, nom, date, distance, fichier photo. Jamais de position.
+          items: { type: object }
+
+    # ------------------------------------------------------------ catalogue
+    TypeMonument:
+      type: string
+      description: Liste à valider PO/UX (une forme de tampon par type).
+      enum: [CHATEAU, RELIGIEUX, PONT, PHARE, PALAIS, TOUR, MUSEE, AUTRE]
+    Rarete:
+      type: string
+      enum: [COMMUN, RARE, LEGENDAIRE]
+    Ville:
+      type: object
+      required: [codeInsee, nom]
+      properties:
+        codeInsee: { type: string, examples: ['75056'] }
+        nom: { type: string, examples: [Paris] }
+    Position:
+      type: object
+      required: [latitude, longitude]
+      properties:
+        latitude: { type: number, format: double }
+        longitude: { type: number, format: double }
+    Image:
+      type: object
+      description: Image de référence ; absente (null) si sa licence est inconnue → silhouette (RG-022).
+      required: [url, sourceUrl, licence]
+      properties:
+        url: { type: string, format: uri }
+        sourceUrl: { type: string, format: uri, description: Page Wikimedia Commons du fichier }
+        licence: { type: string, examples: ['CC BY-SA 4.0'] }
+        licenceUrl: { type: [string, 'null'], format: uri }
+        auteur: { type: [string, 'null'], description: Obligatoire si la licence exige l'attribution }
+    MonumentResume:
+      type: object
+      required: [numero, nom, type, ville, rarete, position, rayonCaptureMetres, image]
+      properties:
+        numero: { type: integer, minimum: 1 }
+        nom: { type: string }
+        type: { $ref: '#/components/schemas/TypeMonument' }
+        ville: { $ref: '#/components/schemas/Ville' }
+        rarete: { $ref: '#/components/schemas/Rarete' }
+        position: { $ref: '#/components/schemas/Position' }
+        rayonCaptureMetres: { type: integer, minimum: 50, maximum: 500 }
+        image:
+          oneOf:
+            - $ref: '#/components/schemas/Image'
+            - type: 'null'
+    Monument:
+      allOf:
+        - $ref: '#/components/schemas/MonumentResume'
+        - type: object
+          required: [stats, histoire]
+          properties:
+            stats:
+              type: object
+              description: Valeur inconnue = null, affichée « — » (RG-023)
+              required: [annee, style, hauteurMetres]
+              properties:
+                annee: { type: [integer, 'null'] }
+                style: { type: [string, 'null'] }
+                hauteurMetres: { type: [number, 'null'] }
+            histoire:
+              description: Null si absente (R0) ou, à partir de R1, tant que le monument n'est pas capturé (RG-043).
+              oneOf:
+                - type: object
+                  required: [texte, sourceUrl, licence]
+                  properties:
+                    texte: { type: string }
+                    sourceUrl: { type: string, format: uri }
+                    licence: { type: string, examples: ['CC BY-SA 4.0'] }
+                - type: 'null'
