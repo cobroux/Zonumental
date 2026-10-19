@@ -19,10 +19,12 @@ let compteur = 0;
   selector: 'zn-champ',
   imports: [ZnIcone],
   template: `
-    <label [for]="id">{{ label() }}</label>
-    @if (aide(); as texte) {
-      <p class="zn-champ__aide" [id]="aideId">{{ texte }}</p>
-    }
+    <div class="zn-champ__entete">
+      <label [for]="id">{{ label() }}</label>
+      @if (aide(); as texte) {
+        <p class="zn-champ__aide" [id]="aideId">{{ texte }}</p>
+      }
+    </div>
     <div class="zn-champ__saisie">
       <ng-content select="input" />
       @if (motDePasse()) {

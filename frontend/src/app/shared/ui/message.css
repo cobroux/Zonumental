@@ -8,7 +8,7 @@
   padding: var(--zn-esp-3) var(--zn-esp-4);
   border: 1px solid var(--zn-message-couleur);
   border-inline-start-width: 6px;
-  border-radius: var(--zn-rayon);
+  border-radius: var(--zn-rayon-12);
   background-color: var(--zn-fond-clair);
   color: var(--zn-texte);
 }

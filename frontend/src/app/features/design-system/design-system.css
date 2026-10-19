@@ -9,33 +9,11 @@
   padding: var(--zn-esp-8) var(--zn-esp-4) var(--zn-esp-12);
 }
 
-/* ---------- En-tête : couverture de passeport ---------- */
+/* ---------- En-tête ---------- */
 .entete {
-  position: relative;
-  isolation: isolate;
   display: grid;
   gap: var(--zn-esp-3);
-  padding: var(--zn-esp-8) var(--zn-esp-6) var(--zn-esp-6);
-  border: 2px solid var(--zn-marine);
-  border-radius: var(--zn-rayon);
-  background-color: var(--zn-fond-clair);
-  box-shadow:
-    inset 0 0 0 6px var(--zn-fond-clair),
-    inset 0 0 0 7px var(--zn-marine);
-  overflow: hidden;
-}
-
-/* Rosette : guilloche vectorielle statique, sans filtre (ADR 0017) */
-.entete::before {
-  content: '';
-  position: absolute;
-  z-index: -1;
-  inset-block-start: -30%;
-  inset-inline-end: -25%;
-  inline-size: 26rem;
-  aspect-ratio: 1;
-  background: url('../../shared/styles/rosette.svg') center / contain no-repeat;
-  opacity: 0.4;
+  padding-block: var(--zn-esp-6);
 }
 
 .entete__numero {
@@ -96,19 +74,17 @@ section {
   scroll-margin-block-start: var(--zn-esp-4);
 }
 
-/* Bandeau guilloché entre deux rubriques */
+/* Filet entre deux rubriques */
 section::before {
   content: '';
-  block-size: 16px;
-  background: url('../../shared/styles/bandeau.svg') repeat-x left center;
-  opacity: 0.55;
+  border-block-start: 1px solid var(--zn-bordure-champ);
 }
 
 .rubrique {
   margin-block-end: calc(var(--zn-esp-3) * -1);
-  color: var(--zn-bordeaux);
+  color: var(--zn-gris-libelle);
   font-size: var(--zn-taille-petite);
-  font-weight: 600;
+  font-weight: 500;
   letter-spacing: 0.12em;
 }
 
@@ -135,7 +111,7 @@ section::before {
   display: block;
   block-size: 4.5rem;
   border: var(--zn-trait);
-  border-radius: var(--zn-rayon);
+  border-radius: var(--zn-rayon-12);
 }
 
 .puce__nom {
@@ -231,12 +207,6 @@ section::before {
   border: 0;
 }
 
-.groupe legend {
-  margin-block-end: var(--zn-esp-2);
-  padding: 0;
-  font-weight: 650;
-}
-
 .pile {
   display: grid;
   gap: var(--zn-esp-3);
@@ -257,8 +227,8 @@ section::before {
   margin-block-end: -2px;
   border: 2px solid transparent;
   border-block-end: 0;
-  border-start-start-radius: var(--zn-rayon);
-  border-start-end-radius: var(--zn-rayon);
+  border-start-start-radius: var(--zn-rayon-12);
+  border-start-end-radius: var(--zn-rayon-12);
   color: var(--zn-texte);
   text-decoration: none;
 }
@@ -273,4 +243,39 @@ section::before {
   .onglets a:not([aria-current='page']):hover {
     text-decoration: underline;
   }
+}
+
+/* ---------- Exemples tirés des maquettes ---------- */
+.bienvenue {
+  display: grid;
+  gap: var(--zn-esp-2);
+  max-inline-size: 24rem;
+  padding: var(--zn-esp-8) var(--zn-esp-6) var(--zn-esp-4);
+  border-radius: var(--zn-rayon-26) var(--zn-rayon-26) 0 0;
+  background-color: var(--zn-papier);
+  box-shadow: 0 -12px 30px -14px color-mix(in srgb, var(--zn-nuit) 40%, transparent);
+  color: var(--zn-gris-texte);
+  font-size: var(--zn-taille-1);
+  line-height: 1.45;
+}
+
+.bienvenue__titre {
+  font: var(--zn-taille-4) / 0.9 var(--zn-police-titre);
+  letter-spacing: -0.02em;
+  color: var(--zn-texte);
+  margin-block-end: var(--zn-esp-2);
+}
+
+.bienvenue [znBouton]:not([znBouton='secondaire']) {
+  margin-block-start: var(--zn-esp-4);
+}
+
+.note {
+  color: var(--zn-texte-doux);
+}
+
+.raretes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--zn-esp-3);
 }

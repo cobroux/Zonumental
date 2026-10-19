@@ -2,6 +2,7 @@
 
 - **Statut :** accepté (réserve sur l'ocre, à valider par `ux-designer` et le client)
 - **Date :** 2026-10-19
+- **Révision 2026-10-19 : alignement sur les maquettes v4–v6 (décision client).** Les maquettes des pages v4, v5 et v6 du canvas font foi ; v1 à v3 sont des explorations. Formes, bouton, champ, cases et motion ci-dessous les suivent ; la rosette et les bandeaux guillochés sont retirés.
 
 ## Contexte
 
@@ -13,12 +14,12 @@ Le §12 fixe la direction B « Carnet d'explorateur » : Gloock, Geist, Geist Mo
 
 | Groupe | Tokens |
 | --- | --- |
-| Couleurs | `--zn-papier #F4F1EA`, `--zn-encre #1A1C20`, `--zn-marine #1F3A5F`, `--zn-bordeaux #8C2F39`, `--zn-sapin #2F5D4A`, `--zn-ocre #B07A2A`, `--zn-encre-douce` (texte secondaire, ≥ 4,5:1 sur papier, valeur à fixer par `ux-designer`) |
-| Rôles | `--zn-fond`, `--zn-texte`, `--zn-action` (bordeaux), `--zn-succes` (sapin), `--zn-erreur` (bordeaux), `--zn-focus` (marine). Les composants utilisent les **rôles**, jamais les couleurs brutes. |
+| Couleurs | `--zn-papier #F4F1EA`, `--zn-encre #1A1C20`, `--zn-marine #1F3A5F`, `--zn-bordeaux #8C2F39`, `--zn-sapin #2F5D4A`, `--zn-ocre #B07A2A`, `--zn-papier-clair #FBF9F4` (champs, boutons), gris `--zn-gris-libelle #5B5F66` (libellés, aides ; 5,7:1 sur papier), `--zn-gris-texte #2C2F34`, `--zn-gris-45 #45494F`, `--zn-gris-6b #6B6F75` (4,5:1 sur papier clair seulement, jamais en texte sur papier), `--zn-nuit #0E0F11`, `--zn-ocre-texte #8A5E1E` |
+| Rôles | `--zn-fond`, `--zn-texte`, `--zn-action` (encre), `--zn-succes` (sapin), `--zn-erreur` (bordeaux), `--zn-focus` (marine). Les composants utilisent les **rôles**, jamais les couleurs brutes. |
 | Espacements | base 4 px : `--zn-esp-1` 4, `-2` 8, `-3` 12, `-4` 16, `-6` 24, `-8` 32, `-12` 48 |
 | Typographie | `--zn-police-titre` Gloock, `--zn-police-ui` Geist, `--zn-police-mono` Geist Mono ; échelle `--zn-taille-0` 16 px (taille minimale d'un champ, sinon iOS zoome) jusqu'à `--zn-taille-4` en `clamp()` |
-| Formes | `--zn-rayon` 2 px (papier découpé, pas de « cartes arrondies »), `--zn-trait` 1 px encre ; pas d'ombre portée générique |
-| Mouvement | `--zn-duree-courte` 120 ms, `--zn-duree` 200 ms, `--zn-courbe` `cubic-bezier(0.2, 0, 0, 1)` (voir ADR 0017) |
+| Formes | `--zn-rayon-12` (champs), `-14` (boutons), `-16`, `-22`, `-26` (feuille du bas), `-pastille` 999 px ; plus de rayon de 2 px. `--zn-trait` 1 px encre ; bordure de champ `rgba(26,28,32,.22)` |
+| Mouvement | `--zn-duree-appui` 160 ms, `--zn-duree` 200 ms, `--zn-duree-tampon` 460 ms (R1, pas animé en R0), `--zn-courbe` `cubic-bezier(0.23, 1, 0.32, 1)` (voir ADR 0017) |
 
 `color-scheme: light`, pas de thème sombre : le papier fait partie de l'identité et le cahier n'en demande pas.
 
@@ -31,7 +32,7 @@ Le §12 fixe la direction B « Carnet d'explorateur » : Gloock, Geist, Geist Mo
 
 | Composant | Forme | Notes |
 | --- | --- | --- |
-| Bouton | `button[znBouton]`, `a[znBouton]` (sélecteur d'attribut) | variantes `principal`, `secondaire`, `danger` ; état `occupé` (`aria-busy`, libellé conservé) ; cible ≥ 44 × 44 px |
+| Bouton | `button[znBouton]`, `a[znBouton]` (sélecteur d'attribut) | principal : fond encre, texte papier clair, 54 px, 14 px, 16 px graisse 600 ; secondaire : lien texte marine, 44 px, 15 px graisse 500 ; `danger` : contour bordeaux, réservé aux actions destructrices ; état `occupé` (`aria-busy`, libellé conservé) |
 | Champ | `<zn-champ>` qui projette un `<input>` natif | libellé visible, aide, erreur liée par `aria-describedby`, `aria-invalid`, icône et texte d'erreur (jamais la couleur seule) ; variante mot de passe avec bouton « Afficher » |
 | Date de naissance | 3 champs jour / mois / année (`inputmode="numeric"`, `autocomplete="bday-day|bday-month|bday-year"`) | un sélecteur de date natif est pénible pour remonter de 20 ans |
 | Case à cocher | `input[type=checkbox][znCase]` | consentements, avec le lien vers le texte légal dans le libellé |

@@ -77,6 +77,36 @@ describe('Page /design-system', () => {
     expect(el.querySelector('nav a[aria-current="page"]')).not.toBeNull();
   });
 
+  it('montre le bouton principal et le lien secondaire de l écran Bienvenue', async () => {
+    const { el } = await rendre();
+    const exemple = el.querySelector('.bienvenue') as HTMLElement;
+    expect(exemple.querySelector('a[znBouton=""]')?.textContent).toContain('Commencer');
+    expect(exemple.querySelector('a[znBouton="secondaire"]')?.textContent).toContain(
+      "J'ai déjà un carnet",
+    );
+  });
+
+  it('montre le groupe « TES CHOIX » avec des cases natives et leur statut écrit', async () => {
+    const { el } = await rendre();
+    const groupe = [...el.querySelectorAll('fieldset')].find((f) =>
+      f.querySelector('legend')?.textContent?.includes('Tes choix'),
+    );
+    expect(groupe?.querySelectorAll('input[znCase]')).toHaveLength(3);
+    expect(groupe?.textContent).toContain('Obligatoire');
+    expect(groupe?.textContent).toContain('Facultatif');
+  });
+
+  it('les pastilles de rareté écrivent toujours le mot', async () => {
+    const { el } = await rendre();
+    const mots = [...el.querySelectorAll('[znRarete]')].map((p) => p.textContent?.trim());
+    expect(mots).toEqual(['Commun', 'Rare', 'Légendaire']);
+  });
+
+  it('l en-tête garde la ligne ZNM sans rosette', async () => {
+    const { el } = await rendre();
+    expect(el.querySelector('.entete__mrz')?.textContent).toContain('ZNM');
+  });
+
   it('les couleurs de la page viennent des tokens, pas de styles en ligne', async () => {
     const { el } = await rendre();
     expect(el.innerHTML).not.toMatch(/#[0-9a-f]{3,8}\b/i);

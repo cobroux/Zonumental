@@ -7,24 +7,30 @@
   --zn-papier: #f4f1ea;
   --zn-papier-clair: #fbf9f4;
   --zn-encre: #1a1c20;
-  --zn-encre-douce: #50545c;
   --zn-marine: #1f3a5f;
   --zn-bordeaux: #8c2f39;
   --zn-sapin: #2f5d4a;
   --zn-ocre: #b07a2a; /* fonds et décors, légendaire uniquement */
   --zn-ocre-texte: #8a5e1e; /* tout texte « Légendaire » */
+  /* Gris et nuit des maquettes v4 à v6 */
+  --zn-gris-libelle: #5b5f66; /* libellés, aides, légendes */
+  --zn-gris-texte: #2c2f34; /* texte courant */
+  --zn-gris-45: #45494f;
+  --zn-gris-6b: #6b6f75; /* 4,5:1 sur papier clair seulement : pas de texte sur papier */
+  --zn-nuit: #0e0f11;
 
   /* Rôles : les composants utilisent ceux-ci, jamais les couleurs brutes */
   --zn-fond: var(--zn-papier);
   --zn-fond-clair: var(--zn-papier-clair);
   --zn-texte: var(--zn-encre);
-  --zn-texte-doux: var(--zn-encre-douce);
-  --zn-action: var(--zn-bordeaux);
+  --zn-texte-doux: var(--zn-gris-libelle);
+  --zn-action: var(--zn-encre);
   --zn-lien: var(--zn-marine);
   --zn-succes: var(--zn-sapin);
   --zn-erreur: var(--zn-bordeaux);
   --zn-focus: var(--zn-marine);
-  --zn-bordure-champ: var(--zn-encre-douce);
+  --zn-bordure-champ: rgba(26, 28, 32, 0.22); /* maquettes : repos du champ */
+  --zn-bordure-controle: var(--zn-gris-libelle); /* case, interrupteur : 3:1 */
 
   /* Espacements (base 4 px) */
   --zn-esp-1: 0.25rem;
@@ -46,13 +52,19 @@
   --zn-taille-4: clamp(2.125rem, 1.6rem + 2.4vw, 3.25rem);
   --zn-taille-petite: 0.8125rem;
 
-  /* Formes : papier découpé, pas de cartes arrondies */
-  --zn-rayon: 2px;
+  /* Formes (maquettes v4 à v6) */
+  --zn-rayon-12: 12px; /* champs */
+  --zn-rayon-14: 14px; /* boutons */
+  --zn-rayon-16: 16px;
+  --zn-rayon-22: 22px;
+  --zn-rayon-26: 26px; /* feuille du bas */
+  --zn-rayon-pastille: 999px;
   --zn-trait: 1px solid var(--zn-encre);
   --zn-cible: 2.75rem; /* 44 px */
 
   /* Mouvement (ADR 0017) */
-  --zn-duree-courte: 120ms;
+  --zn-duree-appui: 160ms;
   --zn-duree: 200ms;
-  --zn-courbe: cubic-bezier(0.2, 0, 0, 1);
+  --zn-duree-tampon: 460ms; /* coup de tampon, R1 */
+  --zn-courbe: cubic-bezier(0.23, 1, 0.32, 1);
 }

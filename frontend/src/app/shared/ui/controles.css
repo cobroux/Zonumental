@@ -1,55 +1,51 @@
-/* Contrôles natifs stylés par attribut : bouton, case, interrupteur (ADR 0016).
+/* Contrôles natifs stylés par attribut (ADR 0016, révision v4–v6).
    On stylise l'élément HTML, on ne le réimplémente pas. */
 
 /* ---------- Bouton : button[znBouton], a[znBouton] ---------- */
+/* Principal : encre pleine, 54 px, 14 px (maquette O1) */
 [znBouton] {
   --zn-bouton-fond: var(--zn-action);
-  --zn-bouton-texte: var(--zn-fond);
+  --zn-bouton-texte: var(--zn-fond-clair);
 
-  position: relative;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: var(--zn-esp-2);
-  min-block-size: var(--zn-cible);
+  min-block-size: 3.375rem;
   min-inline-size: var(--zn-cible);
   padding: var(--zn-esp-2) var(--zn-esp-6);
   border: 2px solid var(--zn-bouton-fond);
-  border-radius: var(--zn-rayon);
+  border-radius: var(--zn-rayon-14);
   background-color: var(--zn-bouton-fond);
   color: var(--zn-bouton-texte);
-  font: 650 var(--zn-taille-0) / 1.2 var(--zn-police-ui);
-  letter-spacing: 0.01em;
+  font: 600 var(--zn-taille-0) / 1.2 var(--zn-police-ui);
   text-align: center;
   text-decoration: none;
   cursor: pointer;
   user-select: none;
-  /* Filet intérieur façon visa : un second trait, décalé du bord */
-  box-shadow:
-    inset 0 0 0 3px var(--zn-bouton-fond),
-    inset 0 0 0 4px color-mix(in srgb, var(--zn-bouton-texte) 45%, transparent);
   transition:
-    transform var(--zn-duree-courte) var(--zn-courbe),
+    transform var(--zn-duree-appui) var(--zn-courbe),
     background-color var(--zn-duree) var(--zn-courbe),
     color var(--zn-duree) var(--zn-courbe);
 }
 
+/* Secondaire : lien texte marine, 44 px, 15 px (« J'ai déjà un carnet ») */
 [znBouton='secondaire'] {
-  --zn-bouton-fond: transparent;
-  --zn-bouton-texte: var(--zn-texte);
-
-  border-color: var(--zn-texte);
-  box-shadow: none;
+  min-block-size: var(--zn-cible);
+  padding-block: 0;
+  border-color: transparent;
+  background-color: transparent;
+  color: var(--zn-lien);
+  font-size: 0.9375rem;
+  font-weight: 500;
 }
 
+/* Danger : bordeaux, seulement pour les actions destructrices */
 [znBouton='danger'] {
   --zn-bouton-fond: var(--zn-fond-clair);
   --zn-bouton-texte: var(--zn-erreur);
 
   border-color: var(--zn-erreur);
-  box-shadow:
-    inset 0 0 0 3px var(--zn-fond-clair),
-    inset 0 0 0 4px var(--zn-erreur);
 }
 
 [znBouton]:active {
@@ -62,12 +58,14 @@
   }
 
   [znBouton='secondaire']:not([disabled], [aria-busy='true']):hover {
-    background-color: var(--zn-fond-clair);
+    background-color: transparent;
+    text-decoration: underline;
+    text-underline-offset: 0.2em;
   }
 
   [znBouton='danger']:not([disabled], [aria-busy='true']):hover {
     background-color: var(--zn-erreur);
-    color: var(--zn-fond);
+    color: var(--zn-fond-clair);
   }
 }
 
@@ -75,10 +73,13 @@
   border-style: dashed;
   border-color: var(--zn-texte-doux);
   background-color: transparent;
-  box-shadow: none;
   color: var(--zn-texte-doux);
   cursor: not-allowed;
   transform: none;
+}
+
+[znBouton='secondaire'][disabled] {
+  border-color: transparent;
 }
 
 /* Occupé : le libellé reste, un anneau tourne, les clics sont ignorés */
@@ -103,26 +104,27 @@
   }
 }
 
-/* ---------- Champ : input[znSaisie] dans <zn-champ> ---------- */
-/* Ligne de formulaire de passeport : fond clair, trait épais dessous */
+/* ---------- Champ : input[znSaisie] dans <zn-champ> (maquette O6) ---------- */
 input[znSaisie] {
   flex: 1;
   min-inline-size: 0;
-  min-block-size: var(--zn-cible);
-  padding: var(--zn-esp-2) var(--zn-esp-3);
+  block-size: 3.125rem;
+  padding: 0 0.875rem;
   border: 1px solid var(--zn-bordure-champ);
-  border-block-end-width: 3px;
-  border-radius: var(--zn-rayon);
+  border-radius: var(--zn-rayon-12);
   background-color: var(--zn-fond-clair);
   color: var(--zn-texte);
-  font: 500 var(--zn-taille-0) / 1.3 var(--zn-police-ui);
+  font: 400 var(--zn-taille-0) / 1.3 var(--zn-police-ui);
+}
+
+/* Le contour est renforcé là où l'état compte : focus (marine) et erreur (bordeaux) */
+input[znSaisie]:focus-visible {
+  border-color: var(--zn-focus);
 }
 
 input[znSaisie][aria-invalid='true'] {
   border-color: var(--zn-erreur);
-  border-block-end-color: var(--zn-erreur);
-  box-shadow: inset 6px 0 0 var(--zn-erreur);
-  padding-inline-start: calc(var(--zn-esp-3) + 6px);
+  box-shadow: 0 0 0 1px var(--zn-erreur);
 }
 
 input[znSaisie]:disabled {
@@ -131,7 +133,16 @@ input[znSaisie]:disabled {
   cursor: not-allowed;
 }
 
-/* ---------- Case à cocher : input[type=checkbox][znCase] ---------- */
+/* ---------- Groupe de cases : légende en Geist Mono ---------- */
+legend[znLegende] {
+  margin-block-end: var(--zn-esp-2);
+  padding: 0;
+  color: var(--zn-texte-doux);
+  font: 400 0.6875rem var(--zn-police-mono);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
 label:has(> input[znCase], > input[znInterrupteur]) {
   display: flex;
   align-items: center;
@@ -140,51 +151,19 @@ label:has(> input[znCase], > input[znInterrupteur]) {
   cursor: pointer;
 }
 
+/* ---------- Case à cocher : native, 20 px, accent encre ---------- */
 input[znCase] {
-  appearance: none;
-  display: grid;
   flex: none;
-  place-content: center;
-  inline-size: 1.5rem;
-  block-size: 1.5rem;
+  inline-size: 1.25rem;
+  block-size: 1.25rem;
   margin: 0;
-  border: 2px solid var(--zn-bordure-champ);
-  border-radius: var(--zn-rayon);
-  background-color: var(--zn-fond-clair);
+  accent-color: var(--zn-encre);
   cursor: inherit;
-  transition:
-    background-color var(--zn-duree-courte) var(--zn-courbe),
-    transform var(--zn-duree-courte) var(--zn-courbe);
-}
-
-input[znCase]::before {
-  content: '';
-  inline-size: 0.875rem;
-  block-size: 0.875rem;
-  background-color: var(--zn-fond);
-  clip-path: polygon(14% 52%, 0 66%, 38% 100%, 100% 22%, 86% 8%, 38% 72%);
-  transform: scale(0);
-  transition: transform var(--zn-duree-courte) var(--zn-courbe);
-}
-
-input[znCase]:checked {
-  border-color: var(--zn-action);
-  background-color: var(--zn-action);
-}
-
-input[znCase]:checked::before {
-  transform: scale(1);
 }
 
 input[znCase][aria-invalid='true'] {
-  border-color: var(--zn-erreur);
-  box-shadow: 0 0 0 1px var(--zn-erreur);
-}
-
-input[znCase]:disabled {
-  border-style: dashed;
-  opacity: 0.55;
-  cursor: not-allowed;
+  outline: 2px solid var(--zn-erreur);
+  outline-offset: 2px;
 }
 
 /* ---------- Interrupteur : input[type=checkbox][role=switch][znInterrupteur] ---------- */
@@ -195,8 +174,8 @@ input[znInterrupteur] {
   inline-size: 3.25rem;
   block-size: 1.875rem;
   margin: 0;
-  border: 2px solid var(--zn-bordure-champ);
-  border-radius: 1rem;
+  border: 2px solid var(--zn-bordure-controle);
+  border-radius: var(--zn-rayon-pastille);
   background-color: var(--zn-fond-clair);
   cursor: inherit;
   transition: background-color var(--zn-duree) var(--zn-courbe);
@@ -209,7 +188,7 @@ input[znInterrupteur]::before {
   inset-block: 0.1875rem;
   inset-inline-start: 0.1875rem;
   inline-size: 1.25rem;
-  border: 2px solid var(--zn-bordure-champ);
+  border: 2px solid var(--zn-bordure-controle);
   border-radius: 50%;
   background-color: var(--zn-fond-clair);
   transition:
@@ -223,8 +202,8 @@ input[znInterrupteur]:checked {
 }
 
 input[znInterrupteur]:checked::before {
-  border-color: var(--zn-fond);
-  background-color: var(--zn-fond);
+  border-color: var(--zn-fond-clair);
+  background-color: var(--zn-fond-clair);
   transform: translateX(1.375rem);
 }
 
@@ -238,15 +217,31 @@ input[znInterrupteur]:disabled {
   cursor: not-allowed;
 }
 
+/* ---------- Pastille de rareté : le mot est toujours écrit ---------- */
+[znRarete] {
+  display: inline-flex;
+  align-items: center;
+  block-size: 1.75rem;
+  padding-inline: var(--zn-esp-3);
+  border: 1px solid var(--zn-texte);
+  border-radius: var(--zn-rayon-pastille);
+  color: var(--zn-texte);
+  font: 600 0.75rem var(--zn-police-ui);
+}
+
+[znRarete='rare'] {
+  border-color: var(--zn-marine);
+  background-color: var(--zn-marine);
+  color: var(--zn-fond-clair);
+}
+
+[znRarete='legendaire'] {
+  border-color: var(--zn-ocre);
+  background-color: var(--zn-ocre);
+  color: var(--zn-texte);
+}
+
 @media (forced-colors: active) {
-  input[znCase]::before {
-    background-color: CanvasText;
-  }
-
-  input[znCase]:checked {
-    background-color: Canvas;
-  }
-
   input[znInterrupteur]::before {
     background-color: CanvasText;
   }

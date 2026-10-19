@@ -44,10 +44,43 @@ test('la palette validée est définie une seule fois dans tokens.css', () => {
     '--zn-sapin': '#2F5D4A',
     '--zn-ocre': '#B07A2A',
     '--zn-ocre-texte': '#8A5E1E',
+    '--zn-papier-clair': '#FBF9F4',
+    // gris et nuit des maquettes v4 à v6
+    '--zn-gris-libelle': '#5B5F66',
+    '--zn-gris-texte': '#2C2F34',
+    '--zn-gris-45': '#45494F',
+    '--zn-gris-6b': '#6B6F75',
+    '--zn-nuit': '#0E0F11',
   };
   for (const [nom, hex] of Object.entries(attendu)) {
     assert.equal(variables[nom]?.toUpperCase(), hex, nom);
   }
+  assert.equal(variables['--zn-encre-douce'], undefined);
+});
+
+test('arrondis des maquettes v4–v6 : 12, 14, 16, 22, 26 px et pastille ; plus de 2 px', () => {
+  const attendu = { 12: '12px', 14: '14px', 16: '16px', 22: '22px', 26: '26px' };
+  for (const [n, px] of Object.entries(attendu)) {
+    assert.equal(variables[`--zn-rayon-${n}`], px);
+  }
+  assert.equal(variables['--zn-rayon-pastille'], '999px');
+  assert.equal(variables['--zn-rayon'], undefined);
+});
+
+test('mouvement : appui 160 ms, coup de tampon 460 ms, courbe des maquettes', () => {
+  assert.equal(variables['--zn-duree-appui'], '160ms');
+  assert.equal(variables['--zn-duree-tampon'], '460ms');
+  assert.equal(variables['--zn-courbe'], 'cubic-bezier(0.23, 1, 0.32, 1)');
+  const controles = lire('src/app/shared/ui/controles.css');
+  assert.match(controles, /\[znBouton\]:active\s*{\s*transform:\s*scale\(0\.97\)/);
+});
+
+test('bouton principal : encre, 54 px, 14 px ; pas de double filet', () => {
+  const css = lire('src/app/shared/ui/controles.css');
+  assert.match(css, /min-block-size:\s*3\.375rem/);
+  assert.match(css, /border-radius:\s*var\(--zn-rayon-14\)/);
+  assert.equal(variables['--zn-action'], 'var(--zn-encre)');
+  assert.doesNotMatch(css, /inset 0 0 0 3px/);
 });
 
 test('aucune couleur hexadécimale en dehors de tokens.css', () => {
@@ -63,7 +96,14 @@ test('les rôles utilisés par les composants respectent WCAG AA', () => {
     ['--zn-texte', '--zn-fond-clair'],
     ['--zn-texte-doux', '--zn-fond'],
     ['--zn-texte-doux', '--zn-fond-clair'],
-    ['--zn-fond', '--zn-action'],
+    ['--zn-fond-clair', '--zn-action'],
+    ['--zn-gris-texte', '--zn-fond'],
+    ['--zn-gris-45', '--zn-fond'],
+    ['--zn-gris-6b', '--zn-fond-clair'], // sur papier (#F4F1EA) : 4,48:1, donc interdit en texte courant
+    ['--zn-fond-clair', '--zn-marine'], // pastille Rare
+    ['--zn-texte', '--zn-ocre'], // pastille Légendaire
+    ['--zn-lien', '--zn-fond'],
+    ['--zn-fond', '--zn-nuit'],
     ['--zn-erreur', '--zn-fond'],
     ['--zn-erreur', '--zn-fond-clair'],
     ['--zn-succes', '--zn-fond'],
@@ -75,12 +115,14 @@ test('les rôles utilisés par les composants respectent WCAG AA', () => {
   for (const [fg, bg] of texte) {
     assert.ok(contraste(fg, bg) >= 4.5, `${fg} sur ${bg} : ${contraste(fg, bg).toFixed(2)}`);
   }
-  // éléments d'interface (focus, bordure de champ) : 3:1 (1.4.11)
+  // éléments d'interface : 3:1 (1.4.11). La bordure de champ au repos (rgba .22 des maquettes,
+  // environ 1,6:1) est un écart assumé et signalé : le focus et l'erreur sont renforcés.
   for (const [fg, bg] of [
     ['--zn-focus', '--zn-fond'],
     ['--zn-focus', '--zn-fond-clair'],
-    ['--zn-bordure-champ', '--zn-fond-clair'],
-    ['--zn-bordure-champ', '--zn-fond'],
+    ['--zn-erreur', '--zn-fond-clair'],
+    ['--zn-bordure-controle', '--zn-fond-clair'],
+    ['--zn-bordure-controle', '--zn-fond'],
   ]) {
     assert.ok(contraste(fg, bg) >= 3, `${fg} sur ${bg} : ${contraste(fg, bg).toFixed(2)}`);
   }

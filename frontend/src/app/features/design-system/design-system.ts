@@ -18,8 +18,9 @@ export class DesignSystem {
     { id: 'boutons', numero: '03', titre: 'Boutons' },
     { id: 'champs', numero: '04', titre: 'Champs' },
     { id: 'cases', numero: '05', titre: 'Cases et interrupteurs' },
-    { id: 'messages', numero: '06', titre: 'Messages' },
-    { id: 'liens', numero: '07', titre: 'Liens et navigation' },
+    { id: 'raretes', numero: '06', titre: 'Raretés' },
+    { id: 'messages', numero: '07', titre: 'Messages' },
+    { id: 'liens', numero: '08', titre: 'Liens et navigation' },
   ];
 
   protected readonly couleurs = [
@@ -29,5 +30,13 @@ export class DesignSystem {
     { nom: 'Bordeaux', token: '--zn-bordeaux' },
     { nom: 'Sapin', token: '--zn-sapin' },
     { nom: 'Ocre', token: '--zn-ocre' },
+  ];
+
+  protected readonly gris = [
+    { nom: 'Gris libellé', token: '--zn-gris-libelle' },
+    { nom: 'Gris texte', token: '--zn-gris-texte' },
+    { nom: 'Gris 45', token: '--zn-gris-45' },
+    { nom: 'Gris 6B', token: '--zn-gris-6b' },
+    { nom: 'Nuit', token: '--zn-nuit' },
   ];
 }

@@ -27,11 +27,23 @@
     <p class="rubrique zn-mono">01</p>
     <h2 id="couleurs-titre">Couleurs</h2>
     <p>
-      Six couleurs, définies une seule fois. L'ocre sert aux fonds du légendaire&nbsp;; son texte
-      utilise une variante plus sombre pour rester lisible.
+      Six couleurs, définies une seule fois, et quelques gris. L'ocre sert aux fonds du
+      légendaire&nbsp;; son texte utilise une variante plus sombre pour rester lisible.
     </p>
     <ul class="puces">
       @for (couleur of couleurs; track couleur.nom) {
+        <li class="puce">
+          <span
+            class="puce__echantillon"
+            [style.background-color]="'var(' + couleur.token + ')'"
+          ></span>
+          <span class="puce__nom">{{ couleur.nom }}</span>
+          <code>{{ couleur.token }}</code>
+        </li>
+      }
+    </ul>
+    <ul class="puces">
+      @for (couleur of gris; track couleur.nom) {
         <li class="puce">
           <span
             class="puce__echantillon"
@@ -68,7 +80,16 @@
   <section id="boutons" aria-labelledby="boutons-titre">
     <p class="rubrique zn-mono">03</p>
     <h2 id="boutons-titre">Boutons</h2>
-    <p>Cible de 44&nbsp;px minimum, retour de pression, libellé conservé quand il est occupé.</p>
+    <p>
+      Principal en encre (54&nbsp;px), action secondaire en lien marine. Retour de pression, libellé
+      conservé quand le bouton est occupé.
+    </p>
+    <div class="bienvenue">
+      <p class="bienvenue__titre">Zonumental</p>
+      <p>Va voir les monuments de France. Chaque visite imprime un tampon dans ton carnet.</p>
+      <a znBouton routerLink="/design-system" fragment="champs">Commencer</a>
+      <a znBouton="secondaire" routerLink="/design-system" fragment="liens">J'ai déjà un carnet</a>
+    </div>
     <table class="etats">
       <caption class="zn-sr">
         États du bouton par variante
@@ -102,22 +123,20 @@
         </tr>
       </tbody>
     </table>
-    <p>Un lien peut prendre l'apparence d'un bouton&nbsp;:</p>
-    <p><a znBouton="secondaire" routerLink="/design-system" fragment="liens">Aller aux liens</a></p>
   </section>
 
   <section id="champs" aria-labelledby="champs-titre">
     <p class="rubrique zn-mono">04</p>
     <h2 id="champs-titre">Champs</h2>
     <p>
-      Libellé visible, aide et erreur reliées au champ. L'erreur n'est jamais portée par la couleur
-      seule.
+      Libellé visible, aide à droite, erreur reliée au champ. L'erreur n'est jamais portée par la
+      couleur seule.
     </p>
     <div class="grille-champs">
-      <zn-champ label="Pseudo" aide="3 à 20 caractères : lettres, chiffres, tiret, souligné">
-        <input znSaisie name="pseudo" autocomplete="username" value="explorateur_75" />
+      <zn-champ label="Pseudo" aide="visible seulement si tu l'acceptes">
+        <input znSaisie name="pseudo" autocomplete="username" placeholder="ex. explorateur75" />
       </zn-champ>
-      <zn-champ label="Adresse e-mail" erreur="Un carnet existe déjà avec cette adresse e-mail.">
+      <zn-champ label="E-mail" erreur="Un carnet existe déjà avec cette adresse e-mail.">
         <input znSaisie name="email" type="email" autocomplete="email" value="camille@exemple.fr" />
       </zn-champ>
       <zn-champ label="Mot de passe" aide="12 caractères minimum" [motDePasse]="true">
@@ -144,13 +163,30 @@
     </p>
     <div class="grille-champs">
       <fieldset class="groupe">
-        <legend>Case à cocher</legend>
-        <label><input znCase type="checkbox" /> Apparaître au classement</label>
-        <label><input znCase type="checkbox" checked /> J'accepte les CGU</label>
-        <label><input znCase type="checkbox" disabled /> Indisponible</label>
+        <legend znLegende>Tes choix</legend>
+        <label
+          ><input znCase type="checkbox" />
+          <span
+            >J'accepte les CGU et la politique de confidentialité.
+            <span class="note">Obligatoire</span></span
+          ></label
+        >
+        <label
+          ><input znCase type="checkbox" />
+          <span
+            >Apparaître dans les classements sous mon pseudo.
+            <span class="note">Facultatif</span></span
+          ></label
+        >
+        <label
+          ><input znCase type="checkbox" checked />
+          <span
+            >Recevoir les nouveaux défis par e-mail. <span class="note">Facultatif</span></span
+          ></label
+        >
       </fieldset>
       <fieldset class="groupe">
-        <legend>Interrupteur</legend>
+        <legend znLegende>Interrupteur</legend>
         <label><input znInterrupteur type="checkbox" role="switch" /> Recevoir des e-mails</label>
         <label
           ><input znInterrupteur type="checkbox" role="switch" checked /> Partager ma
@@ -164,8 +200,19 @@
     </div>
   </section>
 
-  <section id="messages" aria-labelledby="messages-titre">
+  <section id="raretes" aria-labelledby="raretes-titre">
     <p class="rubrique zn-mono">06</p>
+    <h2 id="raretes-titre">Raretés</h2>
+    <p>Le mot est toujours écrit&nbsp;: la couleur n'est qu'un plus.</p>
+    <p class="raretes">
+      <span znRarete="commun">Commun</span>
+      <span znRarete="rare">Rare</span>
+      <span znRarete="legendaire">Légendaire</span>
+    </p>
+  </section>
+
+  <section id="messages" aria-labelledby="messages-titre">
+    <p class="rubrique zn-mono">07</p>
     <h2 id="messages-titre">Messages</h2>
     <div class="pile">
       <zn-message type="erreur">Ce pseudo est déjà pris, choisis-en un autre.</zn-message>
@@ -175,7 +222,7 @@
   </section>
 
   <section id="liens" aria-labelledby="liens-titre">
-    <p class="rubrique zn-mono">07</p>
+    <p class="rubrique zn-mono">08</p>
     <h2 id="liens-titre">Liens et navigation</h2>
     <p>
       Un lien est toujours souligné, par exemple vers
