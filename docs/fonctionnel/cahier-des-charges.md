@@ -173,3 +173,5 @@ Maquettes : canvas Design « Zonumental — Directions artistiques » (https://c
 - **Classement → Profil** (pas de sens au lancement avec peu de joueurs) ; « Ta France » → Carte ; « Derniers tampons » réduit à une seule ligne.
 - **Accessibilité** : la rareté est écrite en toutes lettres dans le tampon, pas seulement indiquée par la couleur de l'encre.
 - **Toujours concevoir les états jour 0 / jour 3 / jour 60.** Tester sur le terrain (dehors, au soleil) avec 5 à 8 personnes : test de 5 secondes et test de mémoire.
+- **Navigation v4** : Accueil · Carnet · [Tamponner] · Carte · Défis, avec libellés, barre couleur papier. Le profil est accessible par l'avatar en haut de l'écran. Le bouton Tamponner reflète la position GPS : gris (aucun monument à moins de 2 km), bordeaux + distance (monument proche), halo vert (dans la zone, moins de 150 m).
+- **Classement** : dans l'onglet Défis (portées Amis / Ville / France). Au lancement, le classement d'une ville s'ouvre à 50 explorateurs ; avant, on se mesure à ses amis. Le pseudo n'apparaît que s'il l'accepte (RGPD).
