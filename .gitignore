@@ -48,3 +48,6 @@ graphify-out/
 *.swp
 .DS_Store
 Thumbs.db
+
+# --- Brouillon de passation entre sessions ---
+HANDOFF.md
