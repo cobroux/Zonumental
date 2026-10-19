@@ -27,7 +27,7 @@ Chaque release est livrable et testable seule, et donne un epic dans `.stories/`
 | --- | --- | --- | --- |
 | R0 | Socle | Comptes (inscription, connexion, vérification email, mot de passe oublié), RGPD (consentements, export, suppression), import du catalogue, **identité visuelle + design system**, CI/CD et déploiement | Une app en ligne, avec son style, où l'on crée un compte |
 | R1 | Capturer | Pokédex numéroté avec silhouettes, fiche monument (type, stats), capture photo + GPS, section histoire débloquée | Premier jeu jouable, test terrain |
-| R2 | Collectionner | Rareté (Commun / Rare / Légendaire), succès, collections thématiques | Objectifs long terme |
+| R2 | Collectionner | Succès, collections thématiques (la rareté est affichée dès R1, décision du 2026-10-19) | Objectifs long terme |
 | R3 | Explorer | Carte de France à dévoiler (brouillard levé autour des captures) | Progression visible |
 | R4 | Partager | Carte de capture partageable (Instagram, TikTok…) au design soigné | **Lancement public (bêta)** |
 | R5 | Progresser | XP, niveaux du joueur, quiz après capture (sur la section histoire) | Rejouabilité |

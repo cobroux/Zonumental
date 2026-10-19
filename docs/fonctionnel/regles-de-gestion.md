@@ -1,6 +1,6 @@
 # Règles de gestion — R0 « Socle » et R1 « Capturer »
 
-Source de vérité : `cahier-des-charges.md` (CDC). Les valeurs marquées **[à valider]** sont des propositions par défaut, listées dans « Questions ouvertes ». Périmètre : R0 et R1 uniquement (rareté affichée, succès, XP, classement, carte, partage = R2+).
+Source de vérité : `cahier-des-charges.md` (CDC). Les valeurs marquées **[à valider]** sont des propositions par défaut, listées dans « Questions ouvertes ». Périmètre : R0 et R1 uniquement (succès, XP, classement, carte, partage = R2+). Décisions client du 2026-10-19 : voir « Décisions » en fin de document ; toutes les valeurs **[à valider]** restantes sont validées par défaut.
 
 ## Module Compte (RG-001 à RG-015)
 
@@ -34,7 +34,7 @@ Source de vérité : `cahier-des-charges.md` (CDC). Les valeurs marquées **[à 
 - Cas limite : espaces et caractères accentués acceptés ; pas d'exigence de composition (majuscule, symbole) **[à valider]**.
 - Source : §5, §7.
 
-**RG-007 — Vérification de l'e-mail.** À l'inscription, un lien est envoyé à l'adresse. Le compte n'est « vérifié » qu'après clic sur ce lien. Le lien est à usage unique et expire (24 h **[à valider]**). L'explorateur peut demander un nouvel envoi, ce qui invalide l'ancien lien. Tant que l'e-mail n'est pas vérifié, la capture est impossible **[à valider]**.
+**RG-007 — Vérification de l'e-mail.** À l'inscription, un lien est envoyé à l'adresse. Le compte n'est « vérifié » qu'après clic sur ce lien. Le lien est à usage unique et expire (24 h **[à valider]**). L'explorateur peut demander un nouvel envoi, ce qui invalide l'ancien lien. Tant que l'e-mail n'est pas vérifié, la capture est impossible (décision client, Q-10).
 - Exemple : clic dans les 24 h : « E-mail confirmé ».
 - Cas limite : lien expiré ou déjà utilisé : message clair + renvoi proposé. Lien ouvert sur un autre appareil : fonctionne.
 - Source : §3 R0, §7 sécurité.
@@ -103,7 +103,7 @@ Source de vérité : `cahier-des-charges.md` (CDC). Les valeurs marquées **[à 
 
 **RG-020 — Rareté calculée à l'import.** Selon la popularité sur l'ensemble du catalogue : 5 % les plus populaires = Légendaire, 20 % suivants = Rare, le reste = Commun. Stockée avec le monument.
 - Exemple : 120 monuments : 6 Légendaires, 24 Rares, 90 Communs.
-- Cas limite : arrondi aux entiers (voir Q-8). Affichage de la rareté : R2, pas en R1 (voir Q-6).
+- Cas limite : arrondi aux entiers (voir Q-8). Affichage de la rareté : dès R1, en toutes lettres dans le tampon et sur la fiche (décision client, Q-6).
 - Source : §5.
 
 **RG-021 — Rayon de capture.** 150 m par défaut, ajustable par monument (grand site, enceinte vaste). Le rayon ajusté survit aux imports.
@@ -150,7 +150,7 @@ Source de vérité : `cahier-des-charges.md` (CDC). Les valeurs marquées **[à 
 
 **RG-029 — Ordre des contrôles.** Le serveur vérifie, dans cet ordre et en s'arrêtant à la première erreur : connexion, format et taille de l'image, limite de fréquence, précision GPS, distance, vitesse plausible. Aucune vérification n'est faite uniquement côté appli.
 - Exemple : explorateur trop loin avec GPS imprécis : message « signal trop faible » (précision avant distance).
-- Cas limite : e-mail non vérifié (RG-007) : refusé avant tout autre contrôle **[à valider]**.
+- Cas limite : e-mail non vérifié (RG-007) : refusé avant tout autre contrôle (décision client, Q-10).
 - Source : §6.5, §6 anti-triche.
 
 **RG-030 — Limite de fréquence.** Un explorateur ne peut pas valider plus de 10 captures par heure glissante **[à valider]**. Au-delà : refus avec le délai avant le prochain essai possible.
@@ -215,7 +215,7 @@ Source de vérité : `cahier-des-charges.md` (CDC). Les valeurs marquées **[à 
 - Cas limite : trou de numérotation (RG-019) : pas de case vide, la série est simplement discontinue.
 - Source : §3 R1, §12.
 
-**RG-042 — Fiche d'un monument non capturé.** Affiche numéro, type et ville ; nom et image selon décision Q-4 (proposition : nom masqué, silhouette). Section histoire verrouillée.
+**RG-042 — Fiche d'un monument non capturé.** Affiche numéro, nom, type, ville, rareté, distance et une photo en noir et blanc (décision client, Q-4). Le tampon, la section histoire et la photo en couleur sont verrouillés jusqu'à la capture.
 - Exemple : fiche n° 12 : « ??? » + indice de type, bouton « Aller le tamponner ».
 - Cas limite : un monument proche, même non capturé, montre sa distance.
 - Source : §3 R1.
@@ -263,3 +263,11 @@ Chacune porte une proposition par défaut, à valider par le PO / client. Les va
 | Q-20 | Formats d'image acceptés | JPEG, PNG, WebP |
 | Q-21 | Comportement si l'explorateur change d'appareil / de navigateur en pleine capture (session expirée) | Reconnexion puis nouvelle prise de photo |
 | Q-22 | Mot de passe ≥ 12 caractères, pseudo unique et âge ≥ 15 ans sont partiellement hors CDC (pseudo unique et 12 caractères non écrits) | Retenus comme consignes AMOA ; à faire confirmer |
+
+## Décisions client (2026-10-19)
+
+- **Q-4** : le nom, le numéro, la rareté, la distance et une photo noir et blanc d'un monument non capturé sont **visibles**. Seuls le tampon, l'histoire et la photo couleur sont verrouillés.
+- **Q-6** : la rareté est **affichée dès R1** (tampon et fiche). R2 garde les succès et les collections.
+- **Q-10** : **aucune capture tant que l'e-mail n'est pas vérifié** (l'exploration reste possible).
+- **Q-19** : le libellé de l'onglet est « Explorer » (cahier des charges §12, icônes) ; le nom de la collection est encore à trouver avant le lancement public.
+- **Toutes les autres questions (Q-1 à Q-3, Q-5, Q-7 à Q-9, Q-11 à Q-18, Q-20 à Q-22)** : les propositions par défaut sont **validées**.
