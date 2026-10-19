@@ -1,11 +1,12 @@
 import { ChangeDetectionStrategy, Component } from '@angular/core';
+import { RouterLink } from '@angular/router';
 import { ZnChamp, ZnSaisie } from '../../shared/ui/champ';
 import { ZnMessage } from '../../shared/ui/message';
 
 /** Page de démonstration du design system : chaque composant dans tous ses états. */
 @Component({
   selector: 'app-design-system',
-  imports: [ZnChamp, ZnSaisie, ZnMessage],
+  imports: [RouterLink, ZnChamp, ZnSaisie, ZnMessage],
   templateUrl: './design-system.html',
   styleUrl: './design-system.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
