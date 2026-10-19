@@ -1,6 +1,28 @@
-import { test } from 'node:test';
+import { test, before, after } from 'node:test';
 import assert from 'node:assert/strict';
 import { ESLint } from 'eslint';
+import { mkdirSync, writeFileSync, rmSync } from 'node:fs';
+
+// Le plugin ne classe que des cibles existantes : on crée des fichiers jetables.
+const targets = [
+  'src/app/features/legal/b.ts',
+  'src/app/features/legal/legal.routes.ts',
+  'src/app/features/compte/connexion/b.ts',
+  'src/app/shared/b.ts',
+  'src/app/core/b.ts',
+];
+before(() =>
+  targets.forEach((f) => {
+    mkdirSync(f.replace(/\/[^/]+$/, ''), { recursive: true });
+    writeFileSync(f, 'export const x = 1;\n');
+  }),
+);
+after(() => {
+  rmSync('src/app/features/legal', { recursive: true, force: true });
+  rmSync('src/app/features/compte', { recursive: true, force: true });
+  rmSync('src/app/shared/b.ts');
+  rmSync('src/app/core/b.ts');
+});
 
 const lint = async (filePath, code) => {
   const [r] = await new ESLint().lintText(code, { filePath });
