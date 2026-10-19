@@ -3,7 +3,7 @@
 **ID:** r0-socle-2
 **Epic:** r0-socle
 **Sprint:** 1
-**Status:** in-progress
+**Status:** done
 **Points:** 3
 
 ## Context
