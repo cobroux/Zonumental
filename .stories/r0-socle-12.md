@@ -2,7 +2,7 @@
 
 **ID:** r0-socle-12
 **Epic:** r0-socle
-**Sprint:** unassigned
+**Sprint:** 1
 **Status:** todo
 **Points:** 2
 
