@@ -3,8 +3,10 @@ package fr.zonumental.catalogue;
 import java.math.BigDecimal;
 import java.net.URI;
 import java.net.URLDecoder;
+import java.net.http.HttpClient;
 import java.nio.charset.StandardCharsets;
 import java.time.Clock;
+import java.time.Duration;
 import java.time.YearMonth;
 import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
@@ -12,6 +14,8 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Supplier;
+import org.springframework.http.client.ClientHttpRequestFactory;
+import org.springframework.http.client.JdkClientHttpRequestFactory;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestClient;
 import org.springframework.web.util.UriComponentsBuilder;
@@ -51,14 +55,40 @@ public class SourceWikimedia implements SourceMonuments {
   private final long delaiMs;
   private final ObjectMapper json = new ObjectMapper();
 
+  private final RestClient sparql;
+
   public SourceWikimedia(RestClient.Builder builder, Clock clock, String contact, long delaiMs) {
+    this(builder, builder.clone(), clock, contact, delaiMs);
+  }
+
+  /** {@code builderSparql} : client à lecture longue pour query.wikidata.org seulement. */
+  public SourceWikimedia(
+      RestClient.Builder builder,
+      RestClient.Builder builderSparql,
+      Clock clock,
+      String contact,
+      long delaiMs) {
     if (contact == null || contact.isBlank()) {
       throw new IllegalStateException("ZONUMENTAL_CONTACT est obligatoire pour l'import");
     }
     // Politique User-Agent de Wikimedia : contact propre au projet, jamais une adresse perso.
-    this.http = builder.defaultHeader("User-Agent", "Zonumental/0.1 (" + contact + ")").build();
+    String ua = "Zonumental/0.1 (" + contact + ")";
+    this.http = builder.defaultHeader("User-Agent", ua).build();
+    this.sparql = builderSparql.defaultHeader("User-Agent", ua).build();
     this.clock = clock;
     this.delaiMs = delaiMs;
+  }
+
+  /** Délais HTTP explicites (jamais ceux, infinis, par défaut). */
+  public static ClientHttpRequestFactory fabrique(Duration connexion, Duration lecture) {
+    var f =
+        new JdkClientHttpRequestFactory(
+            HttpClient.newBuilder()
+                .connectTimeout(connexion)
+                .followRedirects(HttpClient.Redirect.NORMAL)
+                .build());
+    f.setReadTimeout(lecture);
+    return f;
   }
 
   @Override
@@ -225,7 +255,8 @@ public class SourceWikimedia implements SourceMonuments {
   }
 
   private JsonNode lireJson(URI uri) {
-    String corps = avecEssais(() -> http.get().uri(uri).retrieve().body(String.class));
+    RestClient client = "query.wikidata.org".equals(uri.getHost()) ? sparql : http;
+    String corps = avecEssais(() -> client.get().uri(uri).retrieve().body(String.class));
     return json.readTree(corps);
   }
 
