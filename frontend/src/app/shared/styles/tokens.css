@@ -18,6 +18,7 @@
   --zn-gris-45: #45494f;
   --zn-gris-6b: #6b6f75; /* 4,5:1 sur papier clair seulement : pas de texte sur papier */
   --zn-nuit: #0e0f11;
+  --zn-gris-bordure: #858b95; /* le plus clair des gris à 3:1 sur papier (3,04:1) : bordure de champ */
 
   /* Rôles : les composants utilisent ceux-ci, jamais les couleurs brutes */
   --zn-fond: var(--zn-papier);
@@ -29,7 +30,7 @@
   --zn-succes: var(--zn-sapin);
   --zn-erreur: var(--zn-bordeaux);
   --zn-focus: var(--zn-marine);
-  --zn-bordure-champ: rgba(26, 28, 32, 0.22); /* maquettes : repos du champ */
+  --zn-bordure-champ: var(--zn-gris-bordure); /* repos du champ, WCAG 1.4.11 */
   --zn-bordure-controle: var(--zn-gris-libelle); /* case, interrupteur : 3:1 */
 
   /* Espacements (base 4 px) */

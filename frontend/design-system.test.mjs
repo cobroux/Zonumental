@@ -115,12 +115,13 @@ test('les rôles utilisés par les composants respectent WCAG AA', () => {
   for (const [fg, bg] of texte) {
     assert.ok(contraste(fg, bg) >= 4.5, `${fg} sur ${bg} : ${contraste(fg, bg).toFixed(2)}`);
   }
-  // éléments d'interface : 3:1 (1.4.11). La bordure de champ au repos (rgba .22 des maquettes,
-  // environ 1,6:1) est un écart assumé et signalé : le focus et l'erreur sont renforcés.
+  // éléments d'interface : 3:1 (1.4.11), dont la bordure de champ au repos
   for (const [fg, bg] of [
     ['--zn-focus', '--zn-fond'],
     ['--zn-focus', '--zn-fond-clair'],
     ['--zn-erreur', '--zn-fond-clair'],
+    ['--zn-bordure-champ', '--zn-fond'],
+    ['--zn-bordure-champ', '--zn-fond-clair'],
     ['--zn-bordure-controle', '--zn-fond-clair'],
     ['--zn-bordure-controle', '--zn-fond'],
   ]) {
