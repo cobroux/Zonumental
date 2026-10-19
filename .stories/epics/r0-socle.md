@@ -31,7 +31,7 @@ Livrer une application en ligne, avec son style (direction B « Carnet d'explora
 | ID | Title | Status |
 | --- | --- | --- |
 | r0-socle-1 | Projet backend Spring Boot par fonctionnalité avec garde-fous qualité | todo |
-| r0-socle-2 | Projet frontend Angular PWA par fonctionnalité avec garde-fous qualité | todo |
+| r0-socle-2 | Projet frontend Angular PWA par fonctionnalité avec garde-fous qualité | in-progress |
 | r0-socle-3 | Design system dans le code à partir des tokens validés | todo |
 | r0-socle-4 | Contrat OpenAPI et client Angular généré | todo |
 | r0-socle-5 | Déploiement conteneurisé d'un environnement | todo |
