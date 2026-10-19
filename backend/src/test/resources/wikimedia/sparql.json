@@ -1,0 +1,41 @@
+{
+  "head": {"vars": ["item"]},
+  "results": {"bindings": [
+    {
+      "item": {"type": "uri", "value": "http://www.wikidata.org/entity/Q1"},
+      "label": {"type": "literal", "value": "Tour Test", "xml:lang": "fr"},
+      "merimee": {"type": "literal", "value": "PA00000001"},
+      "coord": {"type": "literal", "value": "Point(2.2945 48.8584)"},
+      "article": {"type": "uri", "value": "https://fr.wikipedia.org/wiki/Tour_Test"},
+      "image": {"type": "uri", "value": "http://commons.wikimedia.org/wiki/Special:FilePath/Tour%20Test.jpg"},
+      "inception": {"type": "literal", "value": "1889-01-01T00:00:00Z"},
+      "precision": {"type": "literal", "value": "9"},
+      "styleLabel": {"type": "literal", "value": "Art nouveau", "xml:lang": "fr"},
+      "height": {"type": "literal", "value": "330"},
+      "unit": {"type": "uri", "value": "http://www.wikidata.org/entity/Q11573"},
+      "types": {"type": "literal", "value": "Q12518,Q41176"}
+    },
+    {
+      "item": {"type": "uri", "value": "http://www.wikidata.org/entity/Q1"},
+      "label": {"type": "literal", "value": "Tour Test", "xml:lang": "fr"},
+      "merimee": {"type": "literal", "value": "PA00000001"},
+      "coord": {"type": "literal", "value": "Point(2.2945 48.8584)"},
+      "article": {"type": "uri", "value": "https://fr.wikipedia.org/wiki/Tour_Test"},
+      "styleLabel": {"type": "literal", "value": "Autre style", "xml:lang": "fr"},
+      "types": {"type": "literal", "value": "Q12518"}
+    },
+    {
+      "item": {"type": "uri", "value": "http://www.wikidata.org/entity/Q2"},
+      "label": {"type": "literal", "value": "Église Sans Licence", "xml:lang": "fr"},
+      "merimee": {"type": "literal", "value": "PA00000002"},
+      "coord": {"type": "literal", "value": "Point(2.35 48.85)"},
+      "article": {"type": "uri", "value": "https://fr.wikipedia.org/wiki/%C3%89glise_Sans_Licence"},
+      "image": {"type": "uri", "value": "http://commons.wikimedia.org/wiki/Special:FilePath/Sans.jpg"},
+      "inception": {"type": "literal", "value": "1100-01-01T00:00:00Z"},
+      "precision": {"type": "literal", "value": "7"},
+      "height": {"type": "literal", "value": "3000"},
+      "unit": {"type": "uri", "value": "http://www.wikidata.org/entity/Q174728"},
+      "types": {"type": "literal", "value": "Q16970"}
+    }
+  ]}
+}

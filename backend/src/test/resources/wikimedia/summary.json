@@ -1,0 +1,5 @@
+{
+  "title": "Tour Test",
+  "extract": "La Tour Test est un monument de test.",
+  "content_urls": {"desktop": {"page": "https://fr.wikipedia.org/wiki/Tour_Test"}}
+}
