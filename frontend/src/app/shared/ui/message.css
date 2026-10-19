@@ -1,0 +1,35 @@
+/* Encart façon note de visa : filet gauche épais, étiquette en mono capitales. */
+:host {
+  --zn-message-couleur: var(--zn-texte);
+
+  display: flex;
+  align-items: flex-start;
+  gap: var(--zn-esp-3);
+  padding: var(--zn-esp-3) var(--zn-esp-4);
+  border: 1px solid var(--zn-message-couleur);
+  border-inline-start-width: 6px;
+  border-radius: var(--zn-rayon);
+  background-color: var(--zn-fond-clair);
+  color: var(--zn-texte);
+}
+
+:host([data-type='erreur']) {
+  --zn-message-couleur: var(--zn-erreur);
+}
+
+:host([data-type='succes']) {
+  --zn-message-couleur: var(--zn-succes);
+}
+
+zn-icone {
+  margin-block-start: 0.1em;
+  color: var(--zn-message-couleur);
+}
+
+.zn-message__etiquette {
+  margin-inline-end: var(--zn-esp-2);
+  color: var(--zn-message-couleur);
+  font: 600 var(--zn-taille-petite) var(--zn-police-mono);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}

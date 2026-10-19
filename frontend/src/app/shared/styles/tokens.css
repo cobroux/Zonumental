@@ -1,0 +1,58 @@
+/* Tokens du design system « Carnet d'explorateur » (ADR 0016).
+   Seul fichier où une couleur hexadécimale est autorisée. */
+:root {
+  color-scheme: light;
+
+  /* Palette validée (cahier §12) */
+  --zn-papier: #f4f1ea;
+  --zn-papier-clair: #fbf9f4;
+  --zn-encre: #1a1c20;
+  --zn-encre-douce: #50545c;
+  --zn-marine: #1f3a5f;
+  --zn-bordeaux: #8c2f39;
+  --zn-sapin: #2f5d4a;
+  --zn-ocre: #b07a2a; /* fonds et décors, légendaire uniquement */
+  --zn-ocre-texte: #8a5e1e; /* tout texte « Légendaire » */
+
+  /* Rôles : les composants utilisent ceux-ci, jamais les couleurs brutes */
+  --zn-fond: var(--zn-papier);
+  --zn-fond-clair: var(--zn-papier-clair);
+  --zn-texte: var(--zn-encre);
+  --zn-texte-doux: var(--zn-encre-douce);
+  --zn-action: var(--zn-bordeaux);
+  --zn-lien: var(--zn-marine);
+  --zn-succes: var(--zn-sapin);
+  --zn-erreur: var(--zn-bordeaux);
+  --zn-focus: var(--zn-marine);
+  --zn-bordure-champ: var(--zn-encre-douce);
+
+  /* Espacements (base 4 px) */
+  --zn-esp-1: 0.25rem;
+  --zn-esp-2: 0.5rem;
+  --zn-esp-3: 0.75rem;
+  --zn-esp-4: 1rem;
+  --zn-esp-6: 1.5rem;
+  --zn-esp-8: 2rem;
+  --zn-esp-12: 3rem;
+
+  /* Typographie */
+  --zn-police-titre: 'Gloock', 'Iowan Old Style', Georgia, serif;
+  --zn-police-ui: 'Geist Variable', system-ui, sans-serif;
+  --zn-police-mono: 'Geist Mono Variable', ui-monospace, 'SF Mono', monospace;
+  --zn-taille-0: 1rem; /* minimum d'un champ : en dessous, iOS zoome */
+  --zn-taille-1: 1.125rem;
+  --zn-taille-2: clamp(1.25rem, 1.1rem + 0.7vw, 1.5rem);
+  --zn-taille-3: clamp(1.625rem, 1.3rem + 1.4vw, 2.125rem);
+  --zn-taille-4: clamp(2.125rem, 1.6rem + 2.4vw, 3.25rem);
+  --zn-taille-petite: 0.8125rem;
+
+  /* Formes : papier découpé, pas de cartes arrondies */
+  --zn-rayon: 2px;
+  --zn-trait: 1px solid var(--zn-encre);
+  --zn-cible: 2.75rem; /* 44 px */
+
+  /* Mouvement (ADR 0017) */
+  --zn-duree-courte: 120ms;
+  --zn-duree: 200ms;
+  --zn-courbe: cubic-bezier(0.2, 0, 0, 1);
+}

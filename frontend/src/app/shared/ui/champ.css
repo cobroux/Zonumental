@@ -1,0 +1,56 @@
+:host {
+  display: grid;
+  gap: var(--zn-esp-2);
+}
+
+label {
+  font-weight: 650;
+}
+
+.zn-champ__aide {
+  color: var(--zn-texte-doux);
+  font-size: var(--zn-taille-petite);
+}
+
+.zn-champ__saisie {
+  display: flex;
+  align-items: stretch;
+}
+
+.zn-champ__saisie button {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--zn-esp-1);
+  min-block-size: var(--zn-cible);
+  margin-inline-start: -1px;
+  padding-inline: var(--zn-esp-3);
+  border: 1px solid var(--zn-bordure-champ);
+  border-block-end-width: 3px;
+  border-radius: var(--zn-rayon);
+  background: transparent;
+  color: var(--zn-texte);
+  font: 600 var(--zn-taille-petite) var(--zn-police-ui);
+  cursor: pointer;
+  transition: transform var(--zn-duree-courte) var(--zn-courbe);
+}
+
+.zn-champ__saisie button:active {
+  transform: scale(0.97);
+}
+
+@media (hover: hover) {
+  .zn-champ__saisie button:hover {
+    background-color: var(--zn-fond-clair);
+  }
+}
+
+.zn-champ__erreur {
+  display: flex;
+  gap: var(--zn-esp-2);
+  color: var(--zn-erreur);
+  font-weight: 500;
+}
+
+.zn-champ__erreur zn-icone {
+  margin-block-start: 0.1em;
+}

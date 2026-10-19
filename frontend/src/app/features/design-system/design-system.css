@@ -1,0 +1,276 @@
+:host {
+  display: block;
+}
+
+.page {
+  position: relative;
+  max-inline-size: 46rem;
+  margin-inline: auto;
+  padding: var(--zn-esp-8) var(--zn-esp-4) var(--zn-esp-12);
+}
+
+/* ---------- En-tête : couverture de passeport ---------- */
+.entete {
+  position: relative;
+  isolation: isolate;
+  display: grid;
+  gap: var(--zn-esp-3);
+  padding: var(--zn-esp-8) var(--zn-esp-6) var(--zn-esp-6);
+  border: 2px solid var(--zn-marine);
+  border-radius: var(--zn-rayon);
+  background-color: var(--zn-fond-clair);
+  box-shadow:
+    inset 0 0 0 6px var(--zn-fond-clair),
+    inset 0 0 0 7px var(--zn-marine);
+  overflow: hidden;
+}
+
+/* Rosette : guilloche vectorielle statique, sans filtre (ADR 0017) */
+.entete::before {
+  content: '';
+  position: absolute;
+  z-index: -1;
+  inset-block-start: -30%;
+  inset-inline-end: -25%;
+  inline-size: 26rem;
+  aspect-ratio: 1;
+  background: url('../../shared/styles/rosette.svg') center / contain no-repeat;
+  opacity: 0.4;
+}
+
+.entete__numero {
+  color: var(--zn-texte-doux);
+  font-size: var(--zn-taille-petite);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.entete__chapo {
+  max-inline-size: 32rem;
+  font-size: var(--zn-taille-1);
+}
+
+/* Zone lisible machine, façon passeport */
+.entete__mrz {
+  margin-block-start: var(--zn-esp-4);
+  padding-block-start: var(--zn-esp-3);
+  border-block-start: 1px dashed var(--zn-marine);
+  color: var(--zn-marine);
+  font-size: var(--zn-taille-petite);
+  letter-spacing: 0.18em;
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+/* ---------- Sommaire ---------- */
+.sommaire {
+  margin-block: var(--zn-esp-6);
+}
+
+.sommaire ol {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--zn-esp-1) var(--zn-esp-6);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.sommaire a {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--zn-esp-2);
+  min-block-size: var(--zn-cible);
+}
+
+.sommaire .zn-mono {
+  color: var(--zn-texte-doux);
+  font-size: var(--zn-taille-petite);
+}
+
+/* ---------- Sections ---------- */
+section {
+  display: grid;
+  gap: var(--zn-esp-4);
+  padding-block: var(--zn-esp-8);
+  scroll-margin-block-start: var(--zn-esp-4);
+}
+
+/* Bandeau guilloché entre deux rubriques */
+section::before {
+  content: '';
+  block-size: 16px;
+  background: url('../../shared/styles/bandeau.svg') repeat-x left center;
+  opacity: 0.55;
+}
+
+.rubrique {
+  margin-block-end: calc(var(--zn-esp-3) * -1);
+  color: var(--zn-bordeaux);
+  font-size: var(--zn-taille-petite);
+  font-weight: 600;
+  letter-spacing: 0.12em;
+}
+
+.rubrique::after {
+  content: ' —';
+}
+
+/* ---------- Couleurs ---------- */
+.puces {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(8.5rem, 1fr));
+  gap: var(--zn-esp-4);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.puce {
+  display: grid;
+  gap: var(--zn-esp-1);
+}
+
+.puce__echantillon {
+  display: block;
+  block-size: 4.5rem;
+  border: var(--zn-trait);
+  border-radius: var(--zn-rayon);
+}
+
+.puce__nom {
+  font-weight: 650;
+}
+
+.puce code {
+  color: var(--zn-texte-doux);
+  font-size: var(--zn-taille-petite);
+}
+
+/* ---------- Typographie ---------- */
+.specimens {
+  display: grid;
+  gap: var(--zn-esp-6);
+  margin: 0;
+}
+
+.specimens dt {
+  margin-block-end: var(--zn-esp-1);
+  color: var(--zn-texte-doux);
+  font: 600 var(--zn-taille-petite) var(--zn-police-mono);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.specimens dd {
+  margin: 0;
+}
+
+.specimen--titre {
+  font: var(--zn-taille-3) / 1.1 var(--zn-police-titre);
+}
+
+.specimen--mono {
+  font-size: var(--zn-taille-2);
+}
+
+/* ---------- Tableau des états ---------- */
+.etats {
+  inline-size: 100%;
+  border-collapse: collapse;
+}
+
+.etats th,
+.etats td {
+  padding: var(--zn-esp-3) var(--zn-esp-2);
+  border-block-end: 1px dashed var(--zn-texte-doux);
+  text-align: start;
+  vertical-align: middle;
+}
+
+.etats thead th {
+  color: var(--zn-texte-doux);
+  font: 600 var(--zn-taille-petite) var(--zn-police-mono);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.etats tbody th {
+  font-weight: 650;
+}
+
+/* Sous 40 rem, le tableau devient une pile : un état par ligne, sans défilement horizontal */
+@media (max-width: 40rem) {
+  .etats thead {
+    display: none;
+  }
+
+  .etats tr,
+  .etats td,
+  .etats th {
+    display: block;
+  }
+
+  .etats td {
+    border: 0;
+    padding-block: var(--zn-esp-2);
+  }
+}
+
+/* ---------- Champs, groupes, messages ---------- */
+.grille-champs {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr));
+  gap: var(--zn-esp-6) var(--zn-esp-8);
+}
+
+.groupe {
+  display: grid;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.groupe legend {
+  margin-block-end: var(--zn-esp-2);
+  padding: 0;
+  font-weight: 650;
+}
+
+.pile {
+  display: grid;
+  gap: var(--zn-esp-3);
+}
+
+/* ---------- Navigation d'exemple ---------- */
+.onglets {
+  display: flex;
+  flex-wrap: wrap;
+  border-block-end: 2px solid var(--zn-texte);
+}
+
+.onglets a {
+  display: inline-flex;
+  align-items: center;
+  min-block-size: var(--zn-cible);
+  padding-inline: var(--zn-esp-4);
+  margin-block-end: -2px;
+  border: 2px solid transparent;
+  border-block-end: 0;
+  border-start-start-radius: var(--zn-rayon);
+  border-start-end-radius: var(--zn-rayon);
+  color: var(--zn-texte);
+  text-decoration: none;
+}
+
+.onglets a[aria-current='page'] {
+  border-color: var(--zn-texte);
+  background-color: var(--zn-fond-clair);
+  font-weight: 650;
+}
+
+@media (hover: hover) {
+  .onglets a:not([aria-current='page']):hover {
+    text-decoration: underline;
+  }
+}

@@ -1,0 +1,253 @@
+/* Contrôles natifs stylés par attribut : bouton, case, interrupteur (ADR 0016).
+   On stylise l'élément HTML, on ne le réimplémente pas. */
+
+/* ---------- Bouton : button[znBouton], a[znBouton] ---------- */
+[znBouton] {
+  --zn-bouton-fond: var(--zn-action);
+  --zn-bouton-texte: var(--zn-fond);
+
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--zn-esp-2);
+  min-block-size: var(--zn-cible);
+  min-inline-size: var(--zn-cible);
+  padding: var(--zn-esp-2) var(--zn-esp-6);
+  border: 2px solid var(--zn-bouton-fond);
+  border-radius: var(--zn-rayon);
+  background-color: var(--zn-bouton-fond);
+  color: var(--zn-bouton-texte);
+  font: 650 var(--zn-taille-0) / 1.2 var(--zn-police-ui);
+  letter-spacing: 0.01em;
+  text-align: center;
+  text-decoration: none;
+  cursor: pointer;
+  user-select: none;
+  /* Filet intérieur façon visa : un second trait, décalé du bord */
+  box-shadow:
+    inset 0 0 0 3px var(--zn-bouton-fond),
+    inset 0 0 0 4px color-mix(in srgb, var(--zn-bouton-texte) 45%, transparent);
+  transition:
+    transform var(--zn-duree-courte) var(--zn-courbe),
+    background-color var(--zn-duree) var(--zn-courbe),
+    color var(--zn-duree) var(--zn-courbe);
+}
+
+[znBouton='secondaire'] {
+  --zn-bouton-fond: transparent;
+  --zn-bouton-texte: var(--zn-texte);
+
+  border-color: var(--zn-texte);
+  box-shadow: none;
+}
+
+[znBouton='danger'] {
+  --zn-bouton-fond: var(--zn-fond-clair);
+  --zn-bouton-texte: var(--zn-erreur);
+
+  border-color: var(--zn-erreur);
+  box-shadow:
+    inset 0 0 0 3px var(--zn-fond-clair),
+    inset 0 0 0 4px var(--zn-erreur);
+}
+
+[znBouton]:active {
+  transform: scale(0.97);
+}
+
+@media (hover: hover) {
+  [znBouton]:not([disabled], [aria-busy='true']):hover {
+    background-color: color-mix(in srgb, var(--zn-bouton-fond) 86%, var(--zn-texte));
+  }
+
+  [znBouton='secondaire']:not([disabled], [aria-busy='true']):hover {
+    background-color: var(--zn-fond-clair);
+  }
+
+  [znBouton='danger']:not([disabled], [aria-busy='true']):hover {
+    background-color: var(--zn-erreur);
+    color: var(--zn-fond);
+  }
+}
+
+[znBouton][disabled] {
+  border-style: dashed;
+  border-color: var(--zn-texte-doux);
+  background-color: transparent;
+  box-shadow: none;
+  color: var(--zn-texte-doux);
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* Occupé : le libellé reste, un anneau tourne, les clics sont ignorés */
+[znBouton][aria-busy='true'] {
+  cursor: progress;
+  pointer-events: none;
+}
+
+[znBouton][aria-busy='true']::after {
+  content: '';
+  inline-size: 1em;
+  block-size: 1em;
+  border: 2px solid currentcolor;
+  border-block-start-color: transparent;
+  border-radius: 50%;
+  animation: zn-tourne 700ms linear infinite;
+}
+
+@keyframes zn-tourne {
+  to {
+    transform: rotate(1turn);
+  }
+}
+
+/* ---------- Champ : input[znSaisie] dans <zn-champ> ---------- */
+/* Ligne de formulaire de passeport : fond clair, trait épais dessous */
+input[znSaisie] {
+  flex: 1;
+  min-inline-size: 0;
+  min-block-size: var(--zn-cible);
+  padding: var(--zn-esp-2) var(--zn-esp-3);
+  border: 1px solid var(--zn-bordure-champ);
+  border-block-end-width: 3px;
+  border-radius: var(--zn-rayon);
+  background-color: var(--zn-fond-clair);
+  color: var(--zn-texte);
+  font: 500 var(--zn-taille-0) / 1.3 var(--zn-police-ui);
+}
+
+input[znSaisie][aria-invalid='true'] {
+  border-color: var(--zn-erreur);
+  border-block-end-color: var(--zn-erreur);
+  box-shadow: inset 6px 0 0 var(--zn-erreur);
+  padding-inline-start: calc(var(--zn-esp-3) + 6px);
+}
+
+input[znSaisie]:disabled {
+  border-style: dashed;
+  color: var(--zn-texte-doux);
+  cursor: not-allowed;
+}
+
+/* ---------- Case à cocher : input[type=checkbox][znCase] ---------- */
+label:has(> input[znCase], > input[znInterrupteur]) {
+  display: flex;
+  align-items: center;
+  gap: var(--zn-esp-3);
+  min-block-size: var(--zn-cible);
+  cursor: pointer;
+}
+
+input[znCase] {
+  appearance: none;
+  display: grid;
+  flex: none;
+  place-content: center;
+  inline-size: 1.5rem;
+  block-size: 1.5rem;
+  margin: 0;
+  border: 2px solid var(--zn-bordure-champ);
+  border-radius: var(--zn-rayon);
+  background-color: var(--zn-fond-clair);
+  cursor: inherit;
+  transition:
+    background-color var(--zn-duree-courte) var(--zn-courbe),
+    transform var(--zn-duree-courte) var(--zn-courbe);
+}
+
+input[znCase]::before {
+  content: '';
+  inline-size: 0.875rem;
+  block-size: 0.875rem;
+  background-color: var(--zn-fond);
+  clip-path: polygon(14% 52%, 0 66%, 38% 100%, 100% 22%, 86% 8%, 38% 72%);
+  transform: scale(0);
+  transition: transform var(--zn-duree-courte) var(--zn-courbe);
+}
+
+input[znCase]:checked {
+  border-color: var(--zn-action);
+  background-color: var(--zn-action);
+}
+
+input[znCase]:checked::before {
+  transform: scale(1);
+}
+
+input[znCase][aria-invalid='true'] {
+  border-color: var(--zn-erreur);
+  box-shadow: 0 0 0 1px var(--zn-erreur);
+}
+
+input[znCase]:disabled {
+  border-style: dashed;
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+/* ---------- Interrupteur : input[type=checkbox][role=switch][znInterrupteur] ---------- */
+input[znInterrupteur] {
+  appearance: none;
+  position: relative;
+  flex: none;
+  inline-size: 3.25rem;
+  block-size: 1.875rem;
+  margin: 0;
+  border: 2px solid var(--zn-bordure-champ);
+  border-radius: 1rem;
+  background-color: var(--zn-fond-clair);
+  cursor: inherit;
+  transition: background-color var(--zn-duree) var(--zn-courbe);
+}
+
+/* Pastille : creuse à gauche (éteint), pleine à droite (allumé) : la position porte le sens */
+input[znInterrupteur]::before {
+  content: '';
+  position: absolute;
+  inset-block: 0.1875rem;
+  inset-inline-start: 0.1875rem;
+  inline-size: 1.25rem;
+  border: 2px solid var(--zn-bordure-champ);
+  border-radius: 50%;
+  background-color: var(--zn-fond-clair);
+  transition:
+    transform var(--zn-duree) var(--zn-courbe),
+    background-color var(--zn-duree) var(--zn-courbe);
+}
+
+input[znInterrupteur]:checked {
+  border-color: var(--zn-succes);
+  background-color: var(--zn-succes);
+}
+
+input[znInterrupteur]:checked::before {
+  border-color: var(--zn-fond);
+  background-color: var(--zn-fond);
+  transform: translateX(1.375rem);
+}
+
+input[znInterrupteur][aria-busy='true'] {
+  cursor: progress;
+}
+
+input[znInterrupteur]:disabled {
+  border-style: dashed;
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+@media (forced-colors: active) {
+  input[znCase]::before {
+    background-color: CanvasText;
+  }
+
+  input[znCase]:checked {
+    background-color: Canvas;
+  }
+
+  input[znInterrupteur]::before {
+    background-color: CanvasText;
+  }
+}

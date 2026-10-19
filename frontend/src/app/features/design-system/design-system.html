@@ -1,0 +1,192 @@
+<div class="page">
+  <header class="entete">
+    <p class="entete__numero zn-mono">N° 000 · Édition de développement</p>
+    <h1>Carnet d'explorateur</h1>
+    <p class="entete__chapo">
+      Le design system de Zonumental&nbsp;: papier, encre, tampons. Chaque composant est montré dans
+      tous ses états, au clavier comme au toucher.
+    </p>
+    <p class="entete__mrz zn-mono" aria-hidden="true">
+      ZNM&lt;&lt;DESIGN&lt;SYSTEM&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;
+    </p>
+  </header>
+
+  <nav class="sommaire" aria-label="Sections de la page">
+    <ol>
+      @for (section of sections; track section.id) {
+        <li>
+          <a [href]="'/design-system#' + section.id"
+            ><span class="zn-mono">{{ section.numero }}</span> {{ section.titre }}</a
+          >
+        </li>
+      }
+    </ol>
+  </nav>
+
+  <section id="couleurs" aria-labelledby="couleurs-titre">
+    <p class="rubrique zn-mono">01</p>
+    <h2 id="couleurs-titre">Couleurs</h2>
+    <p>
+      Six couleurs, définies une seule fois. L'ocre sert aux fonds du légendaire&nbsp;; son texte
+      utilise une variante plus sombre pour rester lisible.
+    </p>
+    <ul class="puces">
+      @for (couleur of couleurs; track couleur.nom) {
+        <li class="puce">
+          <span
+            class="puce__echantillon"
+            [style.background-color]="'var(' + couleur.token + ')'"
+          ></span>
+          <span class="puce__nom">{{ couleur.nom }}</span>
+          <code>{{ couleur.token }}</code>
+        </li>
+      }
+    </ul>
+  </section>
+
+  <section id="typographie" aria-labelledby="typographie-titre">
+    <p class="rubrique zn-mono">02</p>
+    <h2 id="typographie-titre">Typographie</h2>
+    <dl class="specimens">
+      <div>
+        <dt>Gloock · titres</dt>
+        <dd class="specimen specimen--titre">Les monuments de France</dd>
+      </div>
+      <div>
+        <dt>Geist · interface</dt>
+        <dd class="specimen">
+          Tamponne le monument le plus proche pour l'ajouter à ton carnet d'explorateur.
+        </dd>
+      </div>
+      <div>
+        <dt>Geist Mono · numéros, dates</dt>
+        <dd class="specimen specimen--mono zn-mono">N° 0042 · 19/10/2026 · 420&nbsp;m</dd>
+      </div>
+    </dl>
+  </section>
+
+  <section id="boutons" aria-labelledby="boutons-titre">
+    <p class="rubrique zn-mono">03</p>
+    <h2 id="boutons-titre">Boutons</h2>
+    <p>Cible de 44&nbsp;px minimum, retour de pression, libellé conservé quand il est occupé.</p>
+    <table class="etats">
+      <caption class="zn-sr">
+        États du bouton par variante
+      </caption>
+      <thead>
+        <tr>
+          <th scope="col"><span class="zn-sr">Variante</span></th>
+          <th scope="col">Repos</th>
+          <th scope="col">Désactivé</th>
+          <th scope="col">Occupé</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <th scope="row">Principal</th>
+          <td><button znBouton type="button">Créer mon carnet</button></td>
+          <td><button znBouton type="button" disabled>Créer mon carnet</button></td>
+          <td><button znBouton type="button" aria-busy="true">Création…</button></td>
+        </tr>
+        <tr>
+          <th scope="row">Secondaire</th>
+          <td><button znBouton="secondaire" type="button">J'ai déjà un carnet</button></td>
+          <td><button znBouton="secondaire" type="button" disabled>J'ai déjà un carnet</button></td>
+          <td><button znBouton="secondaire" type="button" aria-busy="true">Connexion…</button></td>
+        </tr>
+        <tr>
+          <th scope="row">Danger</th>
+          <td><button znBouton="danger" type="button">Supprimer mon carnet</button></td>
+          <td><button znBouton="danger" type="button" disabled>Supprimer mon carnet</button></td>
+          <td><button znBouton="danger" type="button" aria-busy="true">Suppression…</button></td>
+        </tr>
+      </tbody>
+    </table>
+    <p>Un lien peut prendre l'apparence d'un bouton&nbsp;:</p>
+    <p><a znBouton="secondaire" href="/design-system#liens">Aller aux liens</a></p>
+  </section>
+
+  <section id="champs" aria-labelledby="champs-titre">
+    <p class="rubrique zn-mono">04</p>
+    <h2 id="champs-titre">Champs</h2>
+    <p>
+      Libellé visible, aide et erreur reliées au champ. L'erreur n'est jamais portée par la couleur
+      seule.
+    </p>
+    <div class="grille-champs">
+      <zn-champ label="Pseudo" aide="3 à 20 caractères : lettres, chiffres, tiret, souligné">
+        <input znSaisie name="pseudo" autocomplete="username" value="explorateur_75" />
+      </zn-champ>
+      <zn-champ label="Adresse e-mail" erreur="Cette adresse e-mail n'est pas valide.">
+        <input znSaisie name="email" type="email" autocomplete="email" value="enzo@exemple" />
+      </zn-champ>
+      <zn-champ label="Mot de passe" aide="12 caractères minimum" [motDePasse]="true">
+        <input
+          znSaisie
+          name="mdp"
+          type="password"
+          autocomplete="new-password"
+          value="correct-cheval"
+        />
+      </zn-champ>
+      <zn-champ label="Ville de départ">
+        <input znSaisie name="ville" value="Paris" disabled />
+      </zn-champ>
+    </div>
+  </section>
+
+  <section id="cases" aria-labelledby="cases-titre">
+    <p class="rubrique zn-mono">05</p>
+    <h2 id="cases-titre">Cases et interrupteurs</h2>
+    <p>
+      La case sert aux consentements&nbsp;; l'interrupteur aux réglages qui s'appliquent tout de
+      suite. Le sens est porté par la position et le tracé, pas par la couleur.
+    </p>
+    <div class="grille-champs">
+      <fieldset class="groupe">
+        <legend>Case à cocher</legend>
+        <label><input znCase type="checkbox" /> Apparaître au classement</label>
+        <label><input znCase type="checkbox" checked /> J'accepte les CGU</label>
+        <label><input znCase type="checkbox" disabled /> Indisponible</label>
+      </fieldset>
+      <fieldset class="groupe">
+        <legend>Interrupteur</legend>
+        <label><input znInterrupteur type="checkbox" role="switch" /> Recevoir des e-mails</label>
+        <label
+          ><input znInterrupteur type="checkbox" role="switch" checked /> Partager ma
+          position</label
+        >
+        <label
+          ><input znInterrupteur type="checkbox" role="switch" aria-busy="true" />
+          Enregistrement…</label
+        >
+      </fieldset>
+    </div>
+  </section>
+
+  <section id="messages" aria-labelledby="messages-titre">
+    <p class="rubrique zn-mono">06</p>
+    <h2 id="messages-titre">Messages</h2>
+    <div class="pile">
+      <zn-message type="erreur">Ce pseudo est déjà pris, choisis-en un autre.</zn-message>
+      <zn-message type="succes">Ton carnet est créé. Vérifie ta boîte e-mail.</zn-message>
+      <zn-message type="info">Ta position n'est utilisée que pour tamponner.</zn-message>
+    </div>
+  </section>
+
+  <section id="liens" aria-labelledby="liens-titre">
+    <p class="rubrique zn-mono">07</p>
+    <h2 id="liens-titre">Liens et navigation</h2>
+    <p>
+      Un lien est toujours souligné, par exemple vers
+      <a href="/design-system#boutons">les boutons</a> ou vers
+      <a href="/design-system#champs">les champs</a>. Le focus est un cadre marine de 3&nbsp;px.
+    </p>
+    <nav class="onglets" aria-label="Exemple de navigation">
+      <a href="/design-system#liens" aria-current="page">Explorer</a>
+      <a href="/design-system#liens">Carnet</a>
+      <a href="/design-system#liens">Carte</a>
+      <a href="/design-system#liens">Défis</a>
+    </nav>
+  </section>
+</div>

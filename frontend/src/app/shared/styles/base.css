@@ -1,0 +1,139 @@
+/* Base : papier, typographie, liens, focus, mouvement réduit (ADR 0016, 0017, 0018). */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+body {
+  margin: 0;
+  min-height: 100dvh;
+  background-color: var(--zn-fond);
+  /* Grain statique, mosaïque de 160 px : coût d'exécution nul (ADR 0017) */
+  background-image: url('./papier.webp');
+  background-size: 160px;
+  color: var(--zn-texte);
+  font-family: var(--zn-police-ui);
+  font-size: var(--zn-taille-0);
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+h1,
+h2 {
+  margin: 0;
+  font-family: var(--zn-police-titre);
+  font-weight: 400;
+  line-height: 1.08;
+  letter-spacing: -0.01em;
+  text-wrap: balance;
+}
+
+h1 {
+  font-size: var(--zn-taille-4);
+}
+
+h2 {
+  font-size: var(--zn-taille-3);
+}
+
+h3 {
+  margin: 0;
+  font-size: var(--zn-taille-0);
+  font-weight: 650;
+  text-wrap: balance;
+}
+
+p {
+  margin: 0;
+  text-wrap: pretty;
+}
+
+/* Numéros, dates, chiffres : Geist Mono, chiffres alignés */
+.zn-mono,
+time,
+code {
+  font-family: var(--zn-police-mono);
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: 'zero' 1;
+}
+
+/* Lien : souligné, jamais seulement coloré */
+a:not([znBouton]) {
+  color: var(--zn-lien);
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.2em;
+  transition: text-decoration-thickness var(--zn-duree-courte) var(--zn-courbe);
+}
+
+a:not([znBouton])[aria-current='page'] {
+  font-weight: 650;
+  text-decoration-thickness: 3px;
+}
+
+@media (hover: hover) {
+  a:not([znBouton]):hover {
+    text-decoration-thickness: 2px;
+  }
+}
+
+/* Focus : outline de 3 px, jamais masqué, jamais animé (WCAG 2.4.7, 2.4.11) */
+:focus-visible {
+  outline: 3px solid var(--zn-focus);
+  outline-offset: 2px;
+}
+
+button,
+a,
+input,
+label {
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+
+::selection {
+  background: var(--zn-marine);
+  color: var(--zn-fond);
+}
+
+/* Utilitaire : texte pour lecteur d'écran seulement */
+.zn-sr {
+  position: absolute;
+  inline-size: 1px;
+  block-size: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+/* Mouvement réduit : l'information n'est jamais portée par le mouvement seul */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Contraste élevé Windows : bordures et focus en couleurs système */
+@media (forced-colors: active) {
+  :focus-visible {
+    outline-color: Highlight;
+  }
+
+  [znBouton],
+  input[znCase],
+  input[znInterrupteur] {
+    border-color: CanvasText;
+  }
+}
