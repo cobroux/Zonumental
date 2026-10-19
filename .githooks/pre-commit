@@ -1,0 +1,21 @@
+#!/bin/sh
+staged=$(git diff --cached --name-only --diff-filter=ACM)
+[ -z "$staged" ] && exit 0
+
+# Secrets : fichiers .env et clés privées interdits
+if printf '%s\n' "$staged" | grep -Eq '(^|/)\.env($|\.)' && ! printf '%s\n' "$staged" | grep -Eq '(^|/)\.env\.example$'; then
+  echo "✖ Fichier .env indexé : utilise .env.example" >&2; exit 1
+fi
+if git diff --cached -U0 | grep -Eq '^\+.*(-----BEGIN [A-Z ]*PRIVATE KEY-----|AKIA[0-9A-Z]{16})'; then
+  echo "✖ Secret détecté dans le diff (clé privée / clé AWS)" >&2; exit 1
+fi
+
+# Backend : format + lint si le projet existe et qu'un fichier backend est indexé
+if printf '%s\n' "$staged" | grep -q '^backend/' && [ -x backend/mvnw ]; then
+  (cd backend && ./mvnw -q spotless:check checkstyle:check) || { echo "✖ Backend : lance ./mvnw spotless:apply" >&2; exit 1; }
+fi
+
+# Frontend : lint + format si le projet existe et qu'un fichier frontend est indexé
+if printf '%s\n' "$staged" | grep -q '^frontend/' && [ -f frontend/package.json ]; then
+  (cd frontend && npm run --silent lint && npx --no-install prettier --check .) || { echo "✖ Frontend : lint/format en échec" >&2; exit 1; }
+fi

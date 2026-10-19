@@ -1,0 +1,9 @@
+#!/bin/sh
+# Conventional Commits : type(scope optionnel)!?: description
+msg=$(head -n1 "$1")
+case "$msg" in Merge*|Revert*) exit 0;; esac
+if ! printf '%s' "$msg" | grep -Eq '^(feat|fix|docs|style|refactor|perf|test|build|ci|chore|revert)(\([a-z0-9._-]+\))?!?: .{3,}'; then
+  echo "✖ Message refusé. Format attendu : feat(<story-id>): description" >&2
+  echo "  types : feat fix docs style refactor perf test build ci chore revert" >&2
+  exit 1
+fi

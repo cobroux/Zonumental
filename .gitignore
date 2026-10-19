@@ -1,0 +1,14 @@
+.env
+.env.*
+!.env.example
+node_modules/
+.DS_Store
+# Java / Maven
+target/
+*.class
+.idea/
+*.iml
+# Angular
+dist/
+.angular/
+coverage/
