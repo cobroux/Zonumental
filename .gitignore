@@ -1,14 +1,50 @@
+# --- Secrets (jamais commités ; seul .env.example est versionné) ---
 .env
 .env.*
 !.env.example
-node_modules/
-.DS_Store
-# Java / Maven
+*.pem
+*.key
+*.p12
+*.jks
+
+# --- Java / Spring Boot (backend/) ---
 target/
+build/
+.gradle/
 *.class
-.idea/
-*.iml
-# Angular
+*.log
+hs_err_pid*
+!.mvn/wrapper/maven-wrapper.jar
+
+# --- Angular / Node (frontend/) ---
+node_modules/
 dist/
 .angular/
+out-tsc/
 coverage/
+.npm/
+npm-debug.log*
+yarn-error.log*
+
+# --- Tests de bout en bout ---
+test-results/
+playwright-report/
+playwright/.cache/
+
+# --- Capacitor (plus tard) ---
+android/app/build/
+ios/App/Pods/
+
+# --- Outils locaux et IA (régénérables, propres à chaque poste) ---
+graphify-out/
+.claude/settings.local.json
+.claude/worktrees/
+
+# --- IDE et OS ---
+.idea/
+*.iml
+.vscode/*
+!.vscode/extensions.json
+*.swp
+.DS_Store
+Thumbs.db
