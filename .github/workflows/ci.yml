@@ -13,7 +13,7 @@ jobs:
         uses: actions/setup-java@v4
         with:
           distribution: temurin
-          java-version: '21' # shortcut: à aligner sur l'ADR de stack du tech-lead-back
+          java-version: '25' # ADR 0001
           cache: maven
       - if: hashFiles('backend/pom.xml') != ''
         working-directory: backend
