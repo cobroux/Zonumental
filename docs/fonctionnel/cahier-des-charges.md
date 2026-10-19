@@ -155,3 +155,14 @@ Garde-fous du repo : voir `CLAUDE.md` (hooks git, CI).
 - Hébergeur et budget (à décider avant le déploiement de R0).
 - Direction artistique (choix du product owner parmi les 3 propositions).
 - Liste exacte des 10 villes et quota de Paris (proposition de l'`amoa` dans `catalogue-quotas.yml`).
+
+## 12. Décisions de design (2026-10-19)
+
+Maquettes : canvas Design « Zonumental — Directions artistiques » (https://claude.ai/artifact/QTVhut8zxVu9uHTFXLQkph, privé).
+
+- **Direction retenue : B « Carnet d'explorateur »**, version pro (v2+). La v1 (papier quadrillé, polices machine à écrire/manuscrite) est rejetée car trop générique.
+- **Validé :** la story à partager (photo + tampon + ligne façon zone lisible des passeports `ZNM<…`) ; les tampons réalistes (encre irrégulière, une forme par type de monument, une encre par rareté), y compris le tampon « CAPTURÉ » posé sur la photo.
+- **Système :** Gloock (titres) + Geist (interface) + Geist Mono (numéros, dates, tampons). Papier visa #F4F1EA, encre #1A1C20, marine #1F3A5F, bordeaux #8C2F39, sapin #2F5D4A, ocre #B07A2A (légendaire uniquement). Guilloches façon passeport.
+- **Navigation :** Accueil · Carnet · [Tamponner] · Carte · Profil.
+- **En revue :** Accueil et Carnet v3.
+- **À faire :** trouver un nom pour la collection (« Pokédex » est une marque Nintendo) ; faire dessiner les silhouettes des tampons ; citer les auteurs des photos Wikimedia si elles sont publiées.
