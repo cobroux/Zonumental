@@ -162,7 +162,7 @@ Maquettes : canvas Design « Zonumental — Directions artistiques » (https://c
 
 - **Direction retenue : B « Carnet d'explorateur »**, version pro (v2+). La v1 (papier quadrillé, polices machine à écrire/manuscrite) est rejetée car trop générique.
 - **Validé :** la story à partager (photo + tampon + ligne façon zone lisible des passeports `ZNM<…`) ; les tampons réalistes (encre irrégulière, une forme par type de monument, une encre par rareté), y compris le tampon « CAPTURÉ » posé sur la photo.
-- **Système :** Gloock (titres) + Geist (interface) + Geist Mono (numéros, dates, tampons). Papier visa #F4F1EA, encre #1A1C20, marine #1F3A5F, bordeaux #8C2F39, sapin #2F5D4A, ocre #B07A2A (légendaire uniquement). Guilloches façon passeport.
+- **Système :** Gloock (titres) + Geist (interface) + Geist Mono (numéros, dates, tampons). Papier visa #F4F1EA, encre #1A1C20, marine #1F3A5F, bordeaux #8C2F39, sapin #2F5D4A, ocre #8A5E1E pour le texte et #B07A2A pour les fonds (légendaire uniquement). Guilloches façon passeport.
 - **Navigation :** Accueil · Carnet · [Tamponner] · Carte · Profil.
 - **En revue :** Accueil et Carnet v3.
 - **À faire :** trouver un nom pour la collection (« Pokédex » est une marque Nintendo) ; faire dessiner les silhouettes des tampons ; citer les auteurs des photos Wikimedia si elles sont publiées.
@@ -179,3 +179,14 @@ Maquettes : canvas Design « Zonumental — Directions artistiques » (https://c
 - **Onboarding (v5)** : Bienvenue → **création du carnet (compte obligatoire)** → localisation (écran explicatif avant la demande système, avec 3 engagements RGPD) → Explorer jour 0 → caméra demandée seulement au 1er appui sur Tamponner → capture (hors zone : déclencheur verrouillé + distance et direction) → coup de tampon → célébration du premier tampon (voir le carnet / partager la story). Consentements facultatifs (classement, e-mails) décochés par défaut.
 - **Carte (v6)** : vues Paris et France. Brouillard sur le papier, levé autour de chaque tampon ; monuments capturés = mini-tampons, monuments à découvrir = pastilles numérotées ; carte du monument sélectionné avec « Y aller ». En vue France, chaque nouvelle ville lève le brouillard sur sa région.
 - **Profil (v6)** : ouvert par l'avatar (Explorer, Défis). Contient les succès (obtenus = tampons, en cours = progression en relief), la confidentialité (interrupteurs pour le classement et les e-mails, statut de la localisation), mes données (export, suppression sous 30 jours) et les liens légaux.
+
+### Décisions techniques validées par le client (2026-10-19, après les ADR)
+- **Catalogue** : un monument est éligible s'il est **monument historique (identifiant Mérimée) ET a un article sur fr.wikipedia**. La popularité vient de l'API Pageviews de Wikimedia (12 derniers mois). Le premier import est relu par un humain avant de figer les numéros.
+- **Couleur ocre** : `#8A5E1E` (contraste 5,0:1) pour tout texte « Légendaire » ; `#B07A2A` reste réservé aux fonds et aux décors.
+- **Images de référence** : copiées dans notre stockage UE à l'import et servies par notre serveur ; aucun appel direct à Wikimedia depuis l'appli (RGPD, CSP `img-src 'self'`).
+- **Pseudo** : 3 à 20 caractères, lettres sans accents, chiffres, tiret et souligné.
+- **Consentement** : une seule case obligatoire « CGU et politique de confidentialité » ; classement et e-mails restent facultatifs et décochés.
+- **Export RGPD** : archive `.zip` contenant `donnees.json` (et les photos à partir de R1).
+- **« Un écran sans défilement »** : objectif de conception, pas une contrainte ; le zoom à 200 % et le clavier ouvert peuvent faire défiler (WCAG 1.4.4 et 1.4.10).
+- **Onboarding** : après l'inscription, l'explorateur vérifie son e-mail puis se connecte ; l'écran de localisation apparaît à la première connexion.
+- **Langue** : français uniquement jusqu'à R4, sans balisage i18n avant cette release.
