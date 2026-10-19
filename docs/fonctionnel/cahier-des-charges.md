@@ -166,3 +166,10 @@ Maquettes : canvas Design « Zonumental — Directions artistiques » (https://c
 - **Navigation :** Accueil · Carnet · [Tamponner] · Carte · Profil.
 - **En revue :** Accueil et Carnet v3.
 - **À faire :** trouver un nom pour la collection (« Pokédex » est une marque Nintendo) ; faire dessiner les silhouettes des tampons ; citer les auteurs des photos Wikimedia si elles sont publiées.
+
+### Règles UX issues du conseil (llm-council, 2026-10-19)
+- **Un écran = un job.** Accueil : « où je tamponne maintenant ? ». Carnet : « qu'ai-je collecté, que me manque-t-il ? ». Chaque écran tient en un seul écran de téléphone (pas de défilement).
+- **Densité progressive** : jour 0 = guide en 3 étapes et cases vides ; les défis, collections et filtres n'apparaissent qu'au fil des tampons (filtres à partir d'environ 20 tampons).
+- **Classement → Profil** (pas de sens au lancement avec peu de joueurs) ; « Ta France » → Carte ; « Derniers tampons » réduit à une seule ligne.
+- **Accessibilité** : la rareté est écrite en toutes lettres dans le tampon, pas seulement indiquée par la couleur de l'encre.
+- **Toujours concevoir les états jour 0 / jour 3 / jour 60.** Tester sur le terrain (dehors, au soleil) avec 5 à 8 personnes : test de 5 secondes et test de mémoire.
