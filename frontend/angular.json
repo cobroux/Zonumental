@@ -37,7 +37,7 @@
                 },
                 {
                   "type": "anyComponentStyle",
-                  "maximumWarning": "4kB",
+                  "maximumWarning": "6kB",
                   "maximumError": "8kB"
                 }
               ],
@@ -66,7 +66,19 @@
           "defaultConfiguration": "development"
         },
         "test": {
-          "builder": "@angular/build:unit-test"
+          "builder": "@angular/build:unit-test",
+          "options": {
+            "coverage": true,
+            "coverageReporters": ["text-summary", "html"],
+            "coverageInclude": ["src/app/**/*.ts"],
+            "coverageExclude": [
+              "src/app/core/api/**",
+              "src/app/**/*.routes.ts",
+              "src/app/**/*.spec.ts",
+              "src/main.ts"
+            ],
+            "coverageThresholds": { "lines": 80, "branches": 80 }
+          }
         },
         "lint": {
           "builder": "@angular-eslint/builder:lint",

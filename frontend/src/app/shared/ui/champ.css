@@ -1,0 +1,67 @@
+:host {
+  display: grid;
+  gap: 0.375rem;
+}
+
+/* Libellé à gauche, aide alignée à droite sur la même ligne (maquette O6) */
+.zn-champ__entete {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: baseline;
+  column-gap: var(--zn-esp-3);
+}
+
+label {
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+.zn-champ__aide {
+  color: var(--zn-texte-doux);
+  font-size: 0.75rem;
+  font-weight: 400;
+}
+
+.zn-champ__saisie {
+  display: flex;
+  align-items: stretch;
+  gap: var(--zn-esp-2);
+}
+
+.zn-champ__saisie button {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--zn-esp-1);
+  min-block-size: 3.125rem;
+  padding-inline: var(--zn-esp-3);
+  border: 1px solid var(--zn-bordure-champ);
+  border-radius: var(--zn-rayon-12);
+  background: transparent;
+  color: var(--zn-texte);
+  font: 500 0.875rem var(--zn-police-ui);
+  cursor: pointer;
+  transition: transform var(--zn-duree-appui) var(--zn-courbe);
+}
+
+.zn-champ__saisie button:active {
+  transform: scale(0.97);
+}
+
+@media (hover: hover) {
+  .zn-champ__saisie button:hover {
+    background-color: var(--zn-fond-clair);
+  }
+}
+
+.zn-champ__erreur {
+  display: flex;
+  gap: var(--zn-esp-2);
+  color: var(--zn-erreur);
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.zn-champ__erreur zn-icone {
+  margin-block-start: 0.1em;
+}

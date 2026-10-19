@@ -1,0 +1,248 @@
+/* Contrôles natifs stylés par attribut (ADR 0016, révision v4–v6).
+   On stylise l'élément HTML, on ne le réimplémente pas. */
+
+/* ---------- Bouton : button[znBouton], a[znBouton] ---------- */
+/* Principal : encre pleine, 54 px, 14 px (maquette O1) */
+[znBouton] {
+  --zn-bouton-fond: var(--zn-action);
+  --zn-bouton-texte: var(--zn-fond-clair);
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--zn-esp-2);
+  min-block-size: 3.375rem;
+  min-inline-size: var(--zn-cible);
+  padding: var(--zn-esp-2) var(--zn-esp-6);
+  border: 2px solid var(--zn-bouton-fond);
+  border-radius: var(--zn-rayon-14);
+  background-color: var(--zn-bouton-fond);
+  color: var(--zn-bouton-texte);
+  font: 600 var(--zn-taille-0) / 1.2 var(--zn-police-ui);
+  text-align: center;
+  text-decoration: none;
+  cursor: pointer;
+  user-select: none;
+  transition:
+    transform var(--zn-duree-appui) var(--zn-courbe),
+    background-color var(--zn-duree) var(--zn-courbe),
+    color var(--zn-duree) var(--zn-courbe);
+}
+
+/* Secondaire : lien texte marine, 44 px, 15 px (« J'ai déjà un carnet ») */
+[znBouton='secondaire'] {
+  min-block-size: var(--zn-cible);
+  padding-block: 0;
+  border-color: transparent;
+  background-color: transparent;
+  color: var(--zn-lien);
+  font-size: 0.9375rem;
+  font-weight: 500;
+}
+
+/* Danger : bordeaux, seulement pour les actions destructrices */
+[znBouton='danger'] {
+  --zn-bouton-fond: var(--zn-fond-clair);
+  --zn-bouton-texte: var(--zn-erreur);
+
+  border-color: var(--zn-erreur);
+}
+
+[znBouton]:active {
+  transform: scale(0.97);
+}
+
+@media (hover: hover) {
+  [znBouton]:not([disabled], [aria-busy='true']):hover {
+    background-color: color-mix(in srgb, var(--zn-bouton-fond) 86%, var(--zn-texte));
+  }
+
+  [znBouton='secondaire']:not([disabled], [aria-busy='true']):hover {
+    background-color: transparent;
+    text-decoration: underline;
+    text-underline-offset: 0.2em;
+  }
+
+  [znBouton='danger']:not([disabled], [aria-busy='true']):hover {
+    background-color: var(--zn-erreur);
+    color: var(--zn-fond-clair);
+  }
+}
+
+[znBouton][disabled] {
+  border-style: dashed;
+  border-color: var(--zn-texte-doux);
+  background-color: transparent;
+  color: var(--zn-texte-doux);
+  cursor: not-allowed;
+  transform: none;
+}
+
+[znBouton='secondaire'][disabled] {
+  border-color: transparent;
+}
+
+/* Occupé : le libellé reste, un anneau tourne, les clics sont ignorés */
+[znBouton][aria-busy='true'] {
+  cursor: progress;
+  pointer-events: none;
+}
+
+[znBouton][aria-busy='true']::after {
+  content: '';
+  inline-size: 1em;
+  block-size: 1em;
+  border: 2px solid currentcolor;
+  border-block-start-color: transparent;
+  border-radius: 50%;
+  animation: zn-tourne 700ms linear infinite;
+}
+
+@keyframes zn-tourne {
+  to {
+    transform: rotate(1turn);
+  }
+}
+
+/* ---------- Champ : input[znSaisie] dans <zn-champ> (maquette O6) ---------- */
+input[znSaisie] {
+  flex: 1;
+  min-inline-size: 0;
+  block-size: 3.125rem;
+  padding: 0 0.875rem;
+  border: 1px solid var(--zn-bordure-champ);
+  border-radius: var(--zn-rayon-12);
+  background-color: var(--zn-fond-clair);
+  color: var(--zn-texte);
+  font: 400 var(--zn-taille-0) / 1.3 var(--zn-police-ui);
+}
+
+/* Le contour est renforcé là où l'état compte : focus (marine) et erreur (bordeaux) */
+input[znSaisie]:focus-visible {
+  border-color: var(--zn-focus);
+}
+
+input[znSaisie][aria-invalid='true'] {
+  border-color: var(--zn-erreur);
+  box-shadow: 0 0 0 1px var(--zn-erreur);
+}
+
+input[znSaisie]:disabled {
+  border-style: dashed;
+  color: var(--zn-texte-doux);
+  cursor: not-allowed;
+}
+
+/* ---------- Groupe de cases : légende en Geist Mono ---------- */
+legend[znLegende] {
+  margin-block-end: var(--zn-esp-2);
+  padding: 0;
+  color: var(--zn-texte-doux);
+  font: 400 0.6875rem var(--zn-police-mono);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+label:has(> input[znCase], > input[znInterrupteur]) {
+  display: flex;
+  align-items: center;
+  gap: var(--zn-esp-3);
+  min-block-size: var(--zn-cible);
+  cursor: pointer;
+}
+
+/* ---------- Case à cocher : native, 20 px, accent encre ---------- */
+input[znCase] {
+  flex: none;
+  inline-size: 1.25rem;
+  block-size: 1.25rem;
+  margin: 0;
+  accent-color: var(--zn-encre);
+  cursor: inherit;
+}
+
+input[znCase][aria-invalid='true'] {
+  outline: 2px solid var(--zn-erreur);
+  outline-offset: 2px;
+}
+
+/* ---------- Interrupteur : input[type=checkbox][role=switch][znInterrupteur] ---------- */
+input[znInterrupteur] {
+  appearance: none;
+  position: relative;
+  flex: none;
+  inline-size: 3.25rem;
+  block-size: 1.875rem;
+  margin: 0;
+  border: 2px solid var(--zn-bordure-controle);
+  border-radius: var(--zn-rayon-pastille);
+  background-color: var(--zn-fond-clair);
+  cursor: inherit;
+  transition: background-color var(--zn-duree) var(--zn-courbe);
+}
+
+/* Pastille : creuse à gauche (éteint), pleine à droite (allumé) : la position porte le sens */
+input[znInterrupteur]::before {
+  content: '';
+  position: absolute;
+  inset-block: 0.1875rem;
+  inset-inline-start: 0.1875rem;
+  inline-size: 1.25rem;
+  border: 2px solid var(--zn-bordure-controle);
+  border-radius: 50%;
+  background-color: var(--zn-fond-clair);
+  transition:
+    transform var(--zn-duree) var(--zn-courbe),
+    background-color var(--zn-duree) var(--zn-courbe);
+}
+
+input[znInterrupteur]:checked {
+  border-color: var(--zn-succes);
+  background-color: var(--zn-succes);
+}
+
+input[znInterrupteur]:checked::before {
+  border-color: var(--zn-fond-clair);
+  background-color: var(--zn-fond-clair);
+  transform: translateX(1.375rem);
+}
+
+input[znInterrupteur][aria-busy='true'] {
+  cursor: progress;
+}
+
+input[znInterrupteur]:disabled {
+  border-style: dashed;
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+/* ---------- Pastille de rareté : le mot est toujours écrit ---------- */
+[znRarete] {
+  display: inline-flex;
+  align-items: center;
+  block-size: 1.75rem;
+  padding-inline: var(--zn-esp-3);
+  border: 1px solid var(--zn-texte);
+  border-radius: var(--zn-rayon-pastille);
+  color: var(--zn-texte);
+  font: 600 0.75rem var(--zn-police-ui);
+}
+
+[znRarete='rare'] {
+  border-color: var(--zn-marine);
+  background-color: var(--zn-marine);
+  color: var(--zn-fond-clair);
+}
+
+[znRarete='legendaire'] {
+  border-color: var(--zn-ocre);
+  background-color: var(--zn-ocre);
+  color: var(--zn-texte);
+}
+
+@media (forced-colors: active) {
+  input[znInterrupteur]::before {
+    background-color: CanvasText;
+  }
+}
