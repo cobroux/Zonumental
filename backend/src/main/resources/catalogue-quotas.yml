@@ -1,0 +1,14 @@
+# Villes et quotas du catalogue (RG-016). Proposition amoa Q-16 : 10 plus grandes communes de France.
+# Rayons : surcharges du rayon de capture en mètres (50 à 500), clé = identifiant Wikidata (RG-021).
+villes:
+  - { nom: Paris, insee: "75056", quota: 25 }
+  - { nom: Marseille, insee: "13055", quota: 10 }
+  - { nom: Lyon, insee: "69123", quota: 10 }
+  - { nom: Toulouse, insee: "31555", quota: 10 }
+  - { nom: Nice, insee: "06088", quota: 10 }
+  - { nom: Nantes, insee: "44109", quota: 10 }
+  - { nom: Montpellier, insee: "34172", quota: 10 }
+  - { nom: Strasbourg, insee: "67482", quota: 10 }
+  - { nom: Bordeaux, insee: "33063", quota: 10 }
+  - { nom: Lille, insee: "59350", quota: 10 }
+rayons: {}

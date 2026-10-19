@@ -31,3 +31,7 @@ build/
 
 ### VS Code ###
 .vscode/
+
+# Import du catalogue (images copiées localement, fichier de relecture)
+images-catalogue/
+catalogue-relecture.json
