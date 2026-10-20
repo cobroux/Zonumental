@@ -1,0 +1,41 @@
+:host {
+  display: block;
+  max-width: 42rem;
+  margin: 0 auto;
+  padding: var(--zn-esp-6) var(--zn-esp-4) var(--zn-esp-12);
+}
+
+article {
+  margin-block: var(--zn-esp-6);
+}
+
+article h2 {
+  margin-top: var(--zn-esp-8);
+  font-size: var(--zn-taille-2);
+}
+
+article h3 {
+  margin: var(--zn-esp-4) 0 0;
+  font-size: var(--zn-taille-1);
+}
+
+.version {
+  color: var(--zn-texte-doux);
+  font-size: var(--zn-taille-petite);
+}
+
+nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--zn-esp-4);
+}
+
+nav a {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--zn-cible);
+}
+
+nav a.actif {
+  font-weight: 600;
+}
