@@ -14,7 +14,7 @@ import { renvoyerVerification } from '../../../core/api/fn/compte/renvoyer-verif
 import { verifierEmail } from '../../../core/api/fn/compte/verifier-email';
 import { ZnChamp, ZnSaisie } from '../../../shared/ui/champ';
 import { ZnMessage } from '../../../shared/ui/message';
-import { lireProbleme } from '../inscription/inscription';
+import { lireProbleme } from '../probleme';
 
 type Etat = 'chargement' | 'confirme' | 'deja' | 'expire' | 'invalide' | 'erreur';
 
