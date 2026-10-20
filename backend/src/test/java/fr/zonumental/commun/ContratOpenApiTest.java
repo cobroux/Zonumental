@@ -37,7 +37,8 @@ class ContratOpenApiTest {
           "/api/compte/inscription",
           "/api/compte/email/verification",
           "/api/compte/email/verification/renvoi",
-          "/api/compte/moi");
+          "/api/compte/moi",
+          "/api/auth/connexion");
 
   @Autowired MockMvc mvc;
 

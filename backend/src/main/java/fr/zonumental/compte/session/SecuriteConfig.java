@@ -47,7 +47,8 @@ class SecuriteConfig {
                         HttpMethod.POST,
                         "/api/compte/inscription",
                         "/api/compte/email/verification",
-                        "/api/compte/email/verification/renvoi")
+                        "/api/compte/email/verification/renvoi",
+                        "/api/auth/connexion")
                     .permitAll()
                     .anyRequest()
                     .authenticated())
