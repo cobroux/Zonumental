@@ -32,7 +32,11 @@ class ContratOpenApiTest {
   private static final String[] NON_IMPLEMENTE = {"/api/auth/", "/api/compte/", "/api/catalogue/"};
 
   /** Opérations de ces préfixes déjà implémentées (donc contrôlées). */
-  private static final Set<String> IMPLEMENTE = Set.of("/api/compte/inscription");
+  private static final Set<String> IMPLEMENTE =
+      Set.of(
+          "/api/compte/inscription",
+          "/api/compte/email/verification",
+          "/api/compte/email/verification/renvoi");
 
   @Autowired MockMvc mvc;
 

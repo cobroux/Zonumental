@@ -11,11 +11,11 @@ import {
 } from '@angular/core';
 import { Api } from '../../../core/api/api';
 import { inscrire } from '../../../core/api/fn/compte/inscrire';
-import { Probleme } from '../../../core/api/models/probleme';
 import { VERSIONS_LEGALES } from '../../../core/legal/versions-legales';
 import { ZnChamp, ZnSaisie } from '../../../shared/ui/champ';
 import { ZnIcone } from '../../../shared/ui/icone';
 import { ZnMessage } from '../../../shared/ui/message';
+import { lireProbleme } from '../probleme';
 import { Champ, Erreurs, dateIso, erreurs, messageDe } from './validation';
 
 const CHAMPS: Champ[] = ['pseudo', 'email', 'motDePasse', 'dateNaissance', 'cgu'];
@@ -28,16 +28,6 @@ interface Modele {
   cgu: boolean;
   classement: boolean;
   emails: boolean;
-}
-
-/** Lit le problem+json ; le client généré demande `text`, le corps d'erreur arrive donc en chaîne. */
-function lireProbleme(e: unknown): Probleme | null {
-  if (!(e instanceof HttpErrorResponse)) return null;
-  try {
-    return (typeof e.error === 'string' ? JSON.parse(e.error) : e.error) as Probleme;
-  } catch {
-    return null;
-  }
 }
 
 @Component({
