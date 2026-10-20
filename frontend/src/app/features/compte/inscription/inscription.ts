@@ -1,3 +1,4 @@
+import { Location } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
 import {
   ChangeDetectionStrategy,
@@ -15,18 +16,15 @@ import { VERSIONS_LEGALES } from '../../../core/legal/versions-legales';
 import { ZnChamp, ZnSaisie } from '../../../shared/ui/champ';
 import { ZnIcone } from '../../../shared/ui/icone';
 import { ZnMessage } from '../../../shared/ui/message';
-import { Champ, Erreurs, dateIso, erreursEtape1, erreursEtape2, messageDe } from './validation';
+import { Champ, Erreurs, dateIso, erreurs, messageDe } from './validation';
 
 const CHAMPS: Champ[] = ['pseudo', 'email', 'motDePasse', 'dateNaissance', 'cgu'];
-const ETAPE_1: Champ[] = ['pseudo', 'email', 'motDePasse'];
 
 interface Modele {
   pseudo: string;
   email: string;
   motDePasse: string;
-  jour: string;
-  mois: string;
-  annee: string;
+  dateNaissance: string;
   cgu: boolean;
   classement: boolean;
   emails: boolean;
@@ -52,16 +50,14 @@ function lireProbleme(e: unknown): Probleme | null {
 export class Inscription {
   private readonly api = inject(Api);
   private readonly injector = inject(Injector);
+  private readonly historique = inject(Location);
   private readonly hote = inject<ElementRef<HTMLElement>>(ElementRef).nativeElement;
 
-  protected readonly etape = signal<1 | 2>(1);
   protected readonly m = signal<Modele>({
     pseudo: '',
     email: '',
     motDePasse: '',
-    jour: '',
-    mois: '',
-    annee: '',
+    dateNaissance: '',
     cgu: false,
     classement: false,
     emails: false,
@@ -78,29 +74,15 @@ export class Inscription {
     this.m.update((v) => ({ ...v, [champ]: valeur }));
   }
 
-  protected precedent() {
-    this.erreurs.set({});
-    this.global.set(null);
-    this.etape.set(1);
-    this.focaliser('h2');
+  protected retour() {
+    this.historique.back();
   }
 
   protected async valider(e: Event) {
     e.preventDefault();
     if (this.occupe()) return;
-    const v = this.m();
     this.global.set(null);
-    if (this.etape() === 1) {
-      const err = erreursEtape1(v);
-      this.erreurs.set(err);
-      if (Object.keys(err).length) return this.focaliser('[aria-invalid="true"]');
-      this.etape.set(2);
-      return this.focaliser('h2');
-    }
-    const err = erreursEtape2({
-      naissance: { jour: v.jour, mois: v.mois, annee: v.annee },
-      cgu: v.cgu,
-    });
+    const err = erreurs(this.m());
     this.erreurs.set(err);
     if (Object.keys(err).length) return this.focaliser('[aria-invalid="true"]');
     await this.envoyer();
@@ -115,7 +97,7 @@ export class Inscription {
           pseudo: v.pseudo,
           email: v.email.trim(),
           motDePasse: v.motDePasse,
-          dateNaissance: dateIso({ jour: v.jour, mois: v.mois, annee: v.annee }) ?? '',
+          dateNaissance: dateIso(v.dateNaissance) ?? '',
           consentements: {
             cgu: true,
             confidentialite: true,
@@ -170,17 +152,14 @@ export class Inscription {
         );
     }
     this.erreurs.set(err);
-    if (Object.keys(err).length) {
-      this.etape.set(ETAPE_1.some((c) => err[c]) ? 1 : 2);
-      this.focaliser('[aria-invalid="true"]');
-    }
+    if (Object.keys(err).length) this.focaliser('[aria-invalid="true"]');
   }
 
   protected recharger() {
     location.reload();
   }
 
-  /** Focus sur le premier élément du sélecteur, une fois l'étape ou les erreurs rendues. */
+  /** Focus sur le premier élément du sélecteur, une fois les erreurs rendues. */
   private focaliser(selecteur: string) {
     afterNextRender(() => this.hote.querySelector<HTMLElement>(selecteur)?.focus(), {
       injector: this.injector,

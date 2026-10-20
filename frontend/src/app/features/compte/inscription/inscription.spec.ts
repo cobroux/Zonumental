@@ -1,5 +1,6 @@
 import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
+import { Location } from '@angular/common';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideApiConfiguration } from '../../../core/api/api-configuration';
 import { VERSIONS_LEGALES } from '../../../core/legal/versions-legales';
@@ -27,16 +28,11 @@ describe('Inscription', () => {
     await fixture.whenStable();
   };
 
-  async function etape2() {
+  function remplir(cgu = true) {
     saisir('pseudo', 'Marco_75');
     saisir('email', 'marco@exemple.fr');
     saisir('motDePasse', 'chat-bleu-47-lune');
-    await soumettre();
-  }
-  function remplirEtape2(cgu = true) {
-    saisir('jour', '1');
-    saisir('mois', '1');
-    saisir('annee', '2000');
+    saisir('dateNaissance', '01 / 01 / 2000');
     if (cgu) cocher('cgu');
   }
   async function repondre(status: number, corps: object) {
@@ -63,46 +59,95 @@ describe('Inscription', () => {
     await fixture.whenStable();
   });
 
-  it('étape 1 : refuse un mot de passe de 11 caractères, erreur liée au champ, focus', async () => {
-    saisir('pseudo', 'Marco_75');
-    saisir('email', 'marco@exemple.fr');
+  it('tient sur un seul écran : en-tête étape 1 / 2, retour de 44 px, titre de la maquette', () => {
+    expect(racine().querySelector('header')?.textContent).toContain('Étape 1 / 2');
+    expect(racine().querySelector('header button')?.getAttribute('aria-label')).toBe('Retour');
+    expect(racine().querySelector('h1')?.textContent).toBe('Crée ton carnet d’explorateur');
+    for (const n of ['pseudo', 'email', 'motDePasse', 'dateNaissance', 'cgu'])
+      expect(champ(n)).toBeTruthy();
+    expect(racine().querySelectorAll('form')).toHaveLength(1);
+  });
+
+  it('date de naissance : un seul champ texte numérique, indices et placeholders de la maquette', () => {
+    const d = champ('dateNaissance');
+    expect(d.type).toBe('text');
+    expect(d.getAttribute('inputmode')).toBe('numeric');
+    expect(d.getAttribute('autocomplete')).toBe('bday');
+    expect(d.placeholder).toBe('JJ / MM / AAAA');
+    expect(champ('pseudo').placeholder).toBe('ex. explorateur75');
+    expect(champ('email').placeholder).toBe('toi@exemple.fr');
+    const aides = [...racine().querySelectorAll('.zn-champ__aide')].map((a) => a.textContent);
+    expect(aides).toEqual([
+      'visible seulement si tu l’acceptes',
+      'pour retrouver ton carnet',
+      '12 caractères minimum',
+      '15 ans minimum',
+    ]);
+  });
+
+  it('une case obligatoire (CGU + confidentialité) puis deux facultatives décochées, dans « Tes choix »', () => {
+    const groupe = racine().querySelector('fieldset')!;
+    expect(groupe.querySelector('legend')?.textContent).toContain('Tes choix');
+    const noms = [...groupe.querySelectorAll('input')].map((i) => i.name);
+    expect(noms).toEqual(['cgu', 'classement', 'emails']);
+    expect(champ('cgu').checked).toBe(false);
+    expect(champ('classement').checked).toBe(false);
+    expect(champ('emails').checked).toBe(false);
+    expect(groupe.textContent).toContain('Obligatoire');
+    expect(groupe.textContent).toContain('Recevoir les nouveaux défis par e-mail.');
+    const liens = [...groupe.querySelectorAll('a')].map((a) => a.getAttribute('href'));
+    expect(liens).toEqual(['/cgu', '/confidentialite']);
+  });
+
+  it('bouton « Créer mon carnet » suivi de la mention sur les données', () => {
+    expect(racine().querySelector('button[type="submit"]')?.textContent).toContain(
+      'Créer mon carnet',
+    );
+    expect(racine().textContent).toContain(
+      'Export ou suppression de tes données à tout moment depuis Profil. Hébergé dans l’UE.',
+    );
+  });
+
+  it('la flèche retour revient à l’écran précédent', () => {
+    const retour = vi.spyOn(TestBed.inject(Location), 'back').mockReturnValue(undefined);
+    racine().querySelector<HTMLButtonElement>('header button')!.click();
+    expect(retour).toHaveBeenCalled();
+  });
+
+  it('refuse un mot de passe de 11 caractères : erreur liée au champ, focus', async () => {
+    remplir();
     saisir('motDePasse', 'Abc123!xyz_');
     await soumettre();
 
     const mdp = champ('motDePasse');
-    expect(racine().textContent).toContain('Étape 1 sur 2');
     expect(mdp.getAttribute('aria-invalid')).toBe('true');
     const erreurId = mdp.getAttribute('aria-describedby')!.split(' ').pop()!;
     expect(racine().querySelector(`#${erreurId}`)?.textContent).toContain('12 caractères');
     expect(document.activeElement).toBe(mdp);
-  });
-
-  it('étape 1 valide : passe à l’étape 2 sans appel réseau', async () => {
-    await etape2();
-    expect(racine().textContent).toContain('Étape 2 sur 2');
     http.verify();
   });
 
-  it('cases facultatives décochées par défaut, CGU avec un lien vers chaque page', async () => {
-    await etape2();
-    expect(champ('classement').checked).toBe(false);
-    expect(champ('emails').checked).toBe(false);
-    const liens = [...racine().querySelectorAll('a')].map((a) => a.getAttribute('href'));
-    expect(liens).toEqual(['/cgu', '/confidentialite']);
-  });
-
   it('envoi impossible sans CGU : erreur sur la case, focus, aucune requête', async () => {
-    await etape2();
-    remplirEtape2(false);
+    remplir(false);
     await soumettre();
     expect(champ('cgu').getAttribute('aria-invalid')).toBe('true');
+    expect(champ('cgu').getAttribute('aria-describedby')).toBe('cgu-erreur');
     expect(document.activeElement).toBe(champ('cgu'));
     http.verify();
   });
 
+  it('date invalide : erreur liée au champ, focus sur la première erreur du formulaire', async () => {
+    remplir();
+    saisir('dateNaissance', '31/02/2000');
+    saisir('email', 'pas-un-mail');
+    await soumettre();
+    expect(champ('dateNaissance').getAttribute('aria-invalid')).toBe('true');
+    expect(document.activeElement).toBe(champ('email'));
+    http.verify();
+  });
+
   it('envoie le contrat avec les versions légales, puis affiche la confirmation', async () => {
-    await etape2();
-    remplirEtape2();
+    remplir();
     cocher('emails');
     await soumettre();
 
@@ -129,24 +174,23 @@ describe('Inscription', () => {
 
   describe('erreurs du serveur', () => {
     beforeEach(async () => {
-      await etape2();
-      remplirEtape2();
+      remplir();
       await soumettre();
     });
 
-    it('409 pseudo-deja-pris : retour à l’étape 1, message sur le pseudo, focus', async () => {
+    it('409 pseudo-deja-pris : message sur le pseudo, focus', async () => {
       await repondre(409, probleme('pseudo-deja-pris', 409));
       expect(champ('pseudo').getAttribute('aria-invalid')).toBe('true');
       expect(racine().textContent).toContain('Ce pseudo est déjà pris, choisis-en un autre');
       expect(document.activeElement).toBe(champ('pseudo'));
     });
 
-    it('422 age-minimum : message sur la date, lié aux trois champs', async () => {
+    it('422 age-minimum : message sur la date, lié au champ', async () => {
       await repondre(422, probleme('age-minimum', 422));
-      expect(racine().querySelector('#naissance-erreur')?.textContent).toContain('au moins 15 ans');
-      for (const n of ['jour', 'mois', 'annee'])
-        expect(champ(n).getAttribute('aria-describedby')).toBe('naissance-erreur');
-      expect(document.activeElement).toBe(champ('jour'));
+      const d = champ('dateNaissance');
+      expect(racine().textContent).toContain('au moins 15 ans pour créer');
+      expect(d.getAttribute('aria-invalid')).toBe('true');
+      expect(document.activeElement).toBe(d);
     });
 
     it('422 consentement-obligatoire : message sur la case CGU', async () => {

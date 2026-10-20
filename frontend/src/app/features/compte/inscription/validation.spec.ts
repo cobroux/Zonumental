@@ -1,68 +1,82 @@
-import { aujourdhuiParis, dateIso, erreursEtape1, erreursEtape2, messageDe } from './validation';
+import { aujourdhuiParis, dateIso, erreurs, messageDe } from './validation';
 
-const ok1 = { pseudo: 'Marco_75', email: 'a@b.fr', motDePasse: 'chat-bleu-47-lune' };
+const ok1 = {
+  pseudo: 'Marco_75',
+  email: 'a@b.fr',
+  motDePasse: 'chat-bleu-47-lune',
+  dateNaissance: '19/10/2011',
+  cgu: true,
+};
+const aujourdhui = '2026-10-19';
+const erreursChamps = (v: typeof ok1) => erreurs(v, aujourdhui);
 
-describe('étape 1', () => {
-  it('accepte des valeurs correctes', () => expect(erreursEtape1(ok1)).toEqual({}));
+describe('pseudo, e-mail, mot de passe', () => {
+  it('accepte des valeurs correctes', () => expect(erreursChamps(ok1)).toEqual({}));
 
   it('refuse un mot de passe de 11 caractères, accepte 12 avec accents et espaces', () => {
-    expect(erreursEtape1({ ...ok1, motDePasse: 'Abc123!xyz_' }).motDePasse).toBeTruthy();
-    expect(erreursEtape1({ ...ok1, motDePasse: 'été à la mer' })).toEqual({});
+    expect(erreursChamps({ ...ok1, motDePasse: 'Abc123!xyz_' }).motDePasse).toBeTruthy();
+    expect(erreursChamps({ ...ok1, motDePasse: 'été à la mer' })).toEqual({});
   });
 
   it('refuse un mot de passe de plus de 128 caractères', () =>
-    expect(erreursEtape1({ ...ok1, motDePasse: 'a'.repeat(129) }).motDePasse).toBeTruthy());
+    expect(erreursChamps({ ...ok1, motDePasse: 'a'.repeat(129) }).motDePasse).toBeTruthy());
 
   it.each(['ab', 'a'.repeat(21), 'avec espace', 'é'])('refuse le pseudo « %s »', (pseudo) =>
-    expect(erreursEtape1({ ...ok1, pseudo }).pseudo).toBeTruthy(),
+    expect(erreursChamps({ ...ok1, pseudo }).pseudo).toBeTruthy(),
   );
 
   it('refuse un e-mail invalide', () =>
-    expect(erreursEtape1({ ...ok1, email: 'pas-un-mail' }).email).toBeTruthy());
+    expect(erreursChamps({ ...ok1, email: 'pas-un-mail' }).email).toBeTruthy());
 });
 
-const naissance = (jour: string, mois: string, annee: string) => ({ jour, mois, annee });
-const ok2 = { cgu: true, naissance: naissance('19', '10', '2011') };
+const avec = (dateNaissance: string, cgu = true) => ({ ...ok1, dateNaissance, cgu });
+const dateErr = (d: string) => erreurs(avec(d), aujourdhui).dateNaissance;
 
-describe('étape 2 : âge minimum 15 ans (RG-002)', () => {
-  const aujourdhui = '2026-10-19';
+describe('âge minimum 15 ans (RG-002)', () => {
+  it('15 ans aujourd’hui : accepté', () => expect(erreurs(ok1, aujourdhui)).toEqual({}));
 
-  it('15 ans aujourd’hui : accepté', () => expect(erreursEtape2(ok2, aujourdhui)).toEqual({}));
-
-  it('15 ans demain : refusé', () =>
-    expect(
-      erreursEtape2({ ...ok2, naissance: naissance('20', '10', '2011') }, aujourdhui).dateNaissance,
-    ).toMatch(/15 ans/));
+  it('15 ans demain : refusé', () => expect(dateErr('20/10/2011')).toMatch(/15 ans/));
 
   it('29 février : 15 ans le 1er mars seulement', () => {
-    const n = { ...ok2, naissance: naissance('29', '2', '2012') };
-    expect(erreursEtape2(n, '2027-02-28').dateNaissance).toMatch(/15 ans/);
-    expect(erreursEtape2(n, '2027-03-01')).toEqual({});
+    expect(erreurs(avec('29/02/2012'), '2027-02-28').dateNaissance).toMatch(/15 ans/);
+    expect(erreurs(avec('29/02/2012'), '2027-03-01')).toEqual({});
   });
 
-  it('refuse une date future', () =>
-    expect(
-      erreursEtape2({ ...ok2, naissance: naissance('1', '1', '2030') }, aujourdhui).dateNaissance,
-    ).toBeTruthy());
+  it('refuse une date future', () => expect(dateErr('01/01/2030')).toBeTruthy());
 
-  it.each([
-    ['31', '2', '2000'],
-    ['', '1', '2000'],
-    ['1', '13', '2000'],
-    ['1', '1', '99'],
-  ])('refuse la date invalide %s/%s/%s', (j, m, a) =>
-    expect(
-      erreursEtape2({ ...ok2, naissance: naissance(j, m, a) }, aujourdhui).dateNaissance,
-    ).toMatch(/date/i),
+  it.each(['31/02/2000', '', '01/13/2000', '1/1/99', 'abc', '2000'])(
+    'refuse la date invalide « %s »',
+    (d) => expect(dateErr(d)).toMatch(/date/i),
   );
 
   it('refuse sans CGU', () =>
-    expect(erreursEtape2({ ...ok2, cgu: false }, aujourdhui).cgu).toBeTruthy());
+    expect(erreurs(avec('19/10/2011', false), aujourdhui).cgu).toBeTruthy());
+
+  it('remonte toutes les erreurs d’un coup', () =>
+    expect(
+      Object.keys(
+        erreurs(
+          { pseudo: '', email: '', motDePasse: '', dateNaissance: '', cgu: false },
+          aujourdhui,
+        ),
+      ),
+    ).toEqual(['pseudo', 'email', 'motDePasse', 'dateNaissance', 'cgu']));
 });
 
 describe('dateIso et aujourdhuiParis', () => {
-  it('formate en AAAA-MM-JJ', () =>
-    expect(dateIso(naissance('5', '3', '2001'))).toBe('2001-03-05'));
+  it.each([
+    '05/03/2001',
+    '5 / 3 / 2001',
+    '05-03-2001',
+    '05.03.2001',
+    '05032001',
+    ' 5/3/2001 ',
+    '2001-03-05',
+  ])('lit « %s » comme 2001-03-05', (t) => expect(dateIso(t)).toBe('2001-03-05'));
+
+  it.each(['', '5/3', '5/3/01', '32/01/2000', '0/1/2000', '1/1/2000/1'])('refuse « %s »', (t) =>
+    expect(dateIso(t)).toBeNull(),
+  );
 
   it('prend le jour à Europe/Paris, pas en UTC', () =>
     expect(aujourdhuiParis(new Date('2026-10-19T22:30:00Z'))).toBe('2026-10-20'));

@@ -1,12 +1,6 @@
 /** Validation de confort côté client : le back refait tous les contrôles (RG-002 à RG-006). */
 export type Champ = 'pseudo' | 'email' | 'motDePasse' | 'dateNaissance' | 'cgu';
 export type Erreurs = Partial<Record<Champ, string>>;
-export interface Naissance {
-  jour: string;
-  mois: string;
-  annee: string;
-}
-
 export const AGE_MINIMUM = 15;
 const PSEUDO = /^[A-Za-z0-9_-]{3,20}$/;
 
@@ -44,25 +38,19 @@ export function messageDe(champ: Champ, code: string): string {
   return MESSAGES[champ][code] ?? 'Cette valeur n’est pas valide.';
 }
 
-export function erreursEtape1(v: { pseudo: string; email: string; motDePasse: string }): Erreurs {
-  const e: Erreurs = {};
-  if (!PSEUDO.test(v.pseudo)) e.pseudo = messageDe('pseudo', 'format');
-  const email = v.email.trim();
-  if (!email) e.email = messageDe('email', 'obligatoire');
-  else if (email.length > 254 || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))
-    e.email = messageDe('email', 'format');
-  if (v.motDePasse.length < 12) e.motDePasse = messageDe('motDePasse', 'trop-court');
-  else if (v.motDePasse.length > 128) e.motDePasse = messageDe('motDePasse', 'trop-long');
-  return e;
-}
-
-/** `AAAA-MM-JJ` si la date existe, sinon `null`. */
-export function dateIso({ jour, mois, annee }: Naissance): string | null {
-  if (!/^\d{1,2}$/.test(jour) || !/^\d{1,2}$/.test(mois) || !/^\d{4}$/.test(annee)) return null;
-  const [j, m, a] = [Number(jour), Number(mois), Number(annee)];
+/** `AAAA-MM-JJ` si le texte est une date qui existe, sinon `null`. Accepte « 05 / 03 / 2001 », « 05032001 » (pavé numérique) et l'ISO de l'autofill. */
+export function dateIso(texte: string): string | null {
+  const t = texte.trim();
+  const iso = /^(\d{4})-(\d{2})-(\d{2})$/.exec(t);
+  const fr = /^(\d{1,2})\s*[/.\- ]\s*(\d{1,2})\s*[/.\- ]\s*(\d{4})$/.exec(t);
+  const compact = /^(\d{2})(\d{2})(\d{4})$/.exec(t);
+  const [j, m, a] = iso
+    ? [iso[3], iso[2], iso[1]].map(Number)
+    : ((fr ?? compact)?.slice(1).map(Number) ?? []);
+  if (!a) return null;
   const d = new Date(Date.UTC(a, m - 1, j));
   if (d.getUTCFullYear() !== a || d.getUTCMonth() !== m - 1 || d.getUTCDate() !== j) return null;
-  return `${annee}-${String(m).padStart(2, '0')}-${String(j).padStart(2, '0')}`;
+  return `${String(a).padStart(4, '0')}-${String(m).padStart(2, '0')}-${String(j).padStart(2, '0')}`;
 }
 
 /** Jour courant à Europe/Paris, comme le back (RG-002) : le fuseau du téléphone ne compte pas. */
@@ -81,12 +69,19 @@ function age(naissance: string, aujourdhui: string): number {
   return a - an - (m < mn ? 1 : 0);
 }
 
-export function erreursEtape2(
-  v: { naissance: Naissance; cgu: boolean },
+export function erreurs(
+  v: { pseudo: string; email: string; motDePasse: string; dateNaissance: string; cgu: boolean },
   aujourdhui = aujourdhuiParis(),
 ): Erreurs {
   const e: Erreurs = {};
-  const iso = dateIso(v.naissance);
+  if (!PSEUDO.test(v.pseudo)) e.pseudo = messageDe('pseudo', 'format');
+  const email = v.email.trim();
+  if (!email) e.email = messageDe('email', 'obligatoire');
+  else if (email.length > 254 || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))
+    e.email = messageDe('email', 'format');
+  if (v.motDePasse.length < 12) e.motDePasse = messageDe('motDePasse', 'trop-court');
+  else if (v.motDePasse.length > 128) e.motDePasse = messageDe('motDePasse', 'trop-long');
+  const iso = dateIso(v.dateNaissance);
   if (!iso || iso > aujourdhui) e.dateNaissance = messageDe('dateNaissance', 'date-invalide');
   else if (age(iso, aujourdhui) < AGE_MINIMUM)
     e.dateNaissance = messageDe('dateNaissance', 'age-minimum');
