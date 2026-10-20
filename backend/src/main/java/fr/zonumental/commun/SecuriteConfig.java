@@ -22,7 +22,11 @@ class SecuriteConfig {
             a ->
                 a.requestMatchers("/api/health/**", "/v3/api-docs", "/v3/api-docs.yaml")
                     .permitAll()
-                    .requestMatchers(HttpMethod.POST, "/api/compte/inscription")
+                    .requestMatchers(
+                        HttpMethod.POST,
+                        "/api/compte/inscription",
+                        "/api/compte/email/verification",
+                        "/api/compte/email/verification/renvoi")
                     .permitAll()
                     .anyRequest()
                     .authenticated())

@@ -2,15 +2,11 @@ package fr.zonumental.compte.inscription;
 
 import fr.zonumental.commun.ErreurMetier;
 import fr.zonumental.compte.courriel.Courriels;
-import java.nio.charset.StandardCharsets;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
-import java.security.SecureRandom;
+import fr.zonumental.compte.jeton.Jetons;
 import java.time.Clock;
 import java.time.Duration;
 import java.time.LocalDate;
 import java.time.OffsetDateTime;
-import java.util.Base64;
 import java.util.UUID;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -25,12 +21,12 @@ import org.springframework.transaction.support.TransactionTemplate;
 class Inscription {
 
   private static final int AGE_MINIMUM = 15;
-  private static final SecureRandom ALEA = new SecureRandom();
 
   private final JdbcClient jdbc;
   private final TransactionTemplate tx;
   private final PasswordEncoder motsDePasse;
   private final Courriels courriels;
+  private final Jetons jetons;
   private final Clock horloge;
   private final String versionCgu;
   private final String versionConfidentialite;
@@ -41,6 +37,7 @@ class Inscription {
       TransactionTemplate tx,
       PasswordEncoder motsDePasse,
       Courriels courriels,
+      Jetons jetons,
       Clock horloge,
       @Value("${zonumental.legal.version-cgu}") String versionCgu,
       @Value("${zonumental.legal.version-confidentialite}") String versionConfidentialite,
@@ -49,6 +46,7 @@ class Inscription {
     this.tx = tx;
     this.motsDePasse = motsDePasse;
     this.courriels = courriels;
+    this.jetons = jetons;
     this.horloge = horloge;
     this.versionCgu = versionCgu;
     this.versionConfidentialite = versionConfidentialite;
@@ -123,15 +121,7 @@ class Inscription {
     consentement(id, "CLASSEMENT", c.classement(), versionConfidentialite, maintenant);
     consentement(id, "EMAILS", c.emails(), versionConfidentialite, maintenant);
 
-    byte[] octets = new byte[32];
-    ALEA.nextBytes(octets);
-    String jeton = Base64.getUrlEncoder().withoutPadding().encodeToString(octets);
-    jdbc.sql(
-            "insert into compte.jeton (utilisateur_id, usage, empreinte, cree_le, expire_le)"
-                + " values (?, 'VERIFICATION_EMAIL', ?, ?, ?)")
-        .params(id, sha256(jeton), maintenant, maintenant.plus(dureeVerification))
-        .update();
-    return jeton;
+    return jetons.emettre(id, "VERIFICATION_EMAIL", maintenant, dureeVerification);
   }
 
   private void consentement(
@@ -141,13 +131,5 @@ class Inscription {
                 + " horodatage) values (?, ?, ?, ?, ?)")
         .params(id, type, accorde, version, t)
         .update();
-  }
-
-  static byte[] sha256(String valeur) {
-    try {
-      return MessageDigest.getInstance("SHA-256").digest(valeur.getBytes(StandardCharsets.UTF_8));
-    } catch (NoSuchAlgorithmException e) {
-      throw new IllegalStateException(e);
-    }
   }
 }
