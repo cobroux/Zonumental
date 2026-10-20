@@ -1,4 +1,4 @@
-package fr.zonumental.commun;
+package fr.zonumental.compte.session;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
