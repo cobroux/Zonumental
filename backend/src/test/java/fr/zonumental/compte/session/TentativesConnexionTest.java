@@ -115,6 +115,7 @@ class TentativesConnexionTest {
     clearInvocations(encodeurEspion);
     connexion(EMAIL, MDP)
         .andExpect(status().isTooManyRequests())
+        .andExpect(header().string("Content-Type", "application/problem+json"))
         .andExpect(jsonPath("$.code").value("connexion-bloquee"))
         .andExpect(header().string("Retry-After", "900"))
         .andExpect(header().doesNotExist("Set-Cookie"));
