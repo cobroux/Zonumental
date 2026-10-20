@@ -8,7 +8,7 @@ import {
   inject,
   signal,
 } from '@angular/core';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, RouterLink } from '@angular/router';
 import { Api } from '../../../core/api/api';
 import { renvoyerVerification } from '../../../core/api/fn/compte/renvoyer-verification';
 import { verifierEmail } from '../../../core/api/fn/compte/verifier-email';
@@ -21,7 +21,7 @@ type Etat = 'chargement' | 'confirme' | 'deja' | 'expire' | 'invalide' | 'erreur
 /** Le lien de l'e-mail ne consomme rien : c'est cette page qui poste le jeton (ADR 0004, scanners anti-spam). */
 @Component({
   selector: 'app-verification-email',
-  imports: [ZnChamp, ZnSaisie, ZnMessage],
+  imports: [ZnChamp, ZnSaisie, ZnMessage, RouterLink],
   templateUrl: './verification-email.html',
   styleUrl: './verification-email.css',
   changeDetection: ChangeDetectionStrategy.OnPush,

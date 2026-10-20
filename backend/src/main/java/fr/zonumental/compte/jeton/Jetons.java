@@ -28,15 +28,20 @@ public class Jetons {
   /** À appeler dans la transaction de l'appelant ; renvoie le jeton en clair. */
   public String emettre(
       UUID utilisateurId, String usage, OffsetDateTime maintenant, Duration duree) {
-    byte[] octets = new byte[32];
-    ALEA.nextBytes(octets);
-    String jeton = Base64.getUrlEncoder().withoutPadding().encodeToString(octets);
+    String jeton = aleatoire();
     jdbc.sql(
             "insert into compte.jeton (utilisateur_id, usage, empreinte, cree_le, expire_le)"
                 + " values (?, ?, ?, ?, ?)")
         .params(utilisateurId, usage, empreinte(jeton), maintenant, maintenant.plus(duree))
         .update();
     return jeton;
+  }
+
+  /** 256 bits aléatoires en base64url : jetons de lien et cookie de session. */
+  public static String aleatoire() {
+    byte[] octets = new byte[32];
+    ALEA.nextBytes(octets);
+    return Base64.getUrlEncoder().withoutPadding().encodeToString(octets);
   }
 
   public static byte[] empreinte(String jeton) {

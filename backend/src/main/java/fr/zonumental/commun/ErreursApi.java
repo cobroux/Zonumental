@@ -22,7 +22,9 @@ class ErreursApi {
 
   @ExceptionHandler(ErreurMetier.class)
   ProblemDetail metier(ErreurMetier e) {
-    return probleme(e.statut(), e.code());
+    ProblemDetail p = probleme(e.statut(), e.code());
+    e.proprietes().forEach(p::setProperty);
+    return p;
   }
 
   @ExceptionHandler(MethodArgumentNotValidException.class)

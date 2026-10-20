@@ -69,6 +69,7 @@ describe('VerificationEmail', () => {
     expect(m.getAttribute('role')).toBe('status');
     expect(document.activeElement).toBe(m);
     expect(racine().querySelector('form')).toBeNull();
+    expect(racine().querySelector('a[href="/connexion"]')?.textContent).toContain('Me connecter');
   });
 
   it('409 jeton-deja-utilise : lien déjà utilisé, sans renvoi', async () => {

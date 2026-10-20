@@ -81,8 +81,8 @@ Schéma `compte` :
 | `utilisateur` | `id uuid PK`, `email text NOT NULL UNIQUE` (normalisé : trim + minuscules), `pseudo text NOT NULL`, `mot_de_passe_hash text NOT NULL`, `date_naissance date NOT NULL`, `email_verifie_le timestamptz NULL`, `cree_le timestamptz NOT NULL`, `derniere_activite_le timestamptz NOT NULL`, `suppression_demandee_le timestamptz NULL`, `avertissement_inactivite_le timestamptz NULL` | index unique `lower(pseudo)` ; `CHECK (pseudo ~ '^[A-Za-z0-9_-]{3,20}$')` |
 | `consentement` | `id bigint identity PK`, `utilisateur_id uuid FK ON DELETE CASCADE`, `type text CHECK IN (CGU, CONFIDENTIALITE, CLASSEMENT, EMAILS)`, `accorde boolean`, `version_texte text`, `horodatage timestamptz` | ajout seul ; index `(utilisateur_id, type, horodatage DESC)` |
 | `jeton` | `id bigint identity PK`, `utilisateur_id uuid FK CASCADE`, `usage text CHECK IN (VERIFICATION_EMAIL, REINITIALISATION_MDP)`, `empreinte bytea UNIQUE` (SHA-256), `cree_le`, `expire_le`, `utilise_le NULL` | |
-| `session` | `id bigint identity PK`, `utilisateur_id uuid FK CASCADE`, `empreinte bytea UNIQUE` (SHA-256), `cree_le`, `derniere_utilisation_le`, `expire_le` | index `utilisateur_id` |
-| `tentative_connexion` | `empreinte_email bytea PK` (HMAC), `echecs int`, `bloque_jusqu_au timestamptz NULL`, `derniere_tentative_le timestamptz` | sans lien avec `utilisateur` (adresses inexistantes) |
+| `session` | `id bigint identity PK`, `utilisateur_id uuid FK CASCADE`, `empreinte bytea UNIQUE` (SHA-256), `cree_le`, `expire_le` (glissante) | index `utilisateur_id` ; migration `V5` (r0-socle-8) |
+| `tentative_connexion` | `empreinte_email bytea PK` (HMAC), `echecs int`, `bloque_jusqu_au timestamptz NULL`, `derniere_tentative_le timestamptz` | sans lien avec `utilisateur` (adresses inexistantes) ; migration `V6` (r0-socle-9) |
 
 Schéma `catalogue` :
 
@@ -117,7 +117,7 @@ Chaque story est déléguée à `dev-backend` en TDD. Revue `tech-lead-back` obl
 - **Risque** : springdoc rend mal certaines constructions OpenAPI 3.1 du premier jet (`type: [x, 'null']`, `oneOf` avec `null`) ; il faudra peut-être des annotations `@Schema` ou simplifier le fichier, en accord avec le front.
 
 ### r0-socle-6 — Inscription
-- Packages : `compte.utilisateur`, `compte.inscription`, `compte.consentement`, `compte.jeton`, `compte.courriel`. Migration `V2__compte.sql` (tables `utilisateur`, `consentement`, `jeton`, `session`, `tentative_connexion`).
+- Packages : `compte.utilisateur`, `compte.inscription`, `compte.consentement`, `compte.jeton`, `compte.courriel`. Migration `V2__compte.sql` (tables `utilisateur`, `consentement`, `jeton`).
 - Endpoint : `POST /api/compte/inscription` → `202`. Erreurs : `400 validation`, `422 age-minimum`, `422 consentement-obligatoire`, `409 version-texte-obsolete`, `409 pseudo-deja-pris`.
 - Règles : âge via `Clock` (Europe/Paris), `naissance.plusYears(15) ≤ aujourd'hui` (un 29 février donne le 28 février) ; date future → `422 age-minimum` ; e-mail normalisé ; mot de passe NFC, 12-128 ; Argon2id ; course sur le pseudo ou l'e-mail : la contrainte unique tranche (`DataIntegrityViolation` traduite en `409 pseudo-deja-pris` ou en `202` générique pour l'e-mail).
 - Refus (âge, consentements) : rien persisté, rien journalisé de la demande.
@@ -130,14 +130,14 @@ Chaque story est déléguée à `dev-backend` en TDD. Revue `tech-lead-back` obl
 - **Risque** : le lien est ouvert par les scanners anti-spam des messageries ; comme la vérification est un `POST` déclenché par la page Angular, un simple `GET` du lien ne consomme pas le jeton.
 
 ### r0-socle-8 — Connexion, déconnexion, session
-- `compte.session` : `SecuriteConfig` (chaîne unique : routes publiques listées, tout le reste authentifié, resource server JWT, CORS depuis la configuration, CSRF désactivé + contrôle `Origin` sur `/api/auth/*`, en-têtes Spring Security par défaut + `Cache-Control: no-store`), `JwtConfig` (encodeur/décodeur HS256), `Sessions`, `CookieSession`.
-- Endpoints : `POST /api/auth/connexion`, `POST /api/auth/renouvellement`, `POST /api/auth/deconnexion`, `GET /api/compte/moi` (page protégée de démonstration).
+- `compte.session` : `SecuriteConfig` (chaîne unique : routes publiques listées, tout le reste authentifié, resource server JWT, CORS depuis la configuration (front-url + `ZONUMENTAL_CORS_ORIGINES`, appliqué à `/api/**` : le processeur CORS de Spring rejette en `403` toute origine croisée non listée, c'est le contrôle `Origin`), CSRF désactivé, sessions `STATELESS`, en-têtes Spring Security par défaut + `Cache-Control: no-store`), `JwtConfig` (encodeur/décodeur HS256), `Sessions`, `CookieSession`.
+- Endpoints : `POST /api/auth/connexion`, `POST /api/auth/renouvellement`, `POST /api/auth/deconnexion`, `GET /api/compte/moi` (page protégée de démonstration). Migration `V5__session.sql`. `SecuriteConfig` quitte `commun` pour `compte.session`.
 - Le renouvellement refuse un compte en suppression ; met à jour `derniere_activite_le` (au plus une fois par jour).
 - Tests : expiration du JWT (horloge décalée), session 5 j OK / 31 j KO, déconnexion qui invalide le cookie, attributs du cookie.
 - **Risques** : `SameSite=Strict` impose le même site front/API (point d'accord) ; jeton d'accès encore valable 15 min après déconnexion (accepté, ADR 0004).
 
 ### r0-socle-9 — Limitation des tentatives
-- `compte.session.TentativesConnexion` : upsert atomique sur `tentative_connexion`, clé HMAC de l'e-mail normalisé ; `429 connexion-bloquee` + en-tête `Retry-After` (secondes) ; nettoyage nocturne des lignes de plus de 24 h.
+- `compte.session.TentativesConnexion` : upsert atomique sur `tentative_connexion`, clé HMAC de l'e-mail normalisé ; `429 connexion-bloquee` + en-tête `Retry-After` (secondes) ; nettoyage nocturne des lignes de plus de 24 h et des sessions expirées. Migration `V6__tentative_connexion.sql`.
 - Le compteur s'applique aussi à `POST /api/compte/suppression/annulation`.
 - Tests : 5 échecs puis bon mot de passe refusé, accepté après 15 min (horloge), succès au 4e qui remet à zéro, adresse inexistante bloquée pareil.
 - **Risque** : 20 requêtes parallèles peuvent passer le contrôle avant l'incrément ; l'incrément atomique borne l'écart à la concurrence d'un instant. Limitation par IP au proxy en complément.

@@ -162,6 +162,16 @@
 				<artifactId>spring-boot-maven-plugin</artifactId>
 			</plugin>
 			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-surefire-plugin</artifactId>
+				<configuration>
+					<systemPropertyVariables>
+						<!-- Valeur factice de test (base64, 49 octets), sans secret réel -->
+						<ZONUMENTAL_JWT_SECRET>c2VjcmV0LWZhY3RpY2UtZGUtdGVzdC1uZS1wYXMtdXRpbGlzZXItMDEyMzQ1Njc4OQ==</ZONUMENTAL_JWT_SECRET>
+					</systemPropertyVariables>
+				</configuration>
+			</plugin>
+			<plugin>
 				<groupId>com.diffplug.spotless</groupId>
 				<artifactId>spotless-maven-plugin</artifactId>
 				<version>${spotless.version}</version>

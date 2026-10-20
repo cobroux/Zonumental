@@ -1,0 +1,68 @@
+:host {
+  display: block;
+  max-width: 28rem;
+  margin: 0 auto;
+}
+
+/* Même colonne pleine hauteur que l'inscription (maquette O6) : le bouton reste en bas */
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--zn-esp-4);
+  min-block-size: 100dvh;
+  padding: var(--zn-esp-4) var(--zn-esp-6) var(--zn-esp-6);
+}
+
+header {
+  display: flex;
+  align-items: center;
+  block-size: var(--zn-cible);
+}
+
+.retour {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  inline-size: var(--zn-cible);
+  block-size: var(--zn-cible);
+  margin-inline-start: calc(-1 * var(--zn-esp-3));
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--zn-texte);
+  cursor: pointer;
+}
+
+h1 {
+  font-size: 2rem;
+  line-height: 1;
+}
+
+form {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: var(--zn-esp-4);
+}
+
+.pied {
+  display: grid;
+  gap: var(--zn-esp-2);
+  margin-block-start: auto;
+}
+
+.mention {
+  color: var(--zn-texte-doux);
+  font-size: 0.875rem;
+  text-align: center;
+}
+
+.mention a {
+  display: inline-block;
+  padding-block: var(--zn-esp-2);
+}
+
+zn-message:focus-visible {
+  outline: 2px solid var(--zn-action);
+  outline-offset: 2px;
+}
