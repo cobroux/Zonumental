@@ -14,6 +14,7 @@ Format : [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/).
 - r0-socle-6 : inscription (`/inscription`, maquette O6) : âge minimum 15 ans, consentements datés et versionnés, mot de passe Argon2id, réponse identique si l'e-mail existe déjà, e-mail de vérification envoyé après enregistrement.
 - r0-socle-7 : vérification de l'e-mail par lien à usage unique (24 h) et renvoi limité à un par minute, sans révéler si l'adresse existe ; page `/verifier-email`.
 - r0-socle-8 : connexion (`/connexion`), jeton d'accès JWT de 15 min gardé en mémoire, session de renouvellement de 30 jours glissants en cookie HttpOnly, déconnexion, `GET /api/compte/moi` avec `emailVerifie`, contrôle d'origine par CORS.
+- r0-socle-9 : blocage de 15 min après 5 échecs de connexion sur une même adresse (429 avec `Retry-After`, même réponse pour une adresse inconnue), purge nocturne des tentatives et des sessions expirées.
 
 ### Modifié
 - CI passée en Java 25, Node lu via `.nvmrc`.
