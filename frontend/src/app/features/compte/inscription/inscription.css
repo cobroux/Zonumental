@@ -1,0 +1,101 @@
+:host {
+  display: block;
+  max-width: 28rem;
+  margin: 0 auto;
+}
+
+/* Colonne pleine hauteur : le bouton et la mention restent en bas (maquette O6) */
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--zn-esp-4);
+  min-block-size: 100dvh;
+  padding: var(--zn-esp-4) var(--zn-esp-6) var(--zn-esp-6);
+}
+
+header {
+  display: flex;
+  align-items: center;
+  gap: var(--zn-esp-3);
+  block-size: var(--zn-cible);
+}
+
+.retour {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  inline-size: var(--zn-cible);
+  block-size: var(--zn-cible);
+  margin-inline-start: calc(-1 * var(--zn-esp-3));
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--zn-texte);
+  cursor: pointer;
+}
+
+h1 {
+  font-size: 2rem;
+  line-height: 1;
+}
+
+form {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: var(--zn-esp-4);
+}
+
+fieldset {
+  display: grid;
+  gap: var(--zn-esp-2);
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.etape {
+  color: var(--zn-texte-doux);
+  font-size: 0.6875rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+.note {
+  color: var(--zn-texte-doux);
+}
+
+.erreur {
+  display: flex;
+  gap: var(--zn-esp-2);
+  margin: 0;
+  color: var(--zn-erreur);
+  font-size: 0.875rem;
+}
+
+.choix a {
+  display: inline-block;
+  padding-block: var(--zn-esp-2);
+}
+
+.pied {
+  display: grid;
+  gap: var(--zn-esp-2);
+  margin-block-start: auto;
+}
+
+.mention {
+  color: var(--zn-texte-doux);
+  font-size: 0.75rem;
+  line-height: 1.4;
+  text-align: center;
+}
+
+/* Case alignée sur la première ligne quand le texte passe sur deux lignes (maquette O6) */
+.choix label {
+  align-items: flex-start;
+}
+
+.choix input[znCase] {
+  margin-block-start: 0.125rem;
+}

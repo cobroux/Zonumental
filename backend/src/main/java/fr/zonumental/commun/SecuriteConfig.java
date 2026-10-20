@@ -2,6 +2,7 @@ package fr.zonumental.commun;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.web.SecurityFilterChain;
@@ -20,6 +21,8 @@ class SecuriteConfig {
         .authorizeHttpRequests(
             a ->
                 a.requestMatchers("/api/health/**", "/v3/api-docs", "/v3/api-docs.yaml")
+                    .permitAll()
+                    .requestMatchers(HttpMethod.POST, "/api/compte/inscription")
                     .permitAll()
                     .anyRequest()
                     .authenticated())

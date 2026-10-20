@@ -4,7 +4,7 @@ import { provideRouter } from '@angular/router';
 import { Cgu } from './cgu';
 import { Confidentialite } from './confidentialite';
 import { MentionsLegales } from './mentions-legales';
-import { VERSIONS_LEGALES } from './versions-legales';
+import { VERSIONS_LEGALES } from '../../core/legal/versions-legales';
 
 const PAGES: [string, Type<unknown>, keyof typeof VERSIONS_LEGALES, RegExp][] = [
   ['cgu', Cgu, 'cgu', /conditions générales/i],

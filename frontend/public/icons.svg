@@ -5,4 +5,5 @@
   <symbol id="info" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9.5"/><path d="M12 10.5v7"/><path d="M12 6.5v1"/></symbol>
   <symbol id="oeil" viewBox="0 0 24 24"><path d="M2 12c3-5 6-7 10-7s7 2 10 7c-3 5-6 7-10 7s-7-2-10-7Z"/><circle cx="12" cy="12" r="2.5"/></symbol>
   <symbol id="oeil-barre" viewBox="0 0 24 24"><path d="M2 12c3-5 6-7 10-7s7 2 10 7c-3 5-6 7-10 7s-7-2-10-7Z"/><path d="M4 20 20 4"/></symbol>
+  <symbol id="retour" viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></symbol>
 </svg>

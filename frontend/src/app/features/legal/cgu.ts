@@ -1,7 +1,7 @@
 /* eslint-disable @angular-eslint/component-selector -- préfixe `zn` du design system (ADR 0016) */
 import { ChangeDetectionStrategy, Component } from '@angular/core';
 import { PageLegale } from './page-legale';
-import { VERSIONS_LEGALES } from './versions-legales';
+import { VERSIONS_LEGALES } from '../../core/legal/versions-legales';
 
 @Component({
   selector: 'zn-cgu',

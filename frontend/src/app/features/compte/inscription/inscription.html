@@ -1,0 +1,158 @@
+<div class="page">
+  <header>
+    <button type="button" class="retour" aria-label="Retour" (click)="retour()">
+      <zn-icone nom="retour" />
+    </button>
+    <span class="etape zn-mono">Étape 1 / 2</span>
+  </header>
+
+  <h1>Crée ton carnet d’explorateur</h1>
+
+  @if (envoyeA(); as adresse) {
+    <!-- Provisoire : r0-socle-7 / -16 remplacent ce message par /inscription/verifie-ton-email. -->
+    <zn-message type="succes">
+      Si l'adresse {{ adresse }} est valide, un e-mail t'a été envoyé. Ouvre le lien qu'il contient
+      pour confirmer ton adresse.
+    </zn-message>
+  } @else {
+    @if (global(); as texte) {
+      <zn-message type="erreur">{{ texte }}</zn-message>
+      @if (obsolete()) {
+        <button znBouton type="button" (click)="recharger()">Recharger la page</button>
+      }
+    }
+
+    <form (submit)="valider($event)" novalidate>
+      <zn-champ
+        label="Pseudo"
+        aide="visible seulement si tu l’acceptes"
+        [erreur]="erreurs().pseudo ?? null"
+      >
+        <input
+          znSaisie
+          name="pseudo"
+          placeholder="ex. explorateur75"
+          autocomplete="username"
+          autocapitalize="none"
+          spellcheck="false"
+          maxlength="20"
+          required
+          [value]="m().pseudo"
+          (input)="maj('pseudo', $event)"
+        />
+      </zn-champ>
+      <zn-champ label="E-mail" aide="pour retrouver ton carnet" [erreur]="erreurs().email ?? null">
+        <input
+          znSaisie
+          name="email"
+          type="email"
+          placeholder="toi@exemple.fr"
+          autocomplete="email"
+          maxlength="254"
+          required
+          [value]="m().email"
+          (input)="maj('email', $event)"
+        />
+      </zn-champ>
+      <zn-champ
+        label="Mot de passe"
+        aide="12 caractères minimum"
+        [erreur]="erreurs().motDePasse ?? null"
+        [motDePasse]="true"
+      >
+        <input
+          znSaisie
+          name="motDePasse"
+          type="password"
+          autocomplete="new-password"
+          required
+          [value]="m().motDePasse"
+          (input)="maj('motDePasse', $event)"
+        />
+      </zn-champ>
+      <zn-champ
+        label="Date de naissance"
+        aide="15 ans minimum"
+        [erreur]="erreurs().dateNaissance ?? null"
+      >
+        <input
+          znSaisie
+          name="dateNaissance"
+          placeholder="JJ / MM / AAAA"
+          inputmode="numeric"
+          autocomplete="bday"
+          maxlength="10"
+          required
+          [value]="m().dateNaissance"
+          (input)="maj('dateNaissance', $event)"
+        />
+      </zn-champ>
+
+      <fieldset class="choix">
+        <legend znLegende>Tes choix</legend>
+        <label>
+          <input
+            znCase
+            type="checkbox"
+            name="cgu"
+            required
+            aria-required="true"
+            [checked]="m().cgu"
+            [attr.aria-describedby]="erreurs().cgu ? 'cgu-erreur' : null"
+            [attr.aria-invalid]="erreurs().cgu ? 'true' : null"
+            (change)="maj('cgu', $event)"
+          />
+          <span>
+            J'accepte les
+            <a href="/cgu" target="_blank" rel="noopener"
+              >CGU<span class="zn-sr"> (nouvel onglet)</span></a
+            >
+            et la
+            <a href="/confidentialite" target="_blank" rel="noopener"
+              >politique de confidentialité<span class="zn-sr"> (nouvel onglet)</span></a
+            >.
+            <span class="note">Obligatoire</span>
+          </span>
+        </label>
+        @if (erreurs().cgu; as texte) {
+          <p class="erreur" id="cgu-erreur">
+            <zn-icone nom="erreur" />
+            <span><strong>Erreur</strong> <span class="zn-sr">:</span> {{ texte }}</span>
+          </p>
+        }
+        <label>
+          <input
+            znCase
+            type="checkbox"
+            name="classement"
+            [checked]="m().classement"
+            (change)="maj('classement', $event)"
+          />
+          <span
+            >Apparaître dans les classements sous mon pseudo.
+            <span class="note">Facultatif</span></span
+          >
+        </label>
+        <label>
+          <input
+            znCase
+            type="checkbox"
+            name="emails"
+            [checked]="m().emails"
+            (change)="maj('emails', $event)"
+          />
+          <span>Recevoir les nouveaux défis par e-mail. <span class="note">Facultatif</span></span>
+        </label>
+      </fieldset>
+
+      <div class="pied">
+        <button znBouton type="submit" [attr.aria-busy]="occupe() ? 'true' : null">
+          {{ occupe() ? 'Création…' : 'Créer mon carnet' }}
+        </button>
+        <p class="mention">
+          Export ou suppression de tes données à tout moment depuis Profil. Hébergé dans l’UE.
+        </p>
+      </div>
+    </form>
+  }
+</div>

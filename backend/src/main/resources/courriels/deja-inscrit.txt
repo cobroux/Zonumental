@@ -1,0 +1,7 @@
+Tu as déjà un carnet Zonumental
+Quelqu'un a tenté de créer un compte avec cette adresse e-mail, mais tu as déjà un carnet.
+
+Pour te connecter, ouvre Zonumental : %s
+Mot de passe oublié ? Utilise le lien prévu sur l'écran de connexion.
+
+Si ce n'était pas toi, ignore ce message.

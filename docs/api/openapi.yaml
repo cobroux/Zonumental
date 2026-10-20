@@ -532,8 +532,8 @@ components:
           properties:
             cgu: { type: boolean, description: Doit être vrai }
             confidentialite: { type: boolean, description: Doit être vrai }
-            versionCgu: { type: string, examples: ['2026-10-19'] }
-            versionConfidentialite: { type: string, examples: ['2026-10-19'] }
+            versionCgu: { type: string, examples: ['0.1-provisoire'] }
+            versionConfidentialite: { type: string, examples: ['0.1-provisoire'] }
             classement: { type: boolean, default: false }
             emails: { type: boolean, default: false }
     Jeton:

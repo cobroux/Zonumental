@@ -1,7 +1,7 @@
 /* eslint-disable @angular-eslint/component-selector -- préfixe `zn` du design system (ADR 0016) */
 import { ChangeDetectionStrategy, Component, input } from '@angular/core';
 
-export type NomIcone = 'erreur' | 'succes' | 'info' | 'oeil' | 'oeil-barre';
+export type NomIcone = 'erreur' | 'succes' | 'info' | 'oeil' | 'oeil-barre' | 'retour';
 
 /** Icône du sprite `public/icons.svg`. Décorative : le libellé voisin porte le sens. */
 @Component({
