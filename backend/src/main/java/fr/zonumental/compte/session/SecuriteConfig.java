@@ -20,6 +20,7 @@ import org.springframework.security.oauth2.jwt.JwtEncoder;
 import org.springframework.security.oauth2.jwt.JwtTimestampValidator;
 import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
 import org.springframework.security.oauth2.jwt.NimbusJwtEncoder;
+import org.springframework.security.oauth2.server.resource.web.DefaultBearerTokenResolver;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
@@ -48,11 +49,22 @@ class SecuriteConfig {
                         "/api/compte/inscription",
                         "/api/compte/email/verification",
                         "/api/compte/email/verification/renvoi",
-                        "/api/auth/connexion")
+                        "/api/auth/connexion",
+                        "/api/auth/renouvellement",
+                        "/api/auth/deconnexion")
                     .permitAll()
                     .anyRequest()
                     .authenticated())
-        .oauth2ResourceServer(o -> o.jwt(j -> {}).authenticationEntryPoint(nonAuthentifie))
+        .oauth2ResourceServer(
+            o ->
+                o.jwt(j -> {})
+                    .bearerTokenResolver(
+                        // Un jeton périmé ne doit pas empêcher d'en demander un nouveau.
+                        r ->
+                            r.getRequestURI().startsWith("/api/auth/")
+                                ? null
+                                : new DefaultBearerTokenResolver().resolve(r))
+                    .authenticationEntryPoint(nonAuthentifie))
         .exceptionHandling(e -> e.authenticationEntryPoint(nonAuthentifie))
         .build();
   }

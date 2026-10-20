@@ -79,6 +79,48 @@ class Connexion {
     return new Ouverte(jetonsAcces.emettre(compte.id()), CookieSession.poser(cookie, dureeSession));
   }
 
+  /**
+   * Session valide (non expirée, compte actif) : expiration repoussée à +30 j, même cookie (ADR
+   * 0004, pas de rotation). Vide si le cookie ne mène à rien.
+   */
+  Optional<Ouverte> renouveler(String cookie) {
+    if (cookie == null || cookie.isBlank() || cookie.length() > 100) {
+      return Optional.empty();
+    }
+    OffsetDateTime maintenant = OffsetDateTime.now(horloge);
+    byte[] empreinte = Jetons.empreinte(cookie);
+    return tx.execute(
+        s -> {
+          Optional<UUID> id =
+              jdbc.sql(
+                      "update compte.session set expire_le = ? where empreinte = ? and expire_le > ?"
+                          + " and exists (select 1 from compte.utilisateur u where u.id ="
+                          + " utilisateur_id and u.suppression_demandee_le is null)"
+                          + " returning utilisateur_id")
+                  .params(maintenant.plus(dureeSession), empreinte, maintenant)
+                  .query(UUID.class)
+                  .optional();
+          id.ifPresent(
+              u ->
+                  jdbc.sql(
+                          "update compte.utilisateur set derniere_activite_le = ? where id = ?"
+                              + " and derniere_activite_le < ?")
+                      .params(maintenant, u, maintenant.minusDays(1))
+                      .update());
+          return id.map(
+              u -> new Ouverte(jetonsAcces.emettre(u), CookieSession.poser(cookie, dureeSession)));
+        });
+  }
+
+  /** Idempotent : sans cookie ou session inconnue, rien à faire. */
+  void deconnecter(String cookie) {
+    if (cookie != null && !cookie.isBlank() && cookie.length() <= 100) {
+      jdbc.sql("delete from compte.session where empreinte = ?")
+          .param(Jetons.empreinte(cookie))
+          .update();
+    }
+  }
+
   /** E-mail inconnu ou mot de passe faux : même erreur, même coût de calcul. */
   private Compte verifierIdentifiants(DemandeConnexion demande) {
     Optional<Compte> compte =
