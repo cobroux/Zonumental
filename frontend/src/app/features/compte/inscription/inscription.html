@@ -1,0 +1,192 @@
+<div class="page">
+  <h1>Créer mon carnet</h1>
+
+  @if (envoyeA(); as adresse) {
+    <!-- Provisoire : r0-socle-7 / -16 remplacent ce message par /inscription/verifie-ton-email. -->
+    <zn-message type="succes">
+      Si l'adresse {{ adresse }} est valide, un e-mail t'a été envoyé. Ouvre le lien qu'il contient
+      pour confirmer ton adresse.
+    </zn-message>
+  } @else {
+    <p class="etape zn-mono">Étape {{ etape() }} sur 2</p>
+
+    @if (global(); as texte) {
+      <zn-message type="erreur">{{ texte }}</zn-message>
+      @if (obsolete()) {
+        <button znBouton type="button" (click)="recharger()">Recharger la page</button>
+      }
+    }
+
+    <form (submit)="valider($event)" novalidate>
+      @if (etape() === 1) {
+        <h2 tabindex="-1">Ton compte</h2>
+        <zn-champ label="Pseudo" aide="3 à 20 caractères" [erreur]="erreurs().pseudo ?? null">
+          <input
+            znSaisie
+            name="pseudo"
+            autocomplete="username"
+            autocapitalize="none"
+            spellcheck="false"
+            maxlength="20"
+            required
+            [value]="m().pseudo"
+            (input)="maj('pseudo', $event)"
+          />
+        </zn-champ>
+        <zn-champ label="E-mail" [erreur]="erreurs().email ?? null">
+          <input
+            znSaisie
+            name="email"
+            type="email"
+            autocomplete="email"
+            maxlength="254"
+            required
+            [value]="m().email"
+            (input)="maj('email', $event)"
+          />
+        </zn-champ>
+        <zn-champ
+          label="Mot de passe"
+          [aide]="m().motDePasse.length + ' / 128 · 12 minimum'"
+          [erreur]="erreurs().motDePasse ?? null"
+          [motDePasse]="true"
+        >
+          <input
+            znSaisie
+            name="motDePasse"
+            type="password"
+            autocomplete="new-password"
+            required
+            [value]="m().motDePasse"
+            (input)="maj('motDePasse', $event)"
+          />
+        </zn-champ>
+        <button znBouton type="submit">Continuer</button>
+      } @else {
+        <h2 tabindex="-1">Avant de commencer</h2>
+        <fieldset class="naissance">
+          <legend znLegende>Date de naissance</legend>
+          <p class="aide" id="naissance-aide">Il faut avoir au moins 15 ans.</p>
+          <div class="naissance__champs">
+            <zn-champ label="Jour">
+              <input
+                znSaisie
+                name="jour"
+                inputmode="numeric"
+                autocomplete="bday-day"
+                maxlength="2"
+                required
+                [value]="m().jour"
+                [attr.aria-describedby]="
+                  erreurs().dateNaissance ? 'naissance-erreur' : 'naissance-aide'
+                "
+                [attr.aria-invalid]="erreurs().dateNaissance ? 'true' : null"
+                (input)="maj('jour', $event)"
+              />
+            </zn-champ>
+            <zn-champ label="Mois">
+              <input
+                znSaisie
+                name="mois"
+                inputmode="numeric"
+                autocomplete="bday-month"
+                maxlength="2"
+                required
+                [value]="m().mois"
+                [attr.aria-describedby]="
+                  erreurs().dateNaissance ? 'naissance-erreur' : 'naissance-aide'
+                "
+                [attr.aria-invalid]="erreurs().dateNaissance ? 'true' : null"
+                (input)="maj('mois', $event)"
+              />
+            </zn-champ>
+            <zn-champ label="Année">
+              <input
+                znSaisie
+                name="annee"
+                inputmode="numeric"
+                autocomplete="bday-year"
+                maxlength="4"
+                required
+                [value]="m().annee"
+                [attr.aria-describedby]="
+                  erreurs().dateNaissance ? 'naissance-erreur' : 'naissance-aide'
+                "
+                [attr.aria-invalid]="erreurs().dateNaissance ? 'true' : null"
+                (input)="maj('annee', $event)"
+              />
+            </zn-champ>
+          </div>
+          @if (erreurs().dateNaissance; as texte) {
+            <p class="erreur" id="naissance-erreur">
+              <zn-icone nom="erreur" />
+              <span><strong>Erreur</strong> <span class="zn-sr">:</span> {{ texte }}</span>
+            </p>
+          }
+        </fieldset>
+
+        <fieldset class="choix">
+          <legend znLegende>Tes choix</legend>
+          <label>
+            <input
+              znCase
+              type="checkbox"
+              name="cgu"
+              required
+              aria-required="true"
+              [checked]="m().cgu"
+              [attr.aria-describedby]="erreurs().cgu ? 'cgu-erreur' : null"
+              [attr.aria-invalid]="erreurs().cgu ? 'true' : null"
+              (change)="maj('cgu', $event)"
+            />
+            <span>
+              J'accepte les
+              <a href="/cgu" target="_blank" rel="noopener"
+                >CGU<span class="zn-sr"> (nouvel onglet)</span></a
+              >
+              et la
+              <a href="/confidentialite" target="_blank" rel="noopener"
+                >politique de confidentialité<span class="zn-sr"> (nouvel onglet)</span></a
+              >.
+              <span class="note">Obligatoire</span>
+            </span>
+          </label>
+          @if (erreurs().cgu; as texte) {
+            <p class="erreur" id="cgu-erreur">
+              <zn-icone nom="erreur" />
+              <span><strong>Erreur</strong> <span class="zn-sr">:</span> {{ texte }}</span>
+            </p>
+          }
+          <label>
+            <input
+              znCase
+              type="checkbox"
+              name="classement"
+              [checked]="m().classement"
+              (change)="maj('classement', $event)"
+            />
+            <span
+              >Apparaître dans les classements sous mon pseudo.
+              <span class="note">Facultatif</span></span
+            >
+          </label>
+          <label>
+            <input
+              znCase
+              type="checkbox"
+              name="emails"
+              [checked]="m().emails"
+              (change)="maj('emails', $event)"
+            />
+            <span>Recevoir des e-mails de Zonumental. <span class="note">Facultatif</span></span>
+          </label>
+        </fieldset>
+
+        <button znBouton type="submit" [attr.aria-busy]="occupe() ? 'true' : null">
+          {{ occupe() ? 'Création…' : 'Créer mon carnet' }}
+        </button>
+        <button znBouton="secondaire" type="button" (click)="precedent()">Retour</button>
+      }
+    </form>
+  }
+</div>

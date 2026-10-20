@@ -31,4 +31,11 @@ const dev: Routes = isDevMode()
     ]
   : [];
 
-export const routes: Routes = [...legal, ...dev];
+const compte: Routes = [
+  {
+    path: '',
+    loadChildren: () => import('./features/compte/compte.routes').then((m) => m.COMPTE_ROUTES),
+  },
+];
+
+export const routes: Routes = [...legal, ...compte, ...dev];

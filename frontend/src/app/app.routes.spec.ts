@@ -1,10 +1,13 @@
 import { Type } from '@angular/core';
+import { provideHttpClient } from '@angular/common/http';
 import { TestBed } from '@angular/core/testing';
-import { provideRouter } from '@angular/router';
+import { Routes, provideRouter } from '@angular/router';
 import { RouterTestingHarness } from '@angular/router/testing';
+import { provideApiConfiguration } from './core/api/api-configuration';
 import { routes } from './app.routes';
 import { Cgu } from './features/legal/cgu';
 import { Confidentialite } from './features/legal/confidentialite';
+import { Inscription } from './features/compte/inscription/inscription';
 import { MentionsLegales } from './features/legal/mentions-legales';
 
 const PUBLIQUES: [string, Type<unknown>, RegExp][] = [
@@ -27,4 +30,16 @@ describe('Routes publiques (RG-001)', () => {
       expect(route?.title).toMatch(titre);
     },
   );
+
+  it('/inscription s’ouvre sans garde (RG-002 à RG-005)', async () => {
+    TestBed.configureTestingModule({
+      providers: [provideHttpClient(), provideApiConfiguration('')],
+    });
+    const harness = await RouterTestingHarness.create();
+    expect(await harness.navigateByUrl('/inscription')).toBeInstanceOf(Inscription);
+    const enfants = (await routes.find((r) => r.path === '')?.loadChildren?.()) as Routes;
+    const route = enfants.find((r) => r.path === 'inscription');
+    expect(route?.canActivate).toBeUndefined();
+    expect(route?.title).toMatch(/carnet/i);
+  });
 });
