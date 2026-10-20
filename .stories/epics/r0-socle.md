@@ -41,7 +41,7 @@ Livrer une application en ligne, avec son style (direction B « Carnet d'explora
 | r0-socle-9 | Limitation des tentatives de connexion | todo |
 | r0-socle-10 | Mot de passe oublié et réinitialisation | todo |
 | r0-socle-11 | Profil : modifier ses consentements facultatifs | todo |
-| r0-socle-12 | Pages légales publiques (CGU, confidentialité, mentions) | review |
+| r0-socle-12 | Pages légales publiques (CGU, confidentialité, mentions) | done |
 | r0-socle-13 | Export des données personnelles | todo |
 | r0-socle-14 | Suppression du compte avec délai de 30 jours et annulation | todo |
 | r0-socle-15 | Avertissement et suppression des comptes inactifs | todo |
