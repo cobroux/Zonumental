@@ -23,8 +23,8 @@ import { VERSIONS_LEGALES } from './versions-legales';
       <h2>Règles du jeu</h2>
       <p>
         Une capture n'est valable que si la photo est prise à proximité du monument. Toute tentative
-        de tricher (fausse position, photo qui n'est pas un monument) peut entraîner le refus de la
-        capture, voire la suspension du compte.
+        de tricher (fausse position, photo qui n'est pas un monument) entraîne le refus de la
+        capture.
       </p>
       <h2>Contenus</h2>
       <p>
