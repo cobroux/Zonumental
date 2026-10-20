@@ -25,6 +25,7 @@ class Connexion {
   private record Compte(UUID id, String hash, OffsetDateTime suppressionDemandeeLe) {}
 
   private final JdbcClient jdbc;
+  private final TentativesConnexion tentatives;
   private final TransactionTemplate tx;
   private final PasswordEncoder motsDePasse;
   private final JetonsAcces jetonsAcces;
@@ -36,6 +37,7 @@ class Connexion {
 
   Connexion(
       JdbcClient jdbc,
+      TentativesConnexion tentatives,
       TransactionTemplate tx,
       PasswordEncoder motsDePasse,
       JetonsAcces jetonsAcces,
@@ -43,6 +45,7 @@ class Connexion {
       @Value("${zonumental.compte.session-duree}") Duration dureeSession,
       @Value("${zonumental.compte.suppression-delai}") Duration delaiSuppression) {
     this.jdbc = jdbc;
+    this.tentatives = tentatives;
     this.tx = tx;
     this.motsDePasse = motsDePasse;
     this.jetonsAcces = jetonsAcces;
@@ -53,9 +56,10 @@ class Connexion {
   }
 
   Ouverte connecter(DemandeConnexion demande) {
-    // r0-socle-9 : point d'accroche « bloqué ? » (429), avant Argon2.
+    tentatives.verifierNonBloque(demande.email());
     Compte compte = verifierIdentifiants(demande);
-    // r0-socle-9 : point d'accroche « réussite », même si le compte est en suppression.
+    // Même si le compte est en suppression : les identifiants étaient bons.
+    tentatives.reinitialiser(demande.email());
     if (compte.suppressionDemandeeLe() != null) {
       throw new ErreurMetier(
           HttpStatus.CONFLICT,
@@ -138,7 +142,7 @@ class Connexion {
     boolean ok =
         motsDePasse.matches(demande.motDePasse(), compte.map(Compte::hash).orElse(hashFactice));
     if (compte.isEmpty() || !ok) {
-      // r0-socle-9 : point d'accroche « échec ».
+      tentatives.echec(demande.email());
       throw new ErreurMetier(HttpStatus.UNAUTHORIZED, "identifiants-invalides");
     }
     return compte.get();

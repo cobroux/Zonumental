@@ -168,6 +168,7 @@
 					<systemPropertyVariables>
 						<!-- Valeur factice de test (base64, 49 octets), sans secret réel -->
 						<ZONUMENTAL_JWT_SECRET>c2VjcmV0LWZhY3RpY2UtZGUtdGVzdC1uZS1wYXMtdXRpbGlzZXItMDEyMzQ1Njc4OQ==</ZONUMENTAL_JWT_SECRET>
+						<ZONUMENTAL_HMAC_SECRET>aG1hYy1mYWN0aWNlLWRlLXRlc3QtbmUtcGFzLXV0aWxpc2VyLTAxMjM0NTY3ODk=</ZONUMENTAL_HMAC_SECRET>
 					</systemPropertyVariables>
 				</configuration>
 			</plugin>

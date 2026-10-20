@@ -8,6 +8,7 @@ import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
+import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -21,10 +22,12 @@ import tools.jackson.databind.exc.InvalidFormatException;
 class ErreursApi {
 
   @ExceptionHandler(ErreurMetier.class)
-  ProblemDetail metier(ErreurMetier e) {
+  ResponseEntity<ProblemDetail> metier(ErreurMetier e) {
     ProblemDetail p = probleme(e.statut(), e.code());
     e.proprietes().forEach(p::setProperty);
-    return p;
+    ResponseEntity.BodyBuilder r = ResponseEntity.status(e.statut());
+    e.entetes().forEach(r::header);
+    return r.body(p);
   }
 
   @ExceptionHandler(MethodArgumentNotValidException.class)
