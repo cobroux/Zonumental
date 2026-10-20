@@ -88,7 +88,7 @@ describe('Connexion', () => {
     http.expectNone(URL);
   });
 
-  it('succès : jeton en mémoire, e-mail rogné envoyé, navigation vers / par défaut', async () => {
+  it('succès : jeton en mémoire, e-mail rogné envoyé, reste sur la page avec un message de succès', async () => {
     await ouvrir();
     saisir('email', ' marco@exemple.fr ');
     saisir('motDePasse', 'chat-bleu-47-lune');
@@ -101,8 +101,10 @@ describe('Connexion', () => {
     req.flush({ jetonAcces: 'J', expireDans: 900 });
     await apres();
     expect(TestBed.inject(Session).jeton()).toBe('J');
-    expect(router.navigateByUrl).toHaveBeenCalledWith('/');
-    expect(champ('motDePasse').value).toBe('');
+    expect(router.navigateByUrl).not.toHaveBeenCalled();
+    expect(message()?.textContent).toContain('Tu es connecté.');
+    expect(document.activeElement).toBe(message());
+    expect(racine().querySelector('form')).toBeNull();
   });
 
   it('succès avec ?retour=/profil : retourne à la page demandée', async () => {
@@ -111,10 +113,10 @@ describe('Connexion', () => {
     expect(router.navigateByUrl).toHaveBeenCalledWith('/profil');
   });
 
-  it('?retour=//evil.com est refusé : retour à /', async () => {
+  it('?retour=//evil.com est refusé : pas de navigation', async () => {
     await ouvrir({ retour: '//evil.com' });
     await envoyer(200, { jetonAcces: 'J', expireDans: 900 });
-    expect(router.navigateByUrl).toHaveBeenCalledWith('/');
+    expect(router.navigateByUrl).not.toHaveBeenCalled();
   });
 
   it('401 identifiants-invalides : message annoncé (role=alert), focus dessus, pas de navigation', async () => {

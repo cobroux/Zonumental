@@ -15,6 +15,7 @@ import { retourSur } from '../../../core/session/retour';
 import { ZnChamp, ZnSaisie } from '../../../shared/ui/champ';
 import { ZnIcone } from '../../../shared/ui/icone';
 import { ZnMessage } from '../../../shared/ui/message';
+import { ProblemeSuppression } from '../../../core/api/models/probleme-suppression';
 import { lireProbleme } from '../probleme';
 
 const date = new Intl.DateTimeFormat('fr-FR', {
@@ -43,6 +44,7 @@ export class Connexion {
   protected readonly erreurMotDePasse = signal<string | null>(null);
   protected readonly global = signal<string | null>(null);
   protected readonly occupe = signal(false);
+  protected readonly connecte = signal(false);
 
   protected retour() {
     this.historique.back();
@@ -61,7 +63,12 @@ export class Connexion {
       await this.session.connecter(adresse, this.motDePasse());
       // Le mot de passe ne reste pas en mémoire une fois la session ouverte.
       this.motDePasse.set('');
-      await this.router.navigateByUrl(retourSur(this.route.snapshot.queryParamMap.get('retour')));
+      const retour = retourSur(this.route.snapshot.queryParamMap.get('retour'));
+      // shortcut: aucune page d'accueil ni de profil, on reste ici ; -11/-16 fourniront la destination.
+      if (retour === '/') {
+        this.connecte.set(true);
+        this.focaliser('zn-message');
+      } else await this.router.navigateByUrl(retour);
     } catch (err) {
       this.global.set(this.message(err));
       this.focaliser('zn-message');
@@ -78,7 +85,7 @@ export class Connexion {
       case 'validation':
         return 'Vérifie ton e-mail et ton mot de passe.';
       case 'suppression-en-cours': {
-        const le = (p as { suppressionDefinitiveLe?: string }).suppressionDefinitiveLe;
+        const le = (p as Partial<ProblemeSuppression>).suppressionDefinitiveLe;
         return le
           ? `Ton carnet doit être supprimé le ${date.format(new Date(le))}.`
           : 'La suppression de ton carnet est en cours.';
