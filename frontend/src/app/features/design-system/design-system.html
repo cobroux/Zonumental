@@ -219,6 +219,19 @@
       <zn-message type="succes">Ton carnet est créé. Vérifie ta boîte e-mail.</zn-message>
       <zn-message type="info">Ta position n'est utilisée que pour tamponner.</zn-message>
     </div>
+    <div id="sante" class="pile">
+      @switch (sante()) {
+        @case ('ok') {
+          <zn-message type="succes">Back joignable : {{ statutSante() }}.</zn-message>
+        }
+        @case ('ko') {
+          <zn-message type="erreur">Back injoignable.</zn-message>
+        }
+        @default {
+          <p>Vérification du back…</p>
+        }
+      }
+    </div>
   </section>
 
   <section id="liens" aria-labelledby="liens-titre">
