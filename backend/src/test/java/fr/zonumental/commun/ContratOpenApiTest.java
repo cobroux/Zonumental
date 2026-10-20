@@ -36,7 +36,8 @@ class ContratOpenApiTest {
       Set.of(
           "/api/compte/inscription",
           "/api/compte/email/verification",
-          "/api/compte/email/verification/renvoi");
+          "/api/compte/email/verification/renvoi",
+          "/api/compte/moi");
 
   @Autowired MockMvc mvc;
 
