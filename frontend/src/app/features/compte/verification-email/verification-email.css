@@ -1,0 +1,31 @@
+:host {
+  display: block;
+  max-width: 28rem;
+  margin: 0 auto;
+}
+
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--zn-esp-4);
+  padding: var(--zn-esp-6);
+}
+
+h1 {
+  font-size: 2rem;
+  line-height: 1;
+}
+
+form {
+  display: grid;
+  gap: var(--zn-esp-4);
+}
+
+.chargement {
+  color: var(--zn-texte-doux);
+}
+
+zn-message:focus-visible {
+  outline: 2px solid var(--zn-action);
+  outline-offset: 2px;
+}

@@ -1,0 +1,61 @@
+<main class="page">
+  <h1>Vérification de ton e-mail</h1>
+
+  @switch (etat()) {
+    @case ('chargement') {
+      <p class="chargement" role="status">Vérification en cours…</p>
+    }
+    @case ('confirme') {
+      <zn-message type="succes" tabindex="-1">E-mail confirmé. Ton carnet est prêt.</zn-message>
+    }
+    @case ('deja') {
+      <zn-message type="info" tabindex="-1">
+        Ce lien a déjà servi : ton e-mail est sans doute déjà confirmé.
+      </zn-message>
+    }
+    @case ('expire') {
+      <zn-message type="erreur" tabindex="-1">Ce lien a expiré. Demande-en un nouveau.</zn-message>
+    }
+    @case ('invalide') {
+      <zn-message type="erreur" tabindex="-1">
+        Ce lien n'est plus valide : il a peut-être été remplacé par un plus récent. Demande-en un
+        nouveau.
+      </zn-message>
+    }
+    @case ('erreur') {
+      <zn-message type="erreur" tabindex="-1">
+        Une erreur est survenue. Réessaie dans un instant.
+      </zn-message>
+    }
+  }
+
+  @if (renvoi()) {
+    @if (renvoye()) {
+      <zn-message type="succes" tabindex="-1">
+        Si un carnet existe pour cette adresse, un nouveau lien vient de partir.
+      </zn-message>
+    } @else {
+      <form (submit)="renvoyer($event)" novalidate>
+        @if (echecRenvoi()) {
+          <zn-message type="erreur">Une erreur est survenue. Réessaie dans un instant.</zn-message>
+        }
+        <zn-champ label="E-mail" [erreur]="erreurEmail()">
+          <input
+            znSaisie
+            name="email"
+            type="email"
+            placeholder="toi@exemple.fr"
+            autocomplete="email"
+            maxlength="254"
+            required
+            [value]="email()"
+            (input)="email.set($any($event.target).value)"
+          />
+        </zn-champ>
+        <button znBouton type="submit" [attr.aria-busy]="occupe() ? 'true' : null">
+          {{ occupe() ? 'Envoi…' : 'Recevoir un nouveau lien' }}
+        </button>
+      </form>
+    }
+  }
+</main>

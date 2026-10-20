@@ -31,7 +31,7 @@ interface Modele {
 }
 
 /** Lit le problem+json ; le client généré demande `text`, le corps d'erreur arrive donc en chaîne. */
-function lireProbleme(e: unknown): Probleme | null {
+export function lireProbleme(e: unknown): Probleme | null {
   if (!(e instanceof HttpErrorResponse)) return null;
   try {
     return (typeof e.error === 'string' ? JSON.parse(e.error) : e.error) as Probleme;

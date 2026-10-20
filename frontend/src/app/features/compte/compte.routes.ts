@@ -7,4 +7,10 @@ export const COMPTE_ROUTES: Routes = [
     title: 'Créer mon carnet',
     loadComponent: () => import('./inscription/inscription').then((m) => m.Inscription),
   },
+  {
+    path: 'verifier-email',
+    title: 'Vérification de ton e-mail',
+    loadComponent: () =>
+      import('./verification-email/verification-email').then((m) => m.VerificationEmail),
+  },
 ];
