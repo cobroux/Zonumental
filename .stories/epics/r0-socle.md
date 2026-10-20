@@ -1,7 +1,8 @@
 # Epic: R0 Socle
 
 **Slug:** r0-socle
-**Status:** ready
+**Status:** done
+**Exported to:** https://github.com/cobroux/Zonumental/issues/21 (board https://github.com/users/cobroux/projects/3) — suivi dans GitHub depuis le 2026-10-20
 **Created:** 2026-10-19
 
 ## Goal

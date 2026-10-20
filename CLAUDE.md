@@ -30,11 +30,14 @@
 
 ## Cycle de vie d'une story
 
-Gestion via le skill `ecc:story-lifecycle`, ledger dans `.stories/` (ne jamais éditer à la main).
+Source de vérité : **GitHub Issues + board Projects** (https://github.com/users/cobroux/projects/3), via `gh` (scope `project`). `.stories/` est archivé depuis l'export du 2026-10-20 : ne plus le modifier.
+
+- Une issue par story, titre `[<story-id>] <titre>`, labels `story`, `epic:<slug>`, `statut:<statut>`, `points:<n>`, `sprint-<n>` ; une issue `[Epic] <titre>` par epic, avec la liste de ses stories en cases à cocher.
+- Changer de statut = remplacer le label `statut:*` **et** le champ Status de la carte (`gh project item-edit`) ; `done` = fermer l'issue.
 
 1. `amoa` → besoin + règles de gestion (`docs/fonctionnel/`)
-2. `product-owner` → `create-epic` puis `create-stories` (statut `todo`)
-3. `chef-de-projet` → `plan-sprint <n>`
+2. `product-owner` → issue epic puis issues stories (`statut:todo`), ajoutées au board
+3. `chef-de-projet` → label `sprint-<n>` sur les stories retenues
 4. `tech-lead-back` / `tech-lead-front` → contrat d'API commun (`docs/api/`) + plan technique (si structurant)
 5. `dev-backend` / `dev-frontend` → implémentation TDD (`in-progress`)
 6. `qa` → validation des critères + tests (`review`)
