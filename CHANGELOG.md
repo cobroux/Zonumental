@@ -13,6 +13,7 @@ Format : [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/).
 - r0-socle-12 : pages légales publiques provisoires (`/cgu`, `/confidentialite`, `/mentions-legales`), version de chaque texte dans `core/legal/versions-legales.ts` pour dater les consentements.
 - r0-socle-6 : inscription (`/inscription`, maquette O6) : âge minimum 15 ans, consentements datés et versionnés, mot de passe Argon2id, réponse identique si l'e-mail existe déjà, e-mail de vérification envoyé après enregistrement.
 - r0-socle-7 : vérification de l'e-mail par lien à usage unique (24 h) et renvoi limité à un par minute, sans révéler si l'adresse existe ; page `/verifier-email`.
+- r0-socle-8 : connexion (`/connexion`), jeton d'accès JWT de 15 min gardé en mémoire, session de renouvellement de 30 jours glissants en cookie HttpOnly, déconnexion, `GET /api/compte/moi` avec `emailVerifie`, contrôle d'origine par CORS.
 
 ### Modifié
 - CI passée en Java 25, Node lu via `.nvmrc`.
