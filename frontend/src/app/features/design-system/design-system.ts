@@ -1,5 +1,6 @@
-import { ChangeDetectionStrategy, Component } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
+import { Sante } from '../../core/sante';
 import { ZnChamp, ZnSaisie } from '../../shared/ui/champ';
 import { ZnMessage } from '../../shared/ui/message';
 
@@ -12,6 +13,19 @@ import { ZnMessage } from '../../shared/ui/message';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class DesignSystem {
+  protected readonly sante = signal<'attente' | 'ok' | 'ko'>('attente');
+  protected readonly statutSante = signal('');
+
+  constructor() {
+    inject(Sante)
+      .verifier()
+      .then((r) => {
+        this.statutSante.set(r.status);
+        this.sante.set('ok');
+      })
+      .catch(() => this.sante.set('ko'));
+  }
+
   protected readonly sections = [
     { id: 'couleurs', numero: '01', titre: 'Couleurs' },
     { id: 'typographie', numero: '02', titre: 'Typographie' },

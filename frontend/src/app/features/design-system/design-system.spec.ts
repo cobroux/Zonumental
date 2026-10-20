@@ -1,5 +1,8 @@
 import { TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
+import { provideHttpClient } from '@angular/common/http';
+import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
+import { provideApiConfiguration } from '../../core/api/api-configuration';
 import { DesignSystem } from './design-system';
 
 async function rendre() {
@@ -9,7 +12,36 @@ async function rendre() {
 }
 
 describe('Page /design-system', () => {
-  beforeEach(() => TestBed.configureTestingModule({ providers: [provideRouter([])] }));
+  beforeEach(() =>
+    TestBed.configureTestingModule({
+      providers: [
+        provideRouter([]),
+        provideHttpClient(),
+        provideHttpClientTesting(),
+        provideApiConfiguration(''),
+      ],
+    }),
+  );
+
+  it('affiche la santé du back via le client généré', async () => {
+    const fixture = TestBed.createComponent(DesignSystem);
+    TestBed.inject(HttpTestingController).expectOne('/api/health').flush({ status: 'UP' });
+    await fixture.whenStable();
+    const m = (fixture.nativeElement as HTMLElement).querySelector('#sante zn-message');
+    expect(m?.getAttribute('data-type')).toBe('succes');
+    expect(m?.textContent).toContain('UP');
+  });
+
+  it('affiche une erreur si le back est absent', async () => {
+    const fixture = TestBed.createComponent(DesignSystem);
+    TestBed.inject(HttpTestingController)
+      .expectOne('/api/health')
+      .flush(null, { status: 503, statusText: 'Service Unavailable' });
+    await fixture.whenStable();
+    const m = (fixture.nativeElement as HTMLElement).querySelector('#sante zn-message');
+    expect(m?.getAttribute('data-type')).toBe('erreur');
+    expect(m?.getAttribute('role')).toBe('alert');
+  });
 
   it('a un seul h1 et des sections titrées pour la navigation', async () => {
     const { el } = await rendre();
