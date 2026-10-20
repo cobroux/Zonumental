@@ -9,6 +9,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Map;
+import java.util.Set;
 import java.util.TreeSet;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,6 +31,9 @@ class ContratOpenApiTest {
   /** Parties du contrat dont le code n'existe pas encore ; retirer le préfixe à chaque story. */
   private static final String[] NON_IMPLEMENTE = {"/api/auth/", "/api/compte/", "/api/catalogue/"};
 
+  /** Opérations de ces préfixes déjà implémentées (donc contrôlées). */
+  private static final Set<String> IMPLEMENTE = Set.of("/api/compte/inscription");
+
   @Autowired MockMvc mvc;
 
   @Test
@@ -49,7 +53,10 @@ class ContratOpenApiTest {
 
     // Rien dans le code qui ne soit au contrat, et tout le contrat implémenté sauf liste explicite.
     TreeSet<String> attendus = new TreeSet<>(pathsContrat.keySet());
-    attendus.removeIf(p -> java.util.Arrays.stream(NON_IMPLEMENTE).anyMatch(p::startsWith));
+    attendus.removeIf(
+        p ->
+            !IMPLEMENTE.contains(p)
+                && java.util.Arrays.stream(NON_IMPLEMENTE).anyMatch(p::startsWith));
     assertThat(pathsCode.keySet()).containsExactlyInAnyOrderElementsOf(attendus);
 
     for (String chemin : pathsCode.keySet()) {

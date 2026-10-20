@@ -23,6 +23,7 @@
 		<checkstyle-plugin.version>3.6.0</checkstyle-plugin.version>
 		<checkstyle.version>14.3.0</checkstyle.version>
 		<jacoco.version>0.8.15</jacoco.version>
+		<bouncycastle.version>1.86</bouncycastle.version>
 	</properties>
 	<dependencies>
 		<dependency>
@@ -71,6 +72,11 @@
 			<artifactId>spring-modulith-starter-core</artifactId>
 		</dependency>
 
+		<dependency>
+			<groupId>org.bouncycastle</groupId>
+			<artifactId>bcprov-jdk18on</artifactId>
+			<version>${bouncycastle.version}</version>
+		</dependency>
 		<dependency>
 			<groupId>org.postgresql</groupId>
 			<artifactId>postgresql</artifactId>
