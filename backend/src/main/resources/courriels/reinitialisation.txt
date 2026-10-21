@@ -1,0 +1,7 @@
+Réinitialise ton mot de passe Zonumental
+Tu as demandé à réinitialiser ton mot de passe.
+
+Choisis-en un nouveau avec ce lien (valable 1 h, à usage unique) :
+%s
+
+Si tu n'es pas à l'origine de cette demande, ignore ce message : ton mot de passe reste inchangé.
