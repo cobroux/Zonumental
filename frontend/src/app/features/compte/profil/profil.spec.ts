@@ -90,7 +90,8 @@ describe('Profil', () => {
   it('Mes données, liens légaux et déconnexion', async () => {
     await ouvrir();
     const a = (h: string) => racine().querySelector(`a[href="${h}"]`);
-    expect(a('/profil/export')?.textContent).toContain('Exporter mes données');
+    expect(a('/profil/export')).toBeNull();
+    expect(racine().textContent).toContain('Compte et réglages, dans un fichier .zip');
     expect(a('/profil/suppression')?.textContent).toContain('Supprimer mon compte');
     const nav = racine().querySelector('nav[aria-label="Informations légales"]')!;
     for (const h of ['/cgu', '/confidentialite', '/mentions-legales'])
@@ -107,5 +108,71 @@ describe('Profil', () => {
     await apres();
     expect(deco).toHaveBeenCalled();
     expect(recharger).toHaveBeenCalledWith('/connexion');
+  });
+
+  describe('export', () => {
+    const bouton = () => racine().querySelector<HTMLButtonElement>('button.lien')!;
+    let clic: ReturnType<typeof vi.spyOn>;
+    let noms: string[];
+    beforeEach(() => {
+      noms = [];
+      URL.createObjectURL = vi.fn(() => 'blob:x');
+      URL.revokeObjectURL = vi.fn();
+      clic = vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(function (
+        this: HTMLAnchorElement,
+      ) {
+        noms.push(this.download);
+      });
+    });
+    afterEach(() => clic.mockRestore());
+
+    it("télécharge le zip sous le nom de Content-Disposition, puis révoque l'URL", async () => {
+      await ouvrir();
+      bouton().click();
+      await fixture.whenStable();
+      expect(bouton().getAttribute('aria-busy')).toBe('true');
+      const req = http.expectOne('/api/compte/export');
+      expect(req.request.method).toBe('GET');
+      req.flush(new Blob(['zip']), {
+        headers: {
+          'Content-Disposition': 'attachment; filename="zonumental-export-2026-10-21.zip"',
+        },
+      });
+      await apres();
+      expect(noms).toEqual(['zonumental-export-2026-10-21.zip']);
+      expect(URL.revokeObjectURL).toHaveBeenCalledWith('blob:x');
+      expect(bouton().getAttribute('aria-busy')).toBeNull();
+    });
+
+    it("nom par défaut daté du jour sans l'en-tête", async () => {
+      await ouvrir();
+      bouton().click();
+      await fixture.whenStable();
+      http.expectOne('/api/compte/export').flush(new Blob(['zip']));
+      await apres();
+      expect(noms).toEqual([`zonumental-export-${new Date().toISOString().slice(0, 10)}.zip`]);
+    });
+
+    it('pas de double envoi pendant le téléchargement', async () => {
+      await ouvrir();
+      bouton().click();
+      bouton().click();
+      await fixture.whenStable();
+      const reqs = http.match('/api/compte/export');
+      expect(reqs).toHaveLength(1);
+      reqs[0].flush(new Blob(['zip']));
+    });
+
+    it('échec : message annoncé, aucun téléchargement', async () => {
+      await ouvrir();
+      bouton().click();
+      await fixture.whenStable();
+      http.expectOne('/api/compte/export').flush(new Blob([]), { status: 500, statusText: '' });
+      await apres();
+      const m = racine().querySelector('zn-message')!;
+      expect(m.getAttribute('role')).toBe('alert');
+      expect(document.activeElement).toBe(m);
+      expect(noms).toEqual([]);
+    });
   });
 });

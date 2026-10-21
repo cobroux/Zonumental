@@ -41,6 +41,7 @@ class ContratOpenApiTest {
           "/api/compte/mot-de-passe/reinitialisation",
           "/api/compte/moi",
           "/api/compte/consentements",
+          "/api/compte/export",
           "/api/auth/connexion",
           "/api/auth/renouvellement",
           "/api/auth/deconnexion");

@@ -98,6 +98,20 @@ input[znInterrupteur] {
   grid-template-columns: 1fr;
 }
 
+button.lien {
+  inline-size: 100%;
+  border: 0;
+  background: none;
+  font: inherit;
+  text-align: start;
+  cursor: pointer;
+}
+
+button.lien[aria-busy='true'] {
+  opacity: 0.6;
+  cursor: progress;
+}
+
 .danger .texte {
   color: var(--zn-erreur);
   font-weight: 600;

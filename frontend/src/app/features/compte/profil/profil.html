@@ -57,10 +57,15 @@
   <section aria-labelledby="titre-donnees">
     <h2 id="titre-donnees" class="rubrique">MES DONNÉES</h2>
     <div class="carte">
-      <a class="ligne lien" routerLink="/profil/export">
+      <button
+        type="button"
+        class="ligne lien"
+        [attr.aria-busy]="export() ? 'true' : null"
+        (click)="exporter()"
+      >
         <span class="texte">Exporter mes données</span>
-        <span class="aide">Carnet, photos et réglages, envoyés par e-mail</span>
-      </a>
+        <span class="aide">Compte et réglages, dans un fichier .zip</span>
+      </button>
       <a class="ligne lien danger" routerLink="/profil/suppression">
         <span class="texte">Supprimer mon compte</span>
         <span class="aide">Tout est effacé définitivement sous 30 jours</span>

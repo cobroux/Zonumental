@@ -11,6 +11,7 @@ import {
 import { RouterLink } from '@angular/router';
 import { Api } from '../../../core/api/api';
 import { mesConsentements } from '../../../core/api/fn/compte/mes-consentements';
+import { exporterMesDonnees } from '../../../core/api/fn/compte/exporter-mes-donnees';
 import { modifierConsentements } from '../../../core/api/fn/compte/modifier-consentements';
 import { monCompte } from '../../../core/api/fn/compte/mon-compte';
 import { ConsentementsFacultatifs } from '../../../core/api/models/consentements-facultatifs';
@@ -36,6 +37,7 @@ export class Profil {
   protected readonly consentements = signal<ConsentementsFacultatifs | null>(null);
   protected readonly erreur = signal<string | null>(null);
   protected readonly occupe = signal(false);
+  protected readonly export = signal(false);
 
   constructor() {
     void this.charger();
@@ -66,6 +68,34 @@ export class Profil {
     } finally {
       this.occupe.set(false);
     }
+  }
+
+  protected async exporter() {
+    if (this.export()) return;
+    this.erreur.set(null);
+    this.export.set(true);
+    try {
+      const rep = await this.api.invoke$Response(exporterMesDonnees);
+      // L'en-tête n'est lisible que si le CORS l'expose : sinon nom par défaut.
+      const nom =
+        /filename="?([^";]+)"?/.exec(rep.headers.get('Content-Disposition') ?? '')?.[1] ??
+        `zonumental-export-${new Date().toISOString().slice(0, 10)}.zip`;
+      this.telecharger(rep.body as unknown as Blob, nom);
+    } catch {
+      this.erreur.set("Ton export n'a pas pu être préparé. Réessaie dans un instant.");
+      this.focaliser('zn-message');
+    } finally {
+      this.export.set(false);
+    }
+  }
+
+  private telecharger(blob: Blob, nom: string) {
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = nom;
+    a.click();
+    URL.revokeObjectURL(url);
   }
 
   protected async deconnecter() {
