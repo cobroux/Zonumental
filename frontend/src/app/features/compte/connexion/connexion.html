@@ -15,44 +15,40 @@
     <zn-message type="erreur" tabindex="-1">{{ texte }}</zn-message>
   }
 
-  @if (connecte()) {
-    <zn-message type="succes" tabindex="-1">Tu es connecté.</zn-message>
-  } @else {
-    <form (submit)="valider($event)" novalidate>
-      <zn-champ label="E-mail" [erreur]="erreurEmail()">
-        <input
-          znSaisie
-          name="email"
-          type="email"
-          placeholder="toi@exemple.fr"
-          autocomplete="username"
-          maxlength="254"
-          required
-          [value]="email()"
-          (input)="email.set($any($event.target).value)"
-        />
-      </zn-champ>
-      <zn-champ label="Mot de passe" [erreur]="erreurMotDePasse()" [motDePasse]="true">
-        <input
-          znSaisie
-          name="motDePasse"
-          type="password"
-          autocomplete="current-password"
-          required
-          [value]="motDePasse()"
-          (input)="motDePasse.set($any($event.target).value)"
-        />
-      </zn-champ>
+  <form (submit)="valider($event)" novalidate>
+    <zn-champ label="E-mail" [erreur]="erreurEmail()">
+      <input
+        znSaisie
+        name="email"
+        type="email"
+        placeholder="toi@exemple.fr"
+        autocomplete="username"
+        maxlength="254"
+        required
+        [value]="email()"
+        (input)="email.set($any($event.target).value)"
+      />
+    </zn-champ>
+    <zn-champ label="Mot de passe" [erreur]="erreurMotDePasse()" [motDePasse]="true">
+      <input
+        znSaisie
+        name="motDePasse"
+        type="password"
+        autocomplete="current-password"
+        required
+        [value]="motDePasse()"
+        (input)="motDePasse.set($any($event.target).value)"
+      />
+    </zn-champ>
 
-      <div class="pied">
-        <button znBouton type="submit" [attr.aria-busy]="occupe() ? 'true' : null">
-          {{ occupe() ? 'Connexion…' : 'Me connecter' }}
-        </button>
-        <p class="mention"><a routerLink="/mot-de-passe-oublie">Mot de passe oublié ?</a></p>
-        <p class="mention">
-          Pas encore de carnet ? <a routerLink="/inscription">Créer mon carnet</a>
-        </p>
-      </div>
-    </form>
-  }
+    <div class="pied">
+      <button znBouton type="submit" [attr.aria-busy]="occupe() ? 'true' : null">
+        {{ occupe() ? 'Connexion…' : 'Me connecter' }}
+      </button>
+      <p class="mention"><a routerLink="/mot-de-passe-oublie">Mot de passe oublié ?</a></p>
+      <p class="mention">
+        Pas encore de carnet ? <a routerLink="/inscription">Créer mon carnet</a>
+      </p>
+    </div>
+  </form>
 </div>

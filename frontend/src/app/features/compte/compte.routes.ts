@@ -1,6 +1,7 @@
 import { Routes } from '@angular/router';
+import { gardeConnecte } from '../../core/session/garde';
 
-// Point d'entrée public de la fonctionnalité (ADR 0012). Les écrans de connexion, profil… s'y ajoutent.
+// Point d'entrée de la fonctionnalité (ADR 0012). Seul /profil est protégé (gardeConnecte).
 export const COMPTE_ROUTES: Routes = [
   {
     path: 'connexion',
@@ -29,5 +30,11 @@ export const COMPTE_ROUTES: Routes = [
     title: 'Nouveau mot de passe',
     loadComponent: () =>
       import('./reinitialisation/reinitialisation').then((m) => m.Reinitialisation),
+  },
+  {
+    path: 'profil',
+    title: 'Mon profil',
+    canActivate: [gardeConnecte],
+    loadComponent: () => import('./profil/profil').then((m) => m.Profil),
   },
 ];

@@ -1,0 +1,141 @@
+:host {
+  display: block;
+  max-width: 28rem;
+  margin: 0 auto;
+}
+
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--zn-esp-4);
+  min-block-size: 100dvh;
+  padding: var(--zn-esp-4) var(--zn-esp-4) var(--zn-esp-6);
+}
+
+header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  block-size: var(--zn-cible);
+}
+
+header::after {
+  content: '';
+  inline-size: var(--zn-cible); /* équilibre le bouton retour : titre centré */
+}
+
+.retour {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  inline-size: var(--zn-cible);
+  block-size: var(--zn-cible);
+  margin-inline-start: calc(-1 * var(--zn-esp-3));
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--zn-texte);
+  cursor: pointer;
+}
+
+.rubrique {
+  margin: 0;
+  color: var(--zn-texte-doux);
+  font: 500 0.6875rem var(--zn-police-mono);
+  letter-spacing: 0.14em;
+}
+
+h1 {
+  font-size: var(--zn-taille-3);
+  line-height: 1;
+  overflow-wrap: anywhere;
+}
+
+section {
+  display: grid;
+  gap: var(--zn-esp-2);
+}
+
+.carte {
+  border: 1px solid color-mix(in srgb, var(--zn-encre) 8%, transparent);
+  border-radius: var(--zn-rayon-16);
+  background: var(--zn-fond-clair);
+}
+
+.ligne {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: center;
+  column-gap: var(--zn-esp-3);
+  min-block-size: 3.5rem;
+  padding: var(--zn-esp-2) 0.875rem;
+  color: var(--zn-texte);
+  text-decoration: none;
+}
+
+.ligne + .ligne {
+  border-block-start: 1px solid color-mix(in srgb, var(--zn-encre) 6%, transparent);
+}
+
+.texte {
+  grid-column: 1;
+  font-size: 0.9375rem;
+  font-weight: 500;
+}
+
+.aide {
+  grid-column: 1;
+  color: var(--zn-texte-doux);
+  font-size: 0.75rem;
+}
+
+input[znInterrupteur] {
+  grid-column: 2;
+  grid-row: 1 / span 2;
+}
+
+.lien {
+  grid-template-columns: 1fr;
+}
+
+.danger .texte {
+  color: var(--zn-erreur);
+  font-weight: 600;
+}
+
+footer {
+  display: grid;
+  justify-items: center;
+  gap: var(--zn-esp-2);
+  margin-block-start: auto;
+}
+
+nav {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0 var(--zn-esp-4);
+  font-size: var(--zn-taille-petite);
+}
+
+nav a {
+  display: inline-flex;
+  align-items: center;
+  min-block-size: var(--zn-cible);
+  color: var(--zn-gris-45);
+}
+
+.deconnexion {
+  min-block-size: var(--zn-cible);
+  padding: 0 var(--zn-esp-4);
+  border: 0;
+  background: none;
+  color: var(--zn-texte);
+  font: 500 0.9375rem var(--zn-police-ui);
+  cursor: pointer;
+}
+
+zn-message:focus-visible {
+  outline: 2px solid var(--zn-action);
+  outline-offset: 2px;
+}
