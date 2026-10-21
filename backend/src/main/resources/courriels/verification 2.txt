@@ -1,7 +1,0 @@
-Vérifie ton adresse e-mail Zonumental
-Bienvenue sur Zonumental !
-
-Pour activer ton carnet, vérifie ton adresse e-mail avec ce lien (valable 24 h) :
-%s
-
-Si tu n'es pas à l'origine de cette inscription, ignore ce message.
