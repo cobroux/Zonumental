@@ -47,6 +47,15 @@ public class Courriels {
     envoyer(destinataire, "deja-inscrit", frontUrl);
   }
 
+  @Async
+  public void suppression(String destinataire, java.time.LocalDate date) {
+    envoyer(
+        destinataire,
+        "suppression",
+        date.format(
+            java.time.format.DateTimeFormatter.ofPattern("d MMMM uuuu", java.util.Locale.FRANCE)));
+  }
+
   /** Première ligne du fichier = objet, le reste = corps ; jamais l'adresse dans les journaux. */
   private void envoyer(String destinataire, String modele, String valeur) {
     try {
