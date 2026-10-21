@@ -1,0 +1,41 @@
+<div class="page">
+  <header>
+    <button type="button" class="retour" aria-label="Retour" (click)="retour()">
+      <zn-icone nom="retour" />
+    </button>
+  </header>
+
+  <h1>Nouveau mot de passe</h1>
+
+  @if (global(); as texte) {
+    <zn-message type="erreur" tabindex="-1">{{ texte }}</zn-message>
+  }
+
+  @if (bloque()) {
+    <p class="mention"><a routerLink="/mot-de-passe-oublie">Demander un nouveau lien</a></p>
+  } @else {
+    <form (submit)="valider($event)" novalidate>
+      <zn-champ
+        label="Nouveau mot de passe"
+        aide="12 caractères au minimum."
+        [erreur]="erreurMotDePasse()"
+        [motDePasse]="true"
+      >
+        <input
+          znSaisie
+          name="motDePasse"
+          type="password"
+          autocomplete="new-password"
+          required
+          [value]="motDePasse()"
+          (input)="motDePasse.set($any($event.target).value)"
+        />
+      </zn-champ>
+      <div class="pied">
+        <button znBouton type="submit" [attr.aria-busy]="occupe() ? 'true' : null">
+          {{ occupe() ? 'Enregistrement…' : 'Changer mon mot de passe' }}
+        </button>
+      </div>
+    </form>
+  }
+</div>

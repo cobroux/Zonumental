@@ -7,6 +7,10 @@
 
   <h1>Retrouve ton carnet</h1>
 
+  @if (reinitialise) {
+    <zn-message type="succes">Mot de passe modifié. Tu peux te connecter.</zn-message>
+  }
+
   @if (global(); as texte) {
     <zn-message type="erreur" tabindex="-1">{{ texte }}</zn-message>
   }
@@ -44,6 +48,7 @@
         <button znBouton type="submit" [attr.aria-busy]="occupe() ? 'true' : null">
           {{ occupe() ? 'Connexion…' : 'Me connecter' }}
         </button>
+        <p class="mention"><a routerLink="/mot-de-passe-oublie">Mot de passe oublié ?</a></p>
         <p class="mention">
           Pas encore de carnet ? <a routerLink="/inscription">Créer mon carnet</a>
         </p>

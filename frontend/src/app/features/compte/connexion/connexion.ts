@@ -38,6 +38,7 @@ export class Connexion {
   private readonly injector = inject(Injector);
   private readonly hote = inject<ElementRef<HTMLElement>>(ElementRef).nativeElement;
 
+  protected readonly reinitialise = this.route.snapshot.queryParamMap.has('reinitialise');
   protected readonly email = signal('');
   protected readonly motDePasse = signal('');
   protected readonly erreurEmail = signal<string | null>(null);
