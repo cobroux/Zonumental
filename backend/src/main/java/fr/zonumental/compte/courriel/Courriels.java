@@ -37,6 +37,12 @@ public class Courriels {
   }
 
   @Async
+  public void reinitialisation(String destinataire, String jeton) {
+    envoyer(
+        destinataire, "reinitialisation", frontUrl + "/reinitialiser-mot-de-passe?jeton=" + jeton);
+  }
+
+  @Async
   public void dejaInscrit(String destinataire) {
     envoyer(destinataire, "deja-inscrit", frontUrl);
   }

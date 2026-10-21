@@ -1,0 +1,40 @@
+<div class="page">
+  <header>
+    <button type="button" class="retour" aria-label="Retour" (click)="retour()">
+      <zn-icone nom="retour" />
+    </button>
+  </header>
+
+  <h1>Mot de passe oublié</h1>
+
+  @if (envoye()) {
+    <zn-message type="succes" tabindex="-1">
+      Si un carnet existe pour cette adresse, un lien de réinitialisation vient de partir.
+    </zn-message>
+    <p class="mention"><a routerLink="/connexion">Retour à la connexion</a></p>
+  } @else {
+    @if (global(); as texte) {
+      <zn-message type="erreur" tabindex="-1">{{ texte }}</zn-message>
+    }
+    <form (submit)="valider($event)" novalidate>
+      <zn-champ label="E-mail" [erreur]="erreurEmail()">
+        <input
+          znSaisie
+          name="email"
+          type="email"
+          placeholder="toi@exemple.fr"
+          autocomplete="email"
+          maxlength="254"
+          required
+          [value]="email()"
+          (input)="email.set($any($event.target).value)"
+        />
+      </zn-champ>
+      <div class="pied">
+        <button znBouton type="submit" [attr.aria-busy]="occupe() ? 'true' : null">
+          {{ occupe() ? 'Envoi…' : 'Recevoir un lien' }}
+        </button>
+      </div>
+    </form>
+  }
+</div>

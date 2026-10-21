@@ -70,6 +70,12 @@ describe('Connexion', () => {
     expect(racine().querySelector('a[href="/inscription"]')).toBeTruthy();
   });
 
+  it('lien mot de passe oublié, et message de succès après réinitialisation', async () => {
+    await ouvrir({ reinitialise: '1' });
+    expect(racine().querySelector('a[href="/mot-de-passe-oublie"]')).toBeTruthy();
+    expect(message()?.textContent).toContain('Mot de passe modifié');
+  });
+
   it('retour : revient en arrière dans l’historique', async () => {
     await ouvrir();
     const back = vi.spyOn(TestBed.inject(Location), 'back').mockImplementation(() => undefined);

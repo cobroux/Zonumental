@@ -18,4 +18,16 @@ export const COMPTE_ROUTES: Routes = [
     loadComponent: () =>
       import('./verification-email/verification-email').then((m) => m.VerificationEmail),
   },
+  {
+    path: 'mot-de-passe-oublie',
+    title: 'Mot de passe oublié',
+    loadComponent: () =>
+      import('./mot-de-passe-oublie/mot-de-passe-oublie').then((m) => m.MotDePasseOublie),
+  },
+  {
+    path: 'reinitialiser-mot-de-passe',
+    title: 'Nouveau mot de passe',
+    loadComponent: () =>
+      import('./reinitialisation/reinitialisation').then((m) => m.Reinitialisation),
+  },
 ];
