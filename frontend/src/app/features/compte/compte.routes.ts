@@ -37,4 +37,10 @@ export const COMPTE_ROUTES: Routes = [
     canActivate: [gardeConnecte],
     loadComponent: () => import('./profil/profil').then((m) => m.Profil),
   },
+  {
+    path: 'profil/suppression',
+    title: 'Supprimer mon compte',
+    canActivate: [gardeConnecte],
+    loadComponent: () => import('./suppression/suppression').then((m) => m.Suppression),
+  },
 ];

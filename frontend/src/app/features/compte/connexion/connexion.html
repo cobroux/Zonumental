@@ -13,6 +13,17 @@
 
   @if (global(); as texte) {
     <zn-message type="erreur" tabindex="-1">{{ texte }}</zn-message>
+    @if (suppressionLe()) {
+      <button
+        type="button"
+        znBouton="secondaire"
+        class="annuler"
+        [attr.aria-busy]="occupe() ? 'true' : null"
+        (click)="annuler()"
+      >
+        {{ occupe() ? 'Annulation…' : 'Annuler la suppression' }}
+      </button>
+    }
   }
 
   <form (submit)="valider($event)" novalidate>

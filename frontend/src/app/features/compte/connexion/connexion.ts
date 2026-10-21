@@ -45,6 +45,7 @@ export class Connexion {
   protected readonly erreurMotDePasse = signal<string | null>(null);
   protected readonly global = signal<string | null>(null);
   protected readonly occupe = signal(false);
+  protected readonly suppressionLe = signal<string | null>(null);
 
   protected retour() {
     this.historique.back();
@@ -54,18 +55,34 @@ export class Connexion {
     e.preventDefault();
     if (this.occupe()) return;
     this.global.set(null);
+    this.suppressionLe.set(null);
     const adresse = this.email().trim();
     this.erreurEmail.set(adresse ? null : 'Saisis ton adresse e-mail.');
     this.erreurMotDePasse.set(this.motDePasse() ? null : 'Saisis ton mot de passe.');
     if (!adresse || !this.motDePasse()) return this.focaliser('[aria-invalid="true"]');
+    await this.ouvrir(() => this.session.connecter(adresse, this.motDePasse()));
+  }
+
+  protected async annuler() {
+    if (this.occupe()) return;
+    await this.ouvrir(() =>
+      this.session.annulerSuppression(this.email().trim(), this.motDePasse()),
+    );
+  }
+
+  private async ouvrir(appel: () => Promise<void>) {
     this.occupe.set(true);
     try {
-      await this.session.connecter(adresse, this.motDePasse());
+      await appel();
       // Le mot de passe ne reste pas en mémoire une fois la session ouverte.
       this.motDePasse.set('');
       const retour = retourSur(this.route.snapshot.queryParamMap.get('retour'));
       await this.router.navigateByUrl(retour === '/' ? '/profil' : retour);
     } catch (err) {
+      const p = lireProbleme(err);
+      const le = (p as Partial<ProblemeSuppression> | null)?.suppressionDefinitiveLe;
+      // Seul un 409 porte la date : après un 401/429 de l'annulation, le bouton disparaît.
+      this.suppressionLe.set(p?.code === 'suppression-en-cours' && le ? le : null);
       this.global.set(this.message(err));
       this.focaliser('zn-message');
     } finally {
@@ -83,8 +100,8 @@ export class Connexion {
       case 'suppression-en-cours': {
         const le = (p as Partial<ProblemeSuppression>).suppressionDefinitiveLe;
         return le
-          ? `Ton carnet doit être supprimé le ${date.format(new Date(le))}.`
-          : 'La suppression de ton carnet est en cours.';
+          ? `Ton compte sera supprimé le ${date.format(new Date(le))}.`
+          : 'La suppression de ton compte est en cours.';
       }
       case 'connexion-bloquee': {
         const s = Number((e as HttpErrorResponse).headers.get('Retry-After'));

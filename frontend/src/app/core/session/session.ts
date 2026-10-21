@@ -2,6 +2,8 @@ import { Injectable, inject, signal } from '@angular/core';
 import { Api } from '../api/api';
 import { connexion } from '../api/fn/auth/connexion';
 import { deconnexion } from '../api/fn/auth/deconnexion';
+import { annulerSuppression } from '../api/fn/compte/annuler-suppression';
+import { demanderSuppression } from '../api/fn/compte/demander-suppression';
 import { renouvellement } from '../api/fn/auth/renouvellement';
 
 /** Session : le jeton d'accès reste en mémoire, jamais dans un stockage du navigateur (ADR 0015). */
@@ -19,6 +21,20 @@ export class Session {
 
   async connecter(email: string, motDePasse: string): Promise<void> {
     this.poser((await this.api.invoke(connexion, { body: { email, motDePasse } })).jetonAcces);
+  }
+
+  /** Même effet qu'une connexion pour un compte en suppression (RG-014). */
+  async annulerSuppression(email: string, motDePasse: string): Promise<void> {
+    this.poser(
+      (await this.api.invoke(annulerSuppression, { body: { email, motDePasse } })).jetonAcces,
+    );
+  }
+
+  /** Le serveur efface le cookie : on vide le jeton sans renouvellement. Renvoie la date ISO d'effacement. */
+  async supprimerCompte(): Promise<string> {
+    const r = await this.api.invoke(demanderSuppression);
+    this.poser(null);
+    return r.suppressionDefinitiveLe;
   }
 
   /** Un seul renouvellement en vol : les appels concurrents partagent la même promesse. */
