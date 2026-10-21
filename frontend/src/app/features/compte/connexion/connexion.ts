@@ -45,7 +45,6 @@ export class Connexion {
   protected readonly erreurMotDePasse = signal<string | null>(null);
   protected readonly global = signal<string | null>(null);
   protected readonly occupe = signal(false);
-  protected readonly connecte = signal(false);
 
   protected retour() {
     this.historique.back();
@@ -65,11 +64,7 @@ export class Connexion {
       // Le mot de passe ne reste pas en mémoire une fois la session ouverte.
       this.motDePasse.set('');
       const retour = retourSur(this.route.snapshot.queryParamMap.get('retour'));
-      // shortcut: aucune page d'accueil ni de profil, on reste ici ; -11/-16 fourniront la destination.
-      if (retour === '/') {
-        this.connecte.set(true);
-        this.focaliser('zn-message');
-      } else await this.router.navigateByUrl(retour);
+      await this.router.navigateByUrl(retour === '/' ? '/profil' : retour);
     } catch (err) {
       this.global.set(this.message(err));
       this.focaliser('zn-message');

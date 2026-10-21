@@ -1,0 +1,79 @@
+<div class="page">
+  <header>
+    <button type="button" class="retour" aria-label="Retour" (click)="retour()">
+      <zn-icone nom="retour" />
+    </button>
+    <span class="rubrique">PROFIL</span>
+  </header>
+
+  <h1>{{ pseudo() }}</h1>
+
+  @if (erreur(); as texte) {
+    <zn-message type="erreur" tabindex="-1">{{ texte }}</zn-message>
+  }
+
+  <section aria-labelledby="titre-confidentialite">
+    <h2 id="titre-confidentialite" class="rubrique">CONFIDENTIALITÉ</h2>
+    @if (consentements(); as c) {
+      <div class="carte">
+        <div class="ligne">
+          <label id="lib-classement" for="sw-classement" class="texte">
+            Apparaître dans les classements
+          </label>
+          <input
+            znInterrupteur
+            id="sw-classement"
+            type="checkbox"
+            role="switch"
+            aria-labelledby="lib-classement"
+            aria-describedby="aide-classement"
+            [checked]="c.classement"
+            [attr.aria-checked]="c.classement"
+            [attr.aria-busy]="occupe() ? 'true' : null"
+            (change)="basculer('classement', $event)"
+          />
+          <span id="aide-classement" class="aide">Sous ton pseudo, jamais ton nom</span>
+        </div>
+        <div class="ligne">
+          <label id="lib-emails" for="sw-emails" class="texte">E-mails des nouveaux défis</label>
+          <input
+            znInterrupteur
+            id="sw-emails"
+            type="checkbox"
+            role="switch"
+            aria-labelledby="lib-emails"
+            aria-describedby="aide-emails"
+            [checked]="c.emails"
+            [attr.aria-checked]="c.emails"
+            [attr.aria-busy]="occupe() ? 'true' : null"
+            (change)="basculer('emails', $event)"
+          />
+          <span id="aide-emails" class="aide">Un par semaine au maximum</span>
+        </div>
+      </div>
+    }
+  </section>
+
+  <section aria-labelledby="titre-donnees">
+    <h2 id="titre-donnees" class="rubrique">MES DONNÉES</h2>
+    <div class="carte">
+      <a class="ligne lien" routerLink="/profil/export">
+        <span class="texte">Exporter mes données</span>
+        <span class="aide">Carnet, photos et réglages, envoyés par e-mail</span>
+      </a>
+      <a class="ligne lien danger" routerLink="/profil/suppression">
+        <span class="texte">Supprimer mon compte</span>
+        <span class="aide">Tout est effacé définitivement sous 30 jours</span>
+      </a>
+    </div>
+  </section>
+
+  <footer>
+    <nav aria-label="Informations légales">
+      <a routerLink="/cgu">CGU</a>
+      <a routerLink="/confidentialite">Confidentialité</a>
+      <a routerLink="/mentions-legales">Mentions légales</a>
+    </nav>
+    <button type="button" class="deconnexion" (click)="deconnecter()">Se déconnecter</button>
+  </footer>
+</div>
