@@ -23,6 +23,7 @@ Format : [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/).
 - r0-socle-16 : onboarding : `/` mène à `/bienvenue` (ou au profil si une session existe), Bienvenue → inscription (tient sans défilement en 390×844) → `/inscription/verifie-ton-email` avec renvoi ; la déconnexion ramène à Bienvenue.
 - r0-socle-17 : étape « Autoriser la localisation » après l'inscription : 3 engagements RGPD avant la demande système, refus, délai ou « Passer » sans blocage, aucune position lue ni conservée.
 - r0-socle-19 : numéros de monuments jamais réutilisés, même après un retrait (dernier numéro persisté, migration V7) ; rareté arrondie au plus proche et attribuée aux seuls nouveaux monuments à chaque import.
+- r0-socle-20 : API du catalogue (`GET /api/catalogue/monuments` et `/{numero}`, authentifiée) : source, licence et auteur du texte et de l'image, stats inconnues à `null` jamais inventées, image `null` (silhouette) sans licence identifiable.
 - Lanceur local (`./mvnw spring-boot:test-run -Dspring-boot.run.main-class=fr.zonumental.LancementLocal`) : PostGIS et Mailpit dans Docker ; `npm start` passe `/api` au back par le proxy.
 
 ### Modifié
