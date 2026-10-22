@@ -35,6 +35,8 @@ class ImageCatalogueTest {
       Files.write(dossier.resolve("1.jpg"), OCTETS);
       Files.write(dossier.resolve("2.png"), OCTETS);
       Files.write(dossier.resolve("3.webp"), OCTETS);
+      // Présent mais non numérique : le motif de route doit le refuser.
+      Files.write(dossier.resolve("abc.jpg"), OCTETS);
       // Hors du dossier d'images : ne doit jamais être atteignable.
       Files.write(dossier.resolveSibling("secret.jpg"), OCTETS);
     } catch (IOException e) {
@@ -89,5 +91,12 @@ class ImageCatalogueTest {
                 throw new AssertionError("fuite de chemin : " + corps);
               }
             });
+  }
+
+  @ParameterizedTest
+  @ValueSource(
+      strings = {"/api/health/..%2fsecret", "/api/catalogue/..%2fsecret", "/api/%2e%2e%2fx"})
+  void requeteRejeteeHorsImagesResteEn400SansCorps(String uri) throws Exception {
+    mvc.perform(get(uri)).andExpect(status().isBadRequest()).andExpect(content().string(""));
   }
 }
