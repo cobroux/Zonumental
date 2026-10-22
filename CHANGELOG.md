@@ -18,6 +18,7 @@ Format : [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/).
 - r0-socle-10 : mot de passe oublié (`/mot-de-passe-oublie`, même réponse que l'adresse existe ou non) et réinitialisation (`/reinitialiser-mot-de-passe`) par lien à usage unique valable 1 h, seul le dernier lien valide, 12 caractères minimum, toutes les sessions fermées après le changement.
 - r0-socle-11 : écran `/profil` (pseudo, liens légaux, « Mes données », déconnexion) avec les consentements facultatifs (classement, e-mails) modifiables tout de suite et journalisés avec leur date ; garde des pages connectées avec retour à la page demandée après connexion.
 - r0-socle-13 : export des données personnelles depuis le profil (`GET /api/compte/export`) : zip avec `donnees.json` (compte, journal daté des consentements, captures), sans mot de passe ni position GPS.
+- r0-socle-14 : suppression du compte depuis le profil (`/profil/suppression`) : désactivation immédiate (sessions fermées, renouvellement refusé), e-mail de confirmation, annulation en se reconnectant, purge nocturne après 29 jours (effacement garanti sous 30 jours) qui libère pseudo et e-mail et publie l'événement `CompteSupprime`.
 
 ### Modifié
 - CI passée en Java 25, Node lu via `.nvmrc`.
