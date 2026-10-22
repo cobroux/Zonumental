@@ -1,0 +1,6 @@
+Ton compte Zonumental sera bientôt supprimé
+Tu ne t'es pas connecté à Zonumental depuis trois ans.
+
+Sans connexion de ta part, ton compte et toutes tes données seront effacés définitivement le %s.
+
+Pour le conserver, il suffit de te connecter avec ton e-mail et ton mot de passe avant cette date.
