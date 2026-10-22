@@ -20,6 +20,11 @@ export const COMPTE_ROUTES: Routes = [
     loadComponent: () => import('./inscription/inscription').then((m) => m.Inscription),
   },
   {
+    path: 'inscription/localisation',
+    title: 'Autoriser la localisation',
+    loadComponent: () => import('./localisation/localisation').then((m) => m.Localisation),
+  },
+  {
     path: 'inscription/verifie-ton-email',
     title: 'Vérifie ton e-mail',
     loadComponent: () =>
