@@ -14,12 +14,16 @@ describe('Localisation', () => {
   };
 
   /** `reponse` simule le système ; absent = API de géolocalisation indisponible. */
-  async function ouvrir(reponse?: 'accepte' | 'refuse', email: string | null = 'marco@exemple.fr') {
-    const getCurrentPosition = vi.fn((ok: PositionCallback, ko: PositionErrorCallback) =>
-      reponse === 'accepte'
-        ? ok({ coords: { latitude: 48.85, longitude: 2.29 } } as GeolocationPosition)
-        : ko({ code: 1 } as GeolocationPositionError),
-    );
+  async function ouvrir(
+    reponse?: 'accepte' | 'refuse' | 'attente' | 'delai',
+    email: string | null = 'marco@exemple.fr',
+  ) {
+    const getCurrentPosition = vi.fn((ok: PositionCallback, ko: PositionErrorCallback) => {
+      if (reponse === 'attente') return;
+      if (reponse === 'accepte')
+        ok({ coords: { latitude: 48.85, longitude: 2.29 } } as GeolocationPosition);
+      else ko({ code: reponse === 'delai' ? 3 : 1 } as GeolocationPositionError);
+    });
     Object.defineProperty(navigator, 'geolocation', {
       value: reponse ? { getCurrentPosition } : undefined,
       configurable: true,
@@ -88,6 +92,34 @@ describe('Localisation', () => {
     autoriser().click();
     await apres();
     expect(racine().querySelector('zn-message')?.textContent).toContain('pas disponible');
+  });
+
+  it('double clic : une seule demande système', async () => {
+    const demande = await ouvrir('attente');
+    autoriser().click();
+    autoriser().click();
+    await apres();
+    expect(demande).toHaveBeenCalledTimes(1);
+  });
+
+  it('pendant l’attente : aria-busy et libellé dédié, bouton non désactivé', async () => {
+    await ouvrir('attente');
+    autoriser().click();
+    await apres();
+    expect(autoriser().getAttribute('aria-busy')).toBe('true');
+    expect(autoriser().textContent).toContain('En attente de ta réponse');
+    expect(autoriser().disabled).toBe(false);
+  });
+
+  it('invite ignorée (délai dépassé) : message neutre, distinct du refus', async () => {
+    await ouvrir('delai');
+    autoriser().click();
+    await apres();
+    const texte = racine().querySelector('zn-message')?.textContent;
+    expect(texte).toContain('Pas de réponse');
+    expect(texte).not.toContain('Pas de souci');
+    expect(autoriser().getAttribute('aria-busy')).toBeNull();
+    expect(autoriser().textContent).toContain('Continuer');
   });
 
   it('sans adresse (rechargement) : la suite reste possible', async () => {

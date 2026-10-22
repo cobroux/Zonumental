@@ -10,7 +10,7 @@ import {
 import { Router } from '@angular/router';
 import { ZnMessage } from '../../../shared/ui/message';
 
-type Issue = 'refus' | 'indisponible';
+type Issue = 'refus' | 'indisponible' | 'delai';
 
 const RAYON_M = 150; // RG-021 / RG-032 : rayon de capture par défaut
 
@@ -37,12 +37,16 @@ export class Localisation {
   protected readonly rayon = RAYON_M;
   protected readonly issue = signal<Issue | null>(null);
 
+  protected readonly enCours = signal(false);
+
   protected autoriser() {
+    if (this.enCours()) return;
     if (this.issue()) return this.suite();
     if (!navigator.geolocation) return this.annoncer('indisponible');
+    this.enCours.set(true);
     navigator.geolocation.getCurrentPosition(
-      () => this.suite(), // position volontairement ignorée
-      () => this.annoncer('refus'),
+      () => this.suite(), // position volontairement ignorée ; enCours reste vrai pendant la navigation
+      (e) => this.annoncer(e.code === 3 /* TIMEOUT */ ? 'delai' : 'refus'),
       { maximumAge: Infinity, timeout: 30000 },
     );
   }
@@ -58,6 +62,7 @@ export class Localisation {
   }
 
   private annoncer(issue: Issue) {
+    this.enCours.set(false);
     this.issue.set(issue);
     afterNextRender(() => this.hote.querySelector<HTMLElement>('zn-message')?.focus(), {
       injector: this.injector,

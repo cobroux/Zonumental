@@ -53,6 +53,11 @@
           de ton téléphone ou de ton navigateur.
         </zn-message>
       }
+      @case ('delai') {
+        <zn-message type="info" tabindex="-1">
+          Pas de réponse pour l’instant. Tu peux continuer et l’activer plus tard dans les réglages.
+        </zn-message>
+      }
       @case ('indisponible') {
         <zn-message type="info" tabindex="-1">
           La localisation n’est pas disponible ici. Tu peux continuer et l’activer plus tard dans
@@ -60,8 +65,19 @@
         </zn-message>
       }
     }
-    <button znBouton type="button" (click)="autoriser()">
-      {{ issue() ? 'Continuer' : 'Autoriser la localisation' }}
+    <button
+      znBouton
+      type="button"
+      [attr.aria-busy]="enCours() ? 'true' : null"
+      (click)="autoriser()"
+    >
+      {{
+        enCours()
+          ? 'En attente de ta réponse…'
+          : issue()
+            ? 'Continuer'
+            : 'Autoriser la localisation'
+      }}
     </button>
     @if (!issue()) {
       <p class="mention">Ton téléphone va te demander confirmation.</p>
