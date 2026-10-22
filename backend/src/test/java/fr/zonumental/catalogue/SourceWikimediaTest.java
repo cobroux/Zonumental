@@ -113,6 +113,39 @@ class SourceWikimediaTest {
   }
 
   @Test
+  void licence_exigeant_l_attribution_sans_auteur_n_importe_pas_l_image() throws IOException {
+    attendre("https://query.wikidata.org/sparql", sparqlTourSeule());
+    serveur
+        .expect(requestTo(containsString("/page/summary/")))
+        .andRespond(withStatus(HttpStatus.NOT_FOUND));
+    serveur
+        .expect(requestTo(containsString("/metrics/pageviews/")))
+        .andRespond(withStatus(HttpStatus.NOT_FOUND));
+    attendre(
+        "https://commons.wikimedia.org/w/api.php", json("commons-attribution-sans-auteur.json"));
+
+    Candidat c = source.candidats(new Quotas.Ville("Paris", "75056", 25)).getFirst();
+
+    assertThat(c.imageFichier()).isNull();
+    assertThat(c.imageLicence()).isNull();
+    assertThat(c.imageAuteur()).isNull();
+  }
+
+  static String sparqlTourSeule() {
+    return """
+        {"results": {"bindings": [{
+          "item": {"value": "http://www.wikidata.org/entity/Q1"},
+          "label": {"value": "Tour Test"},
+          "merimee": {"value": "PA00000001"},
+          "coord": {"value": "Point(2.2945 48.8584)"},
+          "article": {"value": "https://fr.wikipedia.org/wiki/Tour_Test"},
+          "image": {"value": "http://commons.wikimedia.org/wiki/Special:FilePath/Tour%20Test.jpg"},
+          "types": {"value": "Q12518"}
+        }]}}
+        """;
+  }
+
+  @Test
   void erreur_de_source_apres_trois_essais_arrete_l_import() {
     serveur
         .expect(
