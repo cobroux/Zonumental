@@ -47,6 +47,7 @@ class ImportCatalogueTest {
   void vider() {
     jdbc.sql("delete from catalogue.monument").update();
     jdbc.sql("delete from catalogue.ville").update();
+    jdbc.sql("update catalogue.numerotation set dernier = 0").update();
   }
 
   static Candidat c(String id, String nom, long popularite, boolean image) {
@@ -222,5 +223,86 @@ class ImportCatalogueTest {
             new Quotas(List.of(new Quotas.Ville("Paris", "75056", 25)), Map.of()),
             dossier);
     assertThatThrownBy(() -> autre.figer(p)).isInstanceOf(IllegalArgumentException.class);
+  }
+
+  private List<Candidat> lot(int n) {
+    List<Candidat> l = new ArrayList<>();
+    for (int i = 1; i <= n; i++) {
+      l.add(c("Q" + i, "M" + i, 10_000 - i, false));
+    }
+    return l;
+  }
+
+  private int numeroDe(String id) {
+    return jdbc.sql("select numero from catalogue.monument where wikidata_id = ?")
+        .param(id)
+        .query(Integer.class)
+        .single();
+  }
+
+  @Test
+  void premier_import_118_monuments_par_popularite_puis_ajout_donne_119_sans_toucher_aux_anciens()
+      throws IOException {
+    List<Candidat> tous = lot(118);
+    donnees.put(LYON, tous);
+    ImportCatalogue imp = importeur(200, Map.of());
+    imp.figer(relire(imp));
+    assertThat(numeroDe("Q1")).isEqualTo(1); // le plus populaire
+    assertThat(numeroDe("Q118")).isEqualTo(118);
+
+    tous.add(c("Q999", "Nouveau", 5, false));
+    imp.figer(relire(imp));
+
+    assertThat(compte()).isEqualTo(119);
+    assertThat(numeroDe("Q999")).isEqualTo(119);
+    assertThat(numeroDe("Q1")).isEqualTo(1);
+    assertThat(numeroDe("Q118")).isEqualTo(118);
+  }
+
+  @Test
+  void numero_d_un_monument_retire_n_est_jamais_reattribue() throws IOException {
+    donnees.put(LYON, lot(5));
+    ImportCatalogue imp = importeur(200, Map.of());
+    imp.figer(relire(imp));
+    jdbc.sql("delete from catalogue.monument where numero = 5").update();
+    donnees.put(LYON, new ArrayList<>(lot(4)));
+    donnees.get(LYON).add(c("Qnew", "Nouveau", 1, false));
+
+    imp.figer(relire(imp));
+
+    assertThat(numeroDe("Qnew")).isEqualTo(6);
+  }
+
+  @Test
+  void import_ulterieur_ne_donne_une_rarete_qu_aux_nouveaux() throws IOException {
+    List<Candidat> tous = lot(120);
+    donnees.put(LYON, tous);
+    ImportCatalogue imp = importeur(500, Map.of());
+    imp.figer(relire(imp));
+    assertThat(compteRarete("LEGENDAIRE")).isEqualTo(6);
+    assertThat(compteRarete("RARE")).isEqualTo(24);
+    assertThat(compteRarete("COMMUN")).isEqualTo(90);
+
+    tous.add(c("Qtop", "Top", 1_000_000, false));
+    imp.figer(relire(imp));
+
+    assertThat(rareteDe("Qtop")).isEqualTo("LEGENDAIRE");
+    assertThat(compteRarete("LEGENDAIRE")).isEqualTo(7); // anciens inchangés
+    assertThat(compteRarete("RARE")).isEqualTo(24);
+    assertThat(compteRarete("COMMUN")).isEqualTo(90);
+  }
+
+  private long compteRarete(String r) {
+    return jdbc.sql("select count(*) from catalogue.monument where rarete = ?")
+        .param(r)
+        .query(Long.class)
+        .single();
+  }
+
+  private String rareteDe(String id) {
+    return jdbc.sql("select rarete from catalogue.monument where wikidata_id = ?")
+        .param(id)
+        .query(String.class)
+        .single();
   }
 }
