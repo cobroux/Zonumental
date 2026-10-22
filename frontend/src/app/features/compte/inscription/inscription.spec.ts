@@ -153,7 +153,7 @@ describe('Inscription', () => {
     http.verify();
   });
 
-  it('envoie le contrat avec les versions légales, puis affiche la confirmation', async () => {
+  it('envoie le contrat avec les versions légales, puis passe à « vérifie ton e-mail »', async () => {
     remplir();
     cocher('emails');
     await soumettre();

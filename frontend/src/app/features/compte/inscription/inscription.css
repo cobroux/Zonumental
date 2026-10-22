@@ -8,9 +8,9 @@
 .page {
   display: flex;
   flex-direction: column;
-  gap: var(--zn-esp-4);
+  gap: 1.125rem;
   min-block-size: 100dvh;
-  padding: var(--zn-esp-4) var(--zn-esp-6) var(--zn-esp-6);
+  padding: 1.125rem var(--zn-esp-6) 1.625rem;
 }
 
 header {
@@ -43,7 +43,7 @@ form {
   display: flex;
   flex: 1;
   flex-direction: column;
-  gap: var(--zn-esp-4);
+  gap: 0.875rem;
 }
 
 fieldset {
@@ -73,10 +73,7 @@ fieldset {
   font-size: 0.875rem;
 }
 
-.choix a {
-  display: inline-block;
-  padding-block: var(--zn-esp-2);
-}
+/* Liens dans une phrase : exemptés de la taille de cible (WCAG 2.5.8), le libellé entier reste cliquable */
 
 .pied {
   display: grid;
