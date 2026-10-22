@@ -173,6 +173,22 @@ class InactiviteTest {
   }
 
   @Test
+  void pannePourUnCompteNeBloquePasLesAutresNiLaPurge() {
+    compte("panne", 1096, -1, true);
+    compte("bien", 1096, -1, true);
+    compte("expire", 1200, 31, true);
+    doThrow(new MailSendException("smtp"))
+        .when(mail)
+        .send(Mockito.argThat((SimpleMailMessage m) -> m.getTo()[0].startsWith("panne@")));
+
+    purge.purger();
+
+    assertThat(pseudos()).containsExactly("bien", "panne");
+    assertThat(avertissement("panne")).isNull();
+    assertThat(avertissement("bien")).isEqualTo(MAINTENANT);
+  }
+
+  @Test
   void reconnexionPendantLePreavisAbandonneLaSuppression() throws Exception {
     compte("revenu", 1200, 10, true);
 
