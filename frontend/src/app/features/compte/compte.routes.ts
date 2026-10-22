@@ -1,7 +1,7 @@
 import { Routes } from '@angular/router';
 import { gardeAccueil, gardeConnecte } from '../../core/session/garde';
 
-// Point d'entrée de la fonctionnalité (ADR 0012). Seul /profil est protégé (gardeConnecte).
+// Point d'entrée de la fonctionnalité (ADR 0012). /profil est protégé et affiche la barre (gardeConnecte).
 export const COMPTE_ROUTES: Routes = [
   { path: '', pathMatch: 'full', canActivate: [gardeAccueil], children: [] },
   {
@@ -51,6 +51,7 @@ export const COMPTE_ROUTES: Routes = [
   {
     path: 'profil',
     title: 'Mon profil',
+    data: { navigation: true },
     canActivate: [gardeConnecte],
     loadComponent: () => import('./profil/profil').then((m) => m.Profil),
   },
