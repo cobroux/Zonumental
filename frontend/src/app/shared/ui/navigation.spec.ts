@@ -25,16 +25,17 @@ async function rendre(url: string) {
 }
 
 describe('ZnNavigation', () => {
-  it('une nav nommée avec trois entrées libellées : Explorer, Carnet, Tamponner (pas Carte ni Défis)', async () => {
+  it('une nav nommée avec trois entrées libellées : Explorer, Tamponner au centre, Carnet (pas Carte ni Défis)', async () => {
     const el = await rendre('/explorer');
     expect(el.querySelector('nav')?.getAttribute('aria-label')).toBe('Navigation principale');
     const liens = [...el.querySelectorAll('a')].map((a) => a.textContent?.trim());
-    expect(liens).toEqual(['Explorer', 'Carnet', 'Tamponner']);
+    expect(liens).toEqual(['Explorer', 'Tamponner', 'Carnet']);
   });
 
   it.each([
     ['/explorer', 'Explorer'],
     ['/carnet', 'Carnet'],
+    ['/tamponner', 'Tamponner'],
   ])('%s : seule l’entrée active porte aria-current="page"', async (url, actif) => {
     const el = await rendre(url);
     const courants = [...el.querySelectorAll('a[aria-current="page"]')];
@@ -46,7 +47,7 @@ describe('ZnNavigation', () => {
     const bouton = el.querySelector('a[href="/tamponner"]') as HTMLElement;
     expect(bouton.textContent?.trim()).toBe('Tamponner');
     expect(bouton.dataset['etat']).toBe('loin');
-    expect(bouton.getAttribute('aria-current')).toBeNull();
+    expect(bouton.getAttribute('aria-current')).toBeNull(); // hors /tamponner
   });
 
   it('les icônes sont décoratives', async () => {

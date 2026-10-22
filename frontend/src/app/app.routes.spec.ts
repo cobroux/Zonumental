@@ -60,3 +60,26 @@ describe('Routes publiques (RG-001)', () => {
     expect(accueil?.canActivate).toEqual([gardeAccueil]);
   });
 });
+
+describe('Barre de navigation (r1-capturer-8)', () => {
+  // Parcourt les routes réelles, enfants différés compris, et relève celles qui demandent la barre.
+  async function avecBarre(liste: Routes, prefixe = ''): Promise<string[]> {
+    const trouvees: string[] = [];
+    for (const r of liste) {
+      const chemin = [prefixe, r.path].filter(Boolean).join('/');
+      if (r.data?.['navigation'] === true) trouvees.push('/' + chemin);
+      const enfants = r.children ?? (await r.loadChildren?.());
+      if (Array.isArray(enfants)) trouvees.push(...(await avecBarre(enfants, chemin)));
+    }
+    return trouvees;
+  }
+
+  it('seules /explorer, /carnet, /tamponner et /profil portent la barre', async () => {
+    expect((await avecBarre(routes)).sort()).toEqual([
+      '/carnet',
+      '/explorer',
+      '/profil',
+      '/tamponner',
+    ]);
+  });
+});

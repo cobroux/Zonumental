@@ -1,3 +1,7 @@
+:host {
+  display: block;
+  padding: var(--zn-esp-4);
+}
 .profil {
   position: absolute;
   inset: 12px 12px auto auto;

@@ -4,6 +4,7 @@ import { ChangeDetectionStrategy, Component } from '@angular/core';
 @Component({
   selector: 'app-tamponner',
   template: '<h1>Tamponner</h1>',
+  styleUrl: '../coquille.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class Tamponner {}

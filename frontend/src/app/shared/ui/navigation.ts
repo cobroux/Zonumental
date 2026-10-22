@@ -18,6 +18,25 @@ import { RouterLink, RouterLinkActive } from '@angular/router';
         <span>Explorer</span>
         <i aria-hidden="true"></i>
       </a>
+      <!-- État « loin » tant que la position n'est pas connue (r1-capturer-9 le branche). -->
+      <a
+        class="tamponner"
+        routerLink="/tamponner"
+        routerLinkActive="actif"
+        ariaCurrentWhenActive="page"
+        data-etat="loin"
+      >
+        <span class="rond">
+          <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+            <path
+              d="M12 2.6a2.5 2.5 0 1 1 0 5a2.5 2.5 0 1 1 0-5zM10.5 7.6h3v3.6h-3zM5.5 11.2h13a1 1 0 0 1 1 1v3.3a1 1 0 0 1-1 1h-13a1 1 0 0 1-1-1v-3.3a1 1 0 0 1 1-1z"
+            />
+          </svg>
+        </span>
+        <b class="vide" aria-hidden="true"></b>
+        <span>Tamponner</span>
+        <i aria-hidden="true"></i>
+      </a>
       <a routerLink="/carnet" routerLinkActive="actif" ariaCurrentWhenActive="page">
         <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
           <path
@@ -30,17 +49,6 @@ import { RouterLink, RouterLinkActive } from '@angular/router';
         </svg>
         <span>Carnet</span>
         <i aria-hidden="true"></i>
-      </a>
-      <!-- État « loin » tant que la position n'est pas connue (r1-capturer-9 le branche). -->
-      <a class="tamponner" routerLink="/tamponner" data-etat="loin">
-        <span class="rond">
-          <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-            <path
-              d="M12 2.6a2.5 2.5 0 1 1 0 5a2.5 2.5 0 1 1 0-5zM10.5 7.6h3v3.6h-3zM5.5 11.2h13a1 1 0 0 1 1 1v3.3a1 1 0 0 1-1 1h-13a1 1 0 0 1-1-1v-3.3a1 1 0 0 1 1-1z"
-            />
-          </svg>
-        </span>
-        <span>Tamponner</span>
       </a>
     </nav>
   `,

@@ -13,7 +13,7 @@ import { RouterLink } from '@angular/router';
     </a>
     <h1>Explorer</h1>
   `,
-  styleUrl: '../profil-lien.css',
+  styleUrl: '../coquille.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class Explorer {}
