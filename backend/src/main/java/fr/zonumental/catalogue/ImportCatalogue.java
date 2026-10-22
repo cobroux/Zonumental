@@ -29,6 +29,12 @@ import tools.jackson.databind.SerializationFeature;
 public class ImportCatalogue {
 
   static final int RAYON_DEFAUT_M = 150;
+
+  /** Le maximum historique survit aux suppressions : un numéro n'est jamais réattribué. */
+  private static final String DERNIER_NUMERO =
+      "select greatest(dernier, (select coalesce(max(numero), 0) from catalogue.monument))"
+          + " from catalogue.numerotation";
+
   private static final String URL_IMAGES = "/api/catalogue/images/";
 
   private final JdbcClient jdbc;
@@ -64,10 +70,7 @@ public class ImportCatalogue {
             .list();
     Set<String> idsEnBase = new HashSet<>();
     enBase.forEach(e -> idsEnBase.add(e.wikidataId()));
-    int max =
-        jdbc.sql("select coalesce(max(numero), 0) from catalogue.monument")
-            .query(Integer.class)
-            .single();
+    int max = jdbc.sql(DERNIER_NUMERO).query(Integer.class).single();
 
     List<Candidat> nouveaux = new ArrayList<>();
     List<Candidat> existants = new ArrayList<>();
@@ -147,16 +150,19 @@ public class ImportCatalogue {
                           .update());
           verifierQuotas(nouveaux);
 
-          int max =
-              jdbc.sql("select coalesce(max(numero), 0) from catalogue.monument")
-                  .query(Integer.class)
-                  .single();
+          int max = jdbc.sql(DERNIER_NUMERO).query(Integer.class).single();
           List<Existant> rang =
               jdbc.sql("select wikidata_id, nom, popularite from catalogue.monument")
                   .query((rs, i) -> new Existant(rs.getString(1), rs.getString(2), rs.getLong(3)))
                   .list();
-          for (Numerote n : SelectionCatalogue.attribuer(max, rang, nouveaux)) {
+          List<Numerote> attribues = SelectionCatalogue.attribuer(max, rang, nouveaux);
+          for (Numerote n : attribues) {
             inserer(n, images.get(n.candidat().wikidataId()));
+          }
+          if (!attribues.isEmpty()) {
+            jdbc.sql("update catalogue.numerotation set dernier = ?")
+                .param(attribues.getLast().numero())
+                .update();
           }
           for (Candidat c : p.existants()) {
             rafraichir(c, images.get(c.wikidataId()));

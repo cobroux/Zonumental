@@ -9,3 +9,11 @@ export const gardeConnecte: CanActivateFn = async (_route, etat) => {
   if (session.connecte() || (await session.renouveler())) return true;
   return router.createUrlTree(['/connexion'], { queryParams: { retour: etat.url } });
 };
+
+/** Racine « / » : connecté (ou session récupérable) → /profil, visiteur → /bienvenue (RG-001). */
+export const gardeAccueil: CanActivateFn = async () => {
+  const session = inject(Session);
+  const router = inject(Router);
+  const connecte = session.connecte() || (await session.renouveler());
+  return router.createUrlTree([connecte ? '/profil' : '/bienvenue']);
+};

@@ -1,0 +1,125 @@
+:host {
+  display: block;
+  max-width: 28rem;
+  margin: 0 auto;
+}
+
+/* Un écran sans défilement en 390×844 (maquette O2) */
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--zn-esp-4);
+  min-block-size: 100dvh;
+  padding: var(--zn-esp-4) var(--zn-esp-6) var(--zn-esp-6);
+}
+
+header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  block-size: var(--zn-cible);
+}
+
+.etape {
+  color: var(--zn-texte-doux);
+  font-size: 0.6875rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+.passer {
+  min-block-size: var(--zn-cible);
+  min-inline-size: var(--zn-cible);
+  padding: 0 var(--zn-esp-2);
+  border: 0;
+  background: transparent;
+  color: var(--zn-texte-doux);
+  font: inherit;
+  font-size: 0.9375rem;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.schema {
+  inline-size: 100%;
+  max-block-size: 13.75rem;
+  color: var(--zn-marine);
+}
+
+.rayon {
+  stroke: var(--zn-sapin);
+}
+
+.rayon-texte {
+  fill: var(--zn-sapin);
+  font-family: var(--zn-police-mono);
+  font-size: 11px;
+  letter-spacing: 1.5px;
+}
+
+.tampon {
+  color: var(--zn-bordeaux);
+  font-family: var(--zn-police-titre);
+  font-size: 11px;
+}
+
+.texte {
+  display: grid;
+  gap: var(--zn-esp-2);
+}
+
+h1 {
+  font-size: 2rem;
+  line-height: 1.02;
+  text-wrap: balance;
+}
+
+p {
+  margin: 0;
+  line-height: 1.45;
+  text-wrap: pretty;
+}
+
+.engagements {
+  display: grid;
+  gap: var(--zn-esp-3);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: 0.9375rem;
+  line-height: 1.4;
+}
+
+.engagements li {
+  display: grid;
+  grid-template-columns: 1.375rem minmax(0, 1fr);
+  gap: var(--zn-esp-3);
+  align-items: start;
+}
+
+.engagements svg {
+  inline-size: 1.375rem;
+  block-size: 1.375rem;
+  fill: none;
+  stroke: var(--zn-sapin);
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.pied {
+  display: grid;
+  gap: var(--zn-esp-2);
+  margin-block-start: auto;
+}
+
+.mention {
+  color: var(--zn-texte-doux);
+  font-size: 0.8125rem;
+  text-align: center;
+}
+
+zn-message:focus-visible {
+  outline: 2px solid var(--zn-action);
+  outline-offset: 2px;
+}

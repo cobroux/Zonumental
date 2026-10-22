@@ -4,11 +4,13 @@ import { Location } from '@angular/common';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideApiConfiguration } from '../../../core/api/api-configuration';
 import { VERSIONS_LEGALES } from '../../../core/legal/versions-legales';
+import { Router } from '@angular/router';
 import { Inscription } from './inscription';
 
 describe('Inscription', () => {
   let fixture: ComponentFixture<Inscription>;
   let http: HttpTestingController;
+  let navigation: ReturnType<typeof vi.spyOn>;
   const racine = () => fixture.nativeElement as HTMLElement;
   const champ = (nom: string) => racine().querySelector<HTMLInputElement>(`[name="${nom}"]`)!;
   const saisir = (nom: string, valeur: string) => {
@@ -55,8 +57,13 @@ describe('Inscription', () => {
       providers: [provideHttpClient(), provideHttpClientTesting(), provideApiConfiguration('')],
     });
     http = TestBed.inject(HttpTestingController);
+    navigation = vi.spyOn(TestBed.inject(Router), 'navigate').mockResolvedValue(true);
     fixture = TestBed.createComponent(Inscription);
     await fixture.whenStable();
+  });
+
+  it('consentements facultatifs décochés par défaut, CGU aussi', () => {
+    for (const n of ['cgu', 'classement', 'emails']) expect(champ(n).checked).toBe(false);
   });
 
   it('tient sur un seul écran : en-tête étape 1 / 2, retour de 44 px, titre de la maquette', () => {
@@ -146,7 +153,7 @@ describe('Inscription', () => {
     http.verify();
   });
 
-  it('envoie le contrat avec les versions légales, puis affiche la confirmation', async () => {
+  it('envoie le contrat avec les versions légales, puis passe à « vérifie ton e-mail »', async () => {
     remplir();
     cocher('emails');
     await soumettre();
@@ -168,8 +175,9 @@ describe('Inscription', () => {
     });
     req.flush('', { status: 202, statusText: 'Accepted' });
     await apres();
-    expect(racine().querySelector('[role="status"]')?.textContent).toContain('marco@exemple.fr');
-    expect(racine().querySelector('form')).toBeNull();
+    expect(navigation).toHaveBeenCalledWith(['/inscription/localisation'], {
+      state: { email: 'marco@exemple.fr' },
+    });
   });
 
   describe('erreurs du serveur', () => {

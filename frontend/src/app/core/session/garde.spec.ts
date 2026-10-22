@@ -5,7 +5,7 @@ import {
   type ActivatedRouteSnapshot,
   type RouterStateSnapshot,
 } from '@angular/router';
-import { gardeConnecte } from './garde';
+import { gardeAccueil, gardeConnecte } from './garde';
 import { Session } from './session';
 
 describe('gardeConnecte', () => {
@@ -33,5 +33,37 @@ describe('gardeConnecte', () => {
     TestBed.configureTestingModule({ providers: [session(false, false)] });
     const r = (await lancer('/profil?x=1')) as UrlTree;
     expect(TestBed.inject(Router).serializeUrl(r)).toBe('/connexion?retour=%2Fprofil%3Fx%3D1');
+  });
+});
+
+describe('gardeAccueil', () => {
+  const lancer = () =>
+    TestBed.runInInjectionContext(() =>
+      gardeAccueil({} as ActivatedRouteSnapshot, { url: '/' } as RouterStateSnapshot),
+    ) as Promise<UrlTree>;
+  const session = (connecte: boolean, renouvelle: boolean) =>
+    TestBed.configureTestingModule({
+      providers: [
+        {
+          provide: Session,
+          useValue: { connecte: () => connecte, renouveler: vi.fn().mockResolvedValue(renouvelle) },
+        },
+      ],
+    });
+  const url = async () => TestBed.inject(Router).serializeUrl(await lancer());
+
+  it('connecté : /profil', async () => {
+    session(true, false);
+    expect(await url()).toBe('/profil');
+  });
+
+  it('session récupérable au rechargement : /profil', async () => {
+    session(false, true);
+    expect(await url()).toBe('/profil');
+  });
+
+  it('visiteur : /bienvenue', async () => {
+    session(false, false);
+    expect(await url()).toBe('/bienvenue');
   });
 });
