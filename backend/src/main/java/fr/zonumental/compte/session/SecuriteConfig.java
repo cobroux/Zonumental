@@ -22,6 +22,7 @@ import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
 import org.springframework.security.oauth2.jwt.NimbusJwtEncoder;
 import org.springframework.security.oauth2.server.resource.web.DefaultBearerTokenResolver;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.firewall.RequestRejectedHandler;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
@@ -43,6 +44,9 @@ class SecuriteConfig {
         .authorizeHttpRequests(
             a ->
                 a.requestMatchers("/api/health/**", "/v3/api-docs", "/v3/api-docs.yaml")
+                    .permitAll()
+                    // Images sous licence libre ; une balise <img> n'envoie pas de jeton.
+                    .requestMatchers(HttpMethod.GET, "/api/catalogue/images/**")
                     .permitAll()
                     .requestMatchers(
                         HttpMethod.POST,
@@ -112,5 +116,12 @@ class SecuriteConfig {
     UrlBasedCorsConfigurationSource s = new UrlBasedCorsConfigurationSource();
     s.registerCorsConfiguration("/api/**", c);
     return s;
+  }
+
+  /** Chemin d'image forgé (../ encodé, etc.) : 404 comme un nom inconnu ; ailleurs 400. */
+  @Bean
+  RequestRejectedHandler requeteRejetee() {
+    return (req, res, e) ->
+        res.setStatus(req.getRequestURI().startsWith("/api/catalogue/images/") ? 404 : 400);
   }
 }
