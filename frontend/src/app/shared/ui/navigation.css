@@ -1,0 +1,95 @@
+:host {
+  position: fixed;
+  inset: auto 0 0;
+  z-index: 10;
+}
+nav {
+  display: grid;
+  grid-template-columns: 1fr 68px 1fr; /* ordre : Explorer, Tamponner, Carnet */
+  align-items: stretch;
+  padding: 6px 6px max(10px, env(safe-area-inset-bottom));
+  background: rgb(244 241 234 / 94%);
+  backdrop-filter: blur(16px);
+  border-block-start: 1px solid rgb(26 28 32 / 10%);
+  box-shadow: 0 -10px 24px -18px rgb(26 28 32 / 35%);
+}
+a {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  min-block-size: 56px;
+  min-inline-size: var(--zn-cible);
+  color: var(--zn-gris-libelle);
+  font: 500 0.6875rem / 1.2 var(--zn-police-ui);
+  text-decoration: none;
+}
+a:focus-visible {
+  outline: 3px solid var(--zn-focus);
+  outline-offset: -3px;
+  border-radius: var(--zn-rayon-12);
+}
+svg {
+  inline-size: 24px;
+  block-size: 24px;
+  fill: none;
+  stroke: currentcolor;
+  stroke-width: 1.6;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.aplat {
+  fill: transparent;
+  stroke: none;
+}
+i {
+  inline-size: 4px;
+  block-size: 4px;
+  border-radius: 50%;
+  background: transparent;
+}
+.actif {
+  color: var(--zn-encre);
+  font-weight: 600;
+}
+.actif svg {
+  stroke-width: 2;
+}
+.actif .aplat {
+  fill: rgb(140 47 57 / 22%);
+}
+.actif i {
+  background: var(--zn-bordeaux);
+}
+.tamponner {
+  position: relative;
+  font-weight: 600;
+  color: var(--zn-gris-libelle);
+}
+.rond {
+  position: absolute;
+  inset-block: -34px auto;
+  inset-inline-start: 50%;
+  margin-inline-start: -32px;
+  inline-size: 64px;
+  block-size: 64px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  color: var(--zn-papier-clair);
+  background: var(--zn-gris-45); /* « loin » : neutre, ne promet rien */
+  box-shadow:
+    0 0 0 4px var(--zn-papier),
+    0 12px 20px -10px rgb(26 28 32 / 55%),
+    inset 0 -3px 0 rgb(0 0 0 / 18%);
+}
+.rond svg {
+  inline-size: 28px;
+  block-size: 28px;
+  stroke-width: 1.8;
+}
+.vide {
+  inline-size: 24px;
+  block-size: 24px; /* place de l'icône des autres entrées : libellés alignés */
+}

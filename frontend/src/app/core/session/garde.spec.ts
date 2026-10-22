@@ -52,14 +52,14 @@ describe('gardeAccueil', () => {
     });
   const url = async () => TestBed.inject(Router).serializeUrl(await lancer());
 
-  it('connecté : /profil', async () => {
+  it('connecté : /explorer', async () => {
     session(true, false);
-    expect(await url()).toBe('/profil');
+    expect(await url()).toBe('/explorer');
   });
 
-  it('session récupérable au rechargement : /profil', async () => {
+  it('session récupérable au rechargement : /explorer', async () => {
     session(false, true);
-    expect(await url()).toBe('/profil');
+    expect(await url()).toBe('/explorer');
   });
 
   it('visiteur : /bienvenue', async () => {

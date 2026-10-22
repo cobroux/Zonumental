@@ -1,3 +1,6 @@
-<main>
+<main [class.avec-navigation]="navigation()">
   <router-outlet />
 </main>
+@if (navigation()) {
+  <zn-navigation />
+}

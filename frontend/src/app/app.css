@@ -1,0 +1,4 @@
+/* Réserve la hauteur de la barre fixe pour que rien ne passe dessous. */
+.avec-navigation {
+  padding-block-end: calc(90px + env(safe-area-inset-bottom));
+}

@@ -31,6 +31,23 @@ const dev: Routes = isDevMode()
     ]
   : [];
 
+const explorer: Routes = [
+  {
+    path: 'explorer',
+    loadChildren: () =>
+      import('./features/explorer/explorer.routes').then((m) => m.EXPLORER_ROUTES),
+  },
+  {
+    path: 'carnet',
+    loadChildren: () => import('./features/carnet/carnet.routes').then((m) => m.CARNET_ROUTES),
+  },
+  {
+    path: 'tamponner',
+    loadChildren: () =>
+      import('./features/tamponner/tamponner.routes').then((m) => m.TAMPONNER_ROUTES),
+  },
+];
+
 const compte: Routes = [
   {
     path: '',
@@ -38,4 +55,4 @@ const compte: Routes = [
   },
 ];
 
-export const routes: Routes = [...legal, ...compte, ...dev];
+export const routes: Routes = [...legal, ...explorer, ...compte, ...dev];

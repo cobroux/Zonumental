@@ -1,0 +1,27 @@
+:host {
+  display: block;
+  padding: var(--zn-esp-4);
+}
+.profil {
+  position: absolute;
+  inset: 12px 12px auto auto;
+  display: grid;
+  place-items: center;
+  inline-size: var(--zn-cible);
+  block-size: var(--zn-cible);
+  border-radius: 50%;
+  border: var(--zn-trait);
+  color: var(--zn-encre);
+}
+.profil:focus-visible {
+  outline: 3px solid var(--zn-focus);
+  outline-offset: 2px;
+}
+.profil svg {
+  inline-size: 24px;
+  block-size: 24px;
+  fill: none;
+  stroke: currentcolor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+}
