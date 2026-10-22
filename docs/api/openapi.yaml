@@ -382,6 +382,34 @@ paths:
             application/problem+json:
               schema: { $ref: '#/components/schemas/Probleme' }
 
+  /api/catalogue/images/{fichier}:
+    get:
+      tags: [catalogue]
+      operationId: lireImageMonument
+      summary: Image d'un monument copiée chez nous (RG-022) ; publique, cache long, immuable
+      description: >
+        `image.url` d'un monument. Nom au format `<numéro>.(jpg|png|webp)` ; tout autre nom,
+        nom inconnu ou chemin forgé (`../`, encodé ou non) donne 404.
+        `Cache-Control: public, max-age=31536000, immutable`.
+      security: []
+      parameters:
+        - name: fichier
+          in: path
+          required: true
+          schema: { type: string, pattern: '^[0-9]+\.(jpg|png|webp)$', examples: ['1.jpg'] }
+      responses:
+        '200':
+          description: Image
+          content:
+            image/jpeg: { schema: { type: string, format: binary } }
+            image/png: { schema: { type: string, format: binary } }
+            image/webp: { schema: { type: string, format: binary } }
+        '404':
+          description: '`introuvable`'
+          content:
+            application/problem+json:
+              schema: { $ref: '#/components/schemas/Probleme' }
+
 components:
   securitySchemes:
     jwt:
