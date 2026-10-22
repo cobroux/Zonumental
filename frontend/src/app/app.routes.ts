@@ -32,6 +32,8 @@ const dev: Routes = isDevMode()
   : [];
 
 const compte: Routes = [
+  // shortcut: pas encore d'accueil, à remplacer par /bienvenue avec l'onboarding (r0-socle-16)
+  { path: '', pathMatch: 'full', redirectTo: 'profil' },
   {
     path: '',
     loadChildren: () => import('./features/compte/compte.routes').then((m) => m.COMPTE_ROUTES),
