@@ -81,6 +81,16 @@ class SelectionCatalogueTest {
   }
 
   @Test
+  void rarete_arrondie_au_plus_proche_118_monuments_6_24_88() {
+    var nouveaux =
+        IntStream.rangeClosed(1, 118).mapToObj(i -> c("Q" + i, "M" + i, 1000 - i)).toList();
+    var res = SelectionCatalogue.attribuer(0, List.of(), nouveaux);
+    assertThat(res.stream().filter(n -> n.rarete() == Rarete.LEGENDAIRE)).hasSize(6); // 5,9
+    assertThat(res.stream().filter(n -> n.rarete() == Rarete.RARE)).hasSize(24); // 23,6
+    assertThat(res.stream().filter(n -> n.rarete() == Rarete.COMMUN)).hasSize(88);
+  }
+
+  @Test
   void numeros_suivent_le_max_meme_avec_des_trous() {
     var res =
         SelectionCatalogue.attribuer(118, List.of(), List.of(c("Q1", "A", 1), c("Q2", "B", 0)));
