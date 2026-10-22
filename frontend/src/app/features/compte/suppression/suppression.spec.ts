@@ -54,6 +54,10 @@ describe('Suppression', () => {
   it('202 : session vidée sans renouvellement, date en français, lien vers /connexion', async () => {
     await ouvrir();
     const session = TestBed.inject(Session);
+    const ouverture = session.connecter('a@b.fr', 'x');
+    http.expectOne('/api/auth/connexion').flush({ jetonAcces: 'jwt', expireDans: 900 });
+    await ouverture;
+    expect(session.connecte()).toBe(true);
     bouton().click();
     await fixture.whenStable();
     expect(bouton().getAttribute('aria-busy')).toBe('true');
@@ -66,6 +70,7 @@ describe('Suppression', () => {
       );
     await apres();
     expect(session.connecte()).toBe(false);
+    expect(session.jeton()).toBeNull();
     http.expectNone('/api/auth/renouvellement');
     expect(racine().textContent).toContain('19 novembre 2026');
     expect(racine().querySelector('a[href="/connexion"]')).toBeTruthy();
