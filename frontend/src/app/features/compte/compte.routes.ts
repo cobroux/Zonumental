@@ -1,10 +1,14 @@
 import { Routes } from '@angular/router';
-import { gardeConnecte } from '../../core/session/garde';
+import { gardeAccueil, gardeConnecte } from '../../core/session/garde';
 
 // Point d'entrée de la fonctionnalité (ADR 0012). Seul /profil est protégé (gardeConnecte).
 export const COMPTE_ROUTES: Routes = [
-  // shortcut: pas encore d'accueil, à remplacer par /bienvenue avec l'onboarding (r0-socle-16)
-  { path: '', pathMatch: 'full', redirectTo: 'profil' },
+  { path: '', pathMatch: 'full', canActivate: [gardeAccueil], children: [] },
+  {
+    path: 'bienvenue',
+    title: 'Bienvenue',
+    loadComponent: () => import('./bienvenue/bienvenue').then((m) => m.Bienvenue),
+  },
   {
     path: 'connexion',
     title: 'Me connecter',
@@ -14,6 +18,12 @@ export const COMPTE_ROUTES: Routes = [
     path: 'inscription',
     title: 'Créer mon carnet',
     loadComponent: () => import('./inscription/inscription').then((m) => m.Inscription),
+  },
+  {
+    path: 'inscription/verifie-ton-email',
+    title: 'Vérifie ton e-mail',
+    loadComponent: () =>
+      import('./verifie-ton-email/verifie-ton-email').then((m) => m.VerifieTonEmail),
   },
   {
     path: 'verifier-email',

@@ -1,0 +1,59 @@
+:host {
+  display: block;
+  max-width: 28rem;
+  margin: 0 auto;
+}
+
+/* Même colonne pleine hauteur que l'inscription (maquette O6) : les boutons restent en bas */
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--zn-esp-4);
+  min-block-size: 100dvh;
+  padding: var(--zn-esp-4) var(--zn-esp-6) var(--zn-esp-6);
+}
+
+header {
+  display: flex;
+  align-items: center;
+  block-size: var(--zn-cible);
+}
+
+.retour {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  inline-size: var(--zn-cible);
+  block-size: var(--zn-cible);
+  margin-inline-start: calc(-1 * var(--zn-esp-3));
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--zn-texte);
+  cursor: pointer;
+}
+
+h1 {
+  font-size: 2rem;
+  line-height: 1;
+}
+
+p {
+  margin: 0;
+  line-height: 1.45;
+}
+
+.adresse {
+  overflow-wrap: anywhere;
+}
+
+.pied {
+  display: grid;
+  gap: var(--zn-esp-2);
+  margin-block-start: auto;
+}
+
+zn-message:focus-visible {
+  outline: 2px solid var(--zn-action);
+  outline-offset: 2px;
+}

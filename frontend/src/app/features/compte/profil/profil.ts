@@ -104,7 +104,7 @@ export class Profil {
     } catch {
       // Le jeton local est déjà effacé : on quitte quand même.
     }
-    this.recharger('/connexion'); // shortcut: /bienvenue n'existe pas encore (ADR 0015), à remplacer par elle
+    this.recharger('/bienvenue');
   }
 
   /** Rechargement complet pour vider toute la mémoire (ADR 0015). */

@@ -107,7 +107,7 @@ describe('Profil', () => {
       .click();
     await apres();
     expect(deco).toHaveBeenCalled();
-    expect(recharger).toHaveBeenCalledWith('/connexion');
+    expect(recharger).toHaveBeenCalledWith('/bienvenue');
   });
 
   describe('export', () => {
