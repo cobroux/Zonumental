@@ -25,6 +25,7 @@ Format : [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/).
 - r0-socle-19 : numéros de monuments jamais réutilisés, même après un retrait (dernier numéro persisté, migration V7) ; rareté arrondie au plus proche et attribuée aux seuls nouveaux monuments à chaque import.
 - r0-socle-20 : API du catalogue (`GET /api/catalogue/monuments` et `/{numero}`, authentifiée) : source, licence et auteur du texte et de l'image, stats inconnues à `null` jamais inventées, image `null` (silhouette) sans licence identifiable.
 - r0-socle-21 : images du catalogue servies publiquement (`GET /api/catalogue/images/{numero}.{jpg|png|webp}`) depuis le dossier de l'import, cache d'un an, 404 sans fuite pour tout autre nom ou tentative de sortie du dossier.
+- r1-capturer-8 : barre de navigation des pages connectées (Explorer, Tamponner au centre, Carnet ; Carte et Défis viendront en R3/R6), lien « Mon profil », `/` connecté mène à `/explorer` ; pages Explorer, Carnet et Tamponner encore vides.
 - Lanceur local (`./mvnw spring-boot:test-run -Dspring-boot.run.main-class=fr.zonumental.LancementLocal`) : PostGIS et Mailpit dans Docker ; `npm start` passe `/api` au back par le proxy.
 
 ### Modifié
