@@ -101,7 +101,7 @@ export class Inscription {
       });
       // Le mot de passe ne reste pas en mémoire une fois envoyé.
       this.m.update((x) => ({ ...x, motDePasse: '' }));
-      await this.routeur.navigate(['/inscription/verifie-ton-email'], {
+      await this.routeur.navigate(['/inscription/localisation'], {
         state: { email: v.email.trim() },
       });
     } catch (e) {

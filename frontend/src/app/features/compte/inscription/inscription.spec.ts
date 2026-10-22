@@ -175,7 +175,7 @@ describe('Inscription', () => {
     });
     req.flush('', { status: 202, statusText: 'Accepted' });
     await apres();
-    expect(navigation).toHaveBeenCalledWith(['/inscription/verifie-ton-email'], {
+    expect(navigation).toHaveBeenCalledWith(['/inscription/localisation'], {
       state: { email: 'marco@exemple.fr' },
     });
   });
