@@ -4,7 +4,7 @@ import java.time.Duration;
 import org.springframework.http.ResponseCookie;
 
 /** Cookie de session de renouvellement ; l'effacement garde exactement le même Path. */
-final class CookieSession {
+public final class CookieSession {
 
   static final String NOM = "zonumental_session";
 
@@ -14,7 +14,7 @@ final class CookieSession {
     return construire(valeur, duree);
   }
 
-  static String effacer() {
+  public static String effacer() {
     return construire("", Duration.ZERO);
   }
 

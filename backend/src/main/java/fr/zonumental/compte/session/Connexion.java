@@ -61,11 +61,42 @@ class Connexion {
     // Même si le compte est en suppression : les identifiants étaient bons.
     tentatives.reinitialiser(demande.email());
     if (compte.suppressionDemandeeLe() != null) {
+      OffsetDateTime fin = compte.suppressionDemandeeLe().plus(delaiSuppression);
+      // Délai écoulé, purge pas encore passée : le compte n'est plus annulable.
+      if (!fin.isAfter(OffsetDateTime.now(horloge))) {
+        throw new ErreurMetier(HttpStatus.UNAUTHORIZED, "identifiants-invalides");
+      }
       throw new ErreurMetier(
-          HttpStatus.CONFLICT,
-          "suppression-en-cours",
-          Map.of("suppressionDefinitiveLe", compte.suppressionDemandeeLe().plus(delaiSuppression)));
+          HttpStatus.CONFLICT, "suppression-en-cours", Map.of("suppressionDefinitiveLe", fin));
     }
+    return ouvrir(compte.id());
+  }
+
+  /**
+   * Q-9 : bons identifiants pendant le délai = suppression annulée puis connexion. Même compteur
+   * d'échecs que la connexion. Un compte non en suppression est simplement connecté.
+   */
+  Ouverte annulerSuppression(DemandeConnexion demande) {
+    tentatives.verifierNonBloque(demande.email());
+    Compte compte = verifierIdentifiants(demande);
+    tentatives.reinitialiser(demande.email());
+    if (compte.suppressionDemandeeLe() != null) {
+      OffsetDateTime maintenant = OffsetDateTime.now(horloge);
+      // Le where écarte le délai écoulé (purge pas encore passée) et le compte déjà purgé.
+      int annule =
+          jdbc.sql(
+                  "update compte.utilisateur set suppression_demandee_le = null where id = ?"
+                      + " and suppression_demandee_le > ?")
+              .params(compte.id(), maintenant.minus(delaiSuppression))
+              .update();
+      if (annule == 0) {
+        throw new ErreurMetier(HttpStatus.UNAUTHORIZED, "identifiants-invalides");
+      }
+    }
+    return ouvrir(compte.id());
+  }
+
+  private Ouverte ouvrir(UUID utilisateurId) {
     OffsetDateTime maintenant = OffsetDateTime.now(horloge);
     String cookie = Jetons.aleatoire();
     tx.executeWithoutResult(
@@ -74,13 +105,19 @@ class Connexion {
                   "insert into compte.session (utilisateur_id, empreinte, cree_le, expire_le)"
                       + " values (?, ?, ?, ?)")
               .params(
-                  compte.id(), Jetons.empreinte(cookie), maintenant, maintenant.plus(dureeSession))
+                  utilisateurId,
+                  Jetons.empreinte(cookie),
+                  maintenant,
+                  maintenant.plus(dureeSession))
               .update();
-          jdbc.sql("update compte.utilisateur set derniere_activite_le = ? where id = ?")
-              .params(maintenant, compte.id())
+          jdbc.sql(
+                  "update compte.utilisateur set derniere_activite_le = ?,"
+                      + " avertissement_inactivite_le = null where id = ?")
+              .params(maintenant, utilisateurId)
               .update();
         });
-    return new Ouverte(jetonsAcces.emettre(compte.id()), CookieSession.poser(cookie, dureeSession));
+    return new Ouverte(
+        jetonsAcces.emettre(utilisateurId), CookieSession.poser(cookie, dureeSession));
   }
 
   /**
@@ -107,7 +144,8 @@ class Connexion {
           id.ifPresent(
               u ->
                   jdbc.sql(
-                          "update compte.utilisateur set derniere_activite_le = ? where id = ?"
+                          "update compte.utilisateur set derniere_activite_le = ?,"
+                              + " avertissement_inactivite_le = null where id = ?"
                               + " and derniere_activite_le < ?")
                       .params(maintenant, u, maintenant.minusDays(1))
                       .update());

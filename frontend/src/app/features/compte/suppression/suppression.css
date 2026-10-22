@@ -1,0 +1,64 @@
+:host {
+  display: block;
+  max-width: 28rem;
+  margin: 0 auto;
+}
+
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--zn-esp-4);
+  min-block-size: 100dvh;
+  padding: var(--zn-esp-4) var(--zn-esp-6) var(--zn-esp-6);
+}
+
+header {
+  display: flex;
+  align-items: center;
+  block-size: var(--zn-cible);
+}
+
+.retour {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  inline-size: var(--zn-cible);
+  block-size: var(--zn-cible);
+  margin-inline-start: calc(-1 * var(--zn-esp-3));
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--zn-texte);
+  cursor: pointer;
+}
+
+h1 {
+  font-size: var(--zn-taille-3);
+  line-height: 1;
+}
+
+ul {
+  display: grid;
+  gap: var(--zn-esp-2);
+  margin: 0;
+  padding-inline-start: 1.25rem;
+}
+
+.pied {
+  display: grid;
+  gap: var(--zn-esp-2);
+  margin-block-start: auto;
+  text-align: center;
+}
+
+.pied a {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-block-size: var(--zn-cible);
+}
+
+zn-message:focus-visible {
+  outline: 2px solid var(--zn-action);
+  outline-offset: 2px;
+}

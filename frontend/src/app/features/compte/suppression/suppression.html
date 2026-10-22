@@ -1,0 +1,36 @@
+<div class="page">
+  <header>
+    <button type="button" class="retour" aria-label="Retour" (click)="retour()">
+      <zn-icone nom="retour" />
+    </button>
+  </header>
+
+  <h1>Supprimer mon compte</h1>
+
+  @if (dateFinale(); as le) {
+    <zn-message type="succes">
+      Ton compte est désactivé. Il sera effacé définitivement le {{ le }}.
+    </zn-message>
+    <a znBouton href="/connexion">Retour à la connexion</a>
+  } @else {
+    @if (erreur(); as texte) {
+      <zn-message type="erreur" tabindex="-1">{{ texte }}</zn-message>
+    }
+    <ul>
+      <li>Ton compte est désactivé tout de suite : tu es déconnecté.</li>
+      <li>Tes données sont effacées définitivement sous 30 jours.</li>
+      <li>Tu peux annuler en te reconnectant avant cette date.</li>
+    </ul>
+    <div class="pied">
+      <button
+        type="button"
+        znBouton="danger"
+        [attr.aria-busy]="occupe() ? 'true' : null"
+        (click)="supprimer()"
+      >
+        {{ occupe() ? 'Suppression…' : 'Supprimer définitivement' }}
+      </button>
+      <a routerLink="/profil">Garder mon compte</a>
+    </div>
+  }
+</div>

@@ -1,7 +1,10 @@
 import { Routes } from '@angular/router';
+import { gardeConnecte } from '../../core/session/garde';
 
-// Point d'entrée public de la fonctionnalité (ADR 0012). Les écrans de connexion, profil… s'y ajoutent.
+// Point d'entrée de la fonctionnalité (ADR 0012). Seul /profil est protégé (gardeConnecte).
 export const COMPTE_ROUTES: Routes = [
+  // shortcut: pas encore d'accueil, à remplacer par /bienvenue avec l'onboarding (r0-socle-16)
+  { path: '', pathMatch: 'full', redirectTo: 'profil' },
   {
     path: 'connexion',
     title: 'Me connecter',
@@ -17,5 +20,29 @@ export const COMPTE_ROUTES: Routes = [
     title: 'Vérification de ton e-mail',
     loadComponent: () =>
       import('./verification-email/verification-email').then((m) => m.VerificationEmail),
+  },
+  {
+    path: 'mot-de-passe-oublie',
+    title: 'Mot de passe oublié',
+    loadComponent: () =>
+      import('./mot-de-passe-oublie/mot-de-passe-oublie').then((m) => m.MotDePasseOublie),
+  },
+  {
+    path: 'reinitialiser-mot-de-passe',
+    title: 'Nouveau mot de passe',
+    loadComponent: () =>
+      import('./reinitialisation/reinitialisation').then((m) => m.Reinitialisation),
+  },
+  {
+    path: 'profil',
+    title: 'Mon profil',
+    canActivate: [gardeConnecte],
+    loadComponent: () => import('./profil/profil').then((m) => m.Profil),
+  },
+  {
+    path: 'profil/suppression',
+    title: 'Supprimer mon compte',
+    canActivate: [gardeConnecte],
+    loadComponent: () => import('./suppression/suppression').then((m) => m.Suppression),
   },
 ];

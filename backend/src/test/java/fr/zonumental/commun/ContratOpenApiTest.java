@@ -37,7 +37,13 @@ class ContratOpenApiTest {
           "/api/compte/inscription",
           "/api/compte/email/verification",
           "/api/compte/email/verification/renvoi",
+          "/api/compte/mot-de-passe/oubli",
+          "/api/compte/mot-de-passe/reinitialisation",
           "/api/compte/moi",
+          "/api/compte/consentements",
+          "/api/compte/export",
+          "/api/compte/suppression",
+          "/api/compte/suppression/annulation",
           "/api/auth/connexion",
           "/api/auth/renouvellement",
           "/api/auth/deconnexion");
