@@ -11,7 +11,9 @@ import org.junit.jupiter.api.Test;
 import org.testcontainers.postgresql.PostgreSQLContainer;
 import org.testcontainers.utility.DockerImageName;
 
-/** V7 sur une base déjà peuplée en V6 : « dernier » vaut max(numero), ou 0 si le catalogue est vide. */
+/**
+ * V7 sur une base déjà peuplée en V6 : « dernier » vaut max(numero), ou 0 si le catalogue est vide.
+ */
 class MigrationNumerotationTest {
 
   private static PostgreSQLContainer base() {
