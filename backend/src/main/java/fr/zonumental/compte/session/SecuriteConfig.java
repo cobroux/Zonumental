@@ -5,22 +5,16 @@ import java.time.Clock;
 import java.time.Duration;
 import java.util.Base64;
 import java.util.List;
-import java.util.UUID;
 import javax.crypto.SecretKey;
 import javax.crypto.spec.SecretKeySpec;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
-import org.springframework.jdbc.core.simple.JdbcClient;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.oauth2.core.DelegatingOAuth2TokenValidator;
-import org.springframework.security.oauth2.core.OAuth2Error;
-import org.springframework.security.oauth2.core.OAuth2TokenValidator;
-import org.springframework.security.oauth2.core.OAuth2TokenValidatorResult;
 import org.springframework.security.oauth2.jose.jws.MacAlgorithm;
-import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.security.oauth2.jwt.JwtEncoder;
 import org.springframework.security.oauth2.jwt.JwtTimestampValidator;
@@ -93,31 +87,14 @@ class SecuriteConfig {
     return new NimbusJwtEncoder(new ImmutableSecret<>(cle));
   }
 
-  /**
-   * Aucune tolérance d'horloge (60 s par défaut dans Spring) : un jeton expiré est refusé. Un jeton
-   * dont le compte est en suppression ou purgé l'est aussi (RG-014) : une requête par appel
-   * authentifié, à remplacer par un cache si la charge l'exige.
-   */
+  /** Aucune tolérance d'horloge (60 s par défaut dans Spring) : un jeton expiré est refusé. */
   @Bean
-  JwtDecoder decodeurJwt(SecretKey cle, Clock horloge, JdbcClient jdbc) {
+  JwtDecoder decodeurJwt(SecretKey cle, Clock horloge) {
     NimbusJwtDecoder d =
         NimbusJwtDecoder.withSecretKey(cle).macAlgorithm(MacAlgorithm.HS256).build();
     JwtTimestampValidator temps = new JwtTimestampValidator(Duration.ZERO);
     temps.setClock(horloge);
-    OAuth2TokenValidator<Jwt> compteActif =
-        jwt -> {
-          boolean actif =
-              jdbc.sql(
-                      "select exists (select 1 from compte.utilisateur where id = ?"
-                          + " and suppression_demandee_le is null)")
-                  .param(UUID.fromString(jwt.getSubject()))
-                  .query(Boolean.class)
-                  .single();
-          return actif
-              ? OAuth2TokenValidatorResult.success()
-              : OAuth2TokenValidatorResult.failure(new OAuth2Error("invalid_token"));
-        };
-    d.setJwtValidator(new DelegatingOAuth2TokenValidator<>(temps, compteActif));
+    d.setJwtValidator(new DelegatingOAuth2TokenValidator<>(temps));
     return d;
   }
 

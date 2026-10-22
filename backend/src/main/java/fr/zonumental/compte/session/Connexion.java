@@ -61,10 +61,13 @@ class Connexion {
     // Même si le compte est en suppression : les identifiants étaient bons.
     tentatives.reinitialiser(demande.email());
     if (compte.suppressionDemandeeLe() != null) {
+      OffsetDateTime fin = compte.suppressionDemandeeLe().plus(delaiSuppression);
+      // Délai écoulé, purge pas encore passée : le compte n'est plus annulable.
+      if (!fin.isAfter(OffsetDateTime.now(horloge))) {
+        throw new ErreurMetier(HttpStatus.UNAUTHORIZED, "identifiants-invalides");
+      }
       throw new ErreurMetier(
-          HttpStatus.CONFLICT,
-          "suppression-en-cours",
-          Map.of("suppressionDefinitiveLe", compte.suppressionDemandeeLe().plus(delaiSuppression)));
+          HttpStatus.CONFLICT, "suppression-en-cours", Map.of("suppressionDefinitiveLe", fin));
     }
     return ouvrir(compte.id());
   }

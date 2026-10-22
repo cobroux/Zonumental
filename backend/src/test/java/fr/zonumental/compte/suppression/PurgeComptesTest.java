@@ -75,7 +75,7 @@ class PurgeComptesTest {
     jdbc.update("delete from compte.utilisateur");
     utilisateur(du, "dudu", 31);
     utilisateur(duAussi, "duaussi", 40);
-    utilisateur(pasEncore, "pasencore", 29);
+    utilisateur(pasEncore, "pasencore", 28);
     utilisateur(actif, "actif", -1);
   }
 

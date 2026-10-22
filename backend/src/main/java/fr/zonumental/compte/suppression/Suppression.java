@@ -4,6 +4,7 @@ import fr.zonumental.compte.courriel.Courriels;
 import java.time.Clock;
 import java.time.Duration;
 import java.time.OffsetDateTime;
+import java.time.ZoneId;
 import java.util.Optional;
 import java.util.UUID;
 import org.springframework.beans.factory.annotation.Value;
@@ -20,18 +21,21 @@ class Suppression {
   private final Courriels courriels;
   private final Clock horloge;
   private final Duration delai;
+  private final ZoneId fuseau;
 
   Suppression(
       JdbcClient jdbc,
       TransactionTemplate tx,
       Courriels courriels,
       Clock horloge,
-      @Value("${zonumental.compte.suppression-delai}") Duration delai) {
+      @Value("${zonumental.compte.suppression-delai}") Duration delai,
+      @Value("${zonumental.purge.fuseau}") ZoneId fuseau) {
     this.jdbc = jdbc;
     this.tx = tx;
     this.courriels = courriels;
     this.horloge = horloge;
     this.delai = delai;
+    this.fuseau = fuseau;
   }
 
   /** Idempotent : une demande déjà enregistrée garde sa date et n'envoie pas de second e-mail. */
@@ -56,7 +60,8 @@ class Suppression {
               return email.map(e -> new Demande(e, maintenant.plus(delai)));
             });
     // Après commit (ADR 0005).
-    nouvelle.ifPresent(d -> courriels.suppression(d.email(), d.fin().toLocalDate()));
+    nouvelle.ifPresent(
+        d -> courriels.suppression(d.email(), d.fin().atZoneSameInstant(fuseau).toLocalDate()));
     return nouvelle
         .map(Demande::fin)
         .orElseGet(

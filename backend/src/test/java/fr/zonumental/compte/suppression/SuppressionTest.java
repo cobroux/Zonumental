@@ -5,7 +5,6 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.after;
 import static org.mockito.Mockito.timeout;
 import static org.mockito.Mockito.verify;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -94,7 +93,7 @@ class SuppressionTest {
   void demandeDesactiveLeCompteImmediatementEtFermeLesSessions() throws Exception {
     mvc.perform(post("/api/compte/suppression").header("Authorization", bearer))
         .andExpect(status().isAccepted())
-        .andExpect(jsonPath("$.suppressionDefinitiveLe").value("2026-11-19T12:00:00+02:00"))
+        .andExpect(jsonPath("$.suppressionDefinitiveLe").value("2026-11-18T12:00:00+02:00"))
         .andExpect(
             header().string("Set-Cookie", org.hamcrest.Matchers.containsString("Max-Age=0")));
 
@@ -109,11 +108,15 @@ class SuppressionTest {
   }
 
   @Test
-  void jetonDejaEmisRefuseApresLaDemande() throws Exception {
-    mvc.perform(get("/api/compte/moi").header("Authorization", bearer)).andExpect(status().isOk());
+  void renouvellementRefuseApresLaDemande() throws Exception {
+    String set = connexion().andReturn().getResponse().getHeader("Set-Cookie");
+    jakarta.servlet.http.Cookie cookie =
+        new jakarta.servlet.http.Cookie(
+            "zonumental_session", set.substring(set.indexOf('=') + 1, set.indexOf(';')));
+    mvc.perform(post("/api/auth/renouvellement").cookie(cookie)).andExpect(status().isOk());
     mvc.perform(post("/api/compte/suppression").header("Authorization", bearer))
         .andExpect(status().isAccepted());
-    mvc.perform(get("/api/compte/moi").header("Authorization", bearer))
+    mvc.perform(post("/api/auth/renouvellement").cookie(cookie))
         .andExpect(status().isUnauthorized());
   }
 
@@ -124,16 +127,15 @@ class SuppressionTest {
     ArgumentCaptor<SimpleMailMessage> m = ArgumentCaptor.forClass(SimpleMailMessage.class);
     verify(mail, timeout(3000)).send(m.capture());
     assertThat(m.getValue().getTo()).containsExactly(EMAIL);
-    assertThat(m.getValue().getText()).contains("19 novembre 2026");
+    assertThat(m.getValue().getText()).contains("18 novembre 2026");
   }
 
   @Test
-  void aucunCourrielSiLeCompteEstDejaEnSuppression() throws Exception {
+  void demandeRepeteeGardeLaDateEtNEnvoiePasDeSecondCourriel() throws Exception {
     jdbc.update("update compte.utilisateur set suppression_demandee_le = '2026-10-01T00:00:00Z'");
-    // Le jeton ne passe plus : la course entre deux demandes ne doit ni renvoyer de mail ni
-    // repousser la date.
     mvc.perform(post("/api/compte/suppression").header("Authorization", bearer))
-        .andExpect(status().isUnauthorized());
+        .andExpect(status().isAccepted())
+        .andExpect(jsonPath("$.suppressionDefinitiveLe").value("2026-10-30T00:00:00Z"));
     verify(mail, after(300).never()).send(any(SimpleMailMessage.class));
     assertThat(
             jdbc.queryForObject(
