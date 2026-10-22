@@ -3,6 +3,8 @@ import { gardeConnecte } from '../../core/session/garde';
 
 // Point d'entrée de la fonctionnalité (ADR 0012). Seul /profil est protégé (gardeConnecte).
 export const COMPTE_ROUTES: Routes = [
+  // shortcut: pas encore d'accueil, à remplacer par /bienvenue avec l'onboarding (r0-socle-16)
+  { path: '', pathMatch: 'full', redirectTo: 'profil' },
   {
     path: 'connexion',
     title: 'Me connecter',
