@@ -110,7 +110,9 @@ class Connexion {
                   maintenant,
                   maintenant.plus(dureeSession))
               .update();
-          jdbc.sql("update compte.utilisateur set derniere_activite_le = ? where id = ?")
+          jdbc.sql(
+                  "update compte.utilisateur set derniere_activite_le = ?,"
+                      + " avertissement_inactivite_le = null where id = ?")
               .params(maintenant, utilisateurId)
               .update();
         });
@@ -142,7 +144,8 @@ class Connexion {
           id.ifPresent(
               u ->
                   jdbc.sql(
-                          "update compte.utilisateur set derniere_activite_le = ? where id = ?"
+                          "update compte.utilisateur set derniere_activite_le = ?,"
+                              + " avertissement_inactivite_le = null where id = ?"
                               + " and derniere_activite_le < ?")
                       .params(maintenant, u, maintenant.minusDays(1))
                       .update());
