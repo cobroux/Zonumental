@@ -97,4 +97,15 @@ describe('VerifieTonEmail', () => {
     await apres();
     expect(racine().querySelector('zn-message[role="alert"]')?.textContent).toContain('erreur');
   });
+
+  it('un second clic pendant l’envoi n’émet pas de seconde requête', async () => {
+    await ouvrir('marco@exemple.fr');
+    bouton().click();
+    bouton().click();
+    await fixture.whenStable();
+    http
+      .expectOne('/api/compte/email/verification/renvoi')
+      .flush('', { status: 202, statusText: 'Accepted' });
+    await apres();
+  });
 });
