@@ -19,6 +19,8 @@ Format : [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/).
 - r0-socle-11 : écran `/profil` (pseudo, liens légaux, « Mes données », déconnexion) avec les consentements facultatifs (classement, e-mails) modifiables tout de suite et journalisés avec leur date ; garde des pages connectées avec retour à la page demandée après connexion.
 - r0-socle-13 : export des données personnelles depuis le profil (`GET /api/compte/export`) : zip avec `donnees.json` (compte, journal daté des consentements, captures), sans mot de passe ni position GPS.
 - r0-socle-14 : suppression du compte depuis le profil (`/profil/suppression`) : désactivation immédiate (sessions fermées, renouvellement refusé), e-mail de confirmation, annulation en se reconnectant, purge nocturne après 29 jours (effacement garanti sous 30 jours) qui libère pseudo et e-mail et publie l'événement `CompteSupprime`.
+- r0-socle-15 : comptes inactifs : e-mail d'avertissement après 3 ans sans connexion, effacement 30 jours plus tard sans retour (annulé par une reconnexion), suppression sans avertissement des comptes jamais vérifiés ; un échec d'envoi est retenté la nuit suivante, jamais suivi d'un effacement.
+- Lanceur local (`./mvnw spring-boot:test-run -Dspring-boot.run.main-class=fr.zonumental.LancementLocal`) : PostGIS et Mailpit dans Docker ; `npm start` passe `/api` au back par le proxy.
 
 ### Modifié
 - CI passée en Java 25, Node lu via `.nvmrc`.
