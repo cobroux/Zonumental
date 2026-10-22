@@ -1,0 +1,71 @@
+:host {
+  display: block;
+  max-width: 28rem;
+  margin: 0 auto;
+}
+
+/* Un écran, sans défilement (maquette O1) : fond sobre en haut, feuille arrondie en bas */
+.page {
+  display: flex;
+  flex-direction: column;
+  min-block-size: 100dvh;
+}
+
+.haut {
+  flex: 1;
+  padding: var(--zn-esp-6) var(--zn-esp-6) var(--zn-esp-12);
+  background: var(--zn-marine);
+}
+
+.etiquette {
+  color: var(--zn-fond);
+  font-size: 0.6875rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+.feuille {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: var(--zn-esp-4);
+  margin-block-start: calc(-1 * var(--zn-rayon-26));
+  padding: var(--zn-esp-6);
+  border-radius: var(--zn-rayon-26) var(--zn-rayon-26) 0 0;
+  background: var(--zn-fond);
+}
+
+h1 {
+  font-size: 2.875rem;
+  line-height: 0.9;
+  letter-spacing: -0.02em;
+}
+
+p {
+  max-inline-size: 19rem;
+  margin: 0;
+  color: var(--zn-gris-texte);
+  font-size: 1.0625rem;
+  line-height: 1.45;
+  text-wrap: pretty;
+}
+
+.tampon {
+  align-self: flex-end;
+  color: var(--zn-bordeaux);
+  transform: rotate(-9deg);
+}
+
+.tampon-mono {
+  font-family: var(--zn-police-mono);
+}
+
+.tampon-titre {
+  font-family: var(--zn-police-titre);
+}
+
+.pied {
+  display: grid;
+  gap: var(--zn-esp-2);
+  margin-block-start: auto;
+}

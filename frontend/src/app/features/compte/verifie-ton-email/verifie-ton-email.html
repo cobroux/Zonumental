@@ -1,0 +1,49 @@
+<div class="page">
+  <header>
+    <button type="button" class="retour" aria-label="Retour" (click)="retour()">
+      <zn-icone nom="retour" />
+    </button>
+  </header>
+
+  <h1>Vérifie ton e-mail</h1>
+
+  @if (email; as adresse) {
+    <p>
+      Si un carnet peut être créé pour <strong class="adresse">{{ adresse }}</strong
+      >, un e-mail vient de partir. Ouvre le lien qu’il contient pour confirmer ton adresse.
+    </p>
+
+    @switch (resultat()) {
+      @case ('envoye') {
+        <zn-message type="succes" tabindex="-1">Un nouveau lien vient de partir.</zn-message>
+      }
+      @case ('limite') {
+        <zn-message type="erreur" tabindex="-1">
+          Un e-mail vient déjà de partir. Attends une minute avant d’en demander un autre.
+        </zn-message>
+      }
+      @case ('erreur') {
+        <zn-message type="erreur" tabindex="-1">
+          Une erreur est survenue. Réessaie dans un instant.
+        </zn-message>
+      }
+    }
+
+    <div class="pied">
+      <button
+        znBouton
+        type="button"
+        [attr.aria-busy]="occupe() ? 'true' : null"
+        (click)="renvoyer()"
+      >
+        {{ occupe() ? 'Envoi…' : 'Renvoyer l’e-mail' }}
+      </button>
+      <a znBouton="secondaire" routerLink="/connexion">Me connecter</a>
+    </div>
+  } @else {
+    <p>Pour retrouver ton carnet, passe par la connexion.</p>
+    <div class="pied">
+      <a znBouton routerLink="/connexion">Aller à la connexion</a>
+    </div>
+  }
+</div>

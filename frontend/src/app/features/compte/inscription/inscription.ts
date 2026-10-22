@@ -9,6 +9,7 @@ import {
   inject,
   signal,
 } from '@angular/core';
+import { Router } from '@angular/router';
 import { Api } from '../../../core/api/api';
 import { inscrire } from '../../../core/api/fn/compte/inscrire';
 import { VERSIONS_LEGALES } from '../../../core/legal/versions-legales';
@@ -41,6 +42,7 @@ export class Inscription {
   private readonly api = inject(Api);
   private readonly injector = inject(Injector);
   private readonly historique = inject(Location);
+  private readonly routeur = inject(Router);
   private readonly hote = inject<ElementRef<HTMLElement>>(ElementRef).nativeElement;
 
   protected readonly m = signal<Modele>({
@@ -56,7 +58,6 @@ export class Inscription {
   protected readonly global = signal<string | null>(null);
   protected readonly obsolete = signal(false);
   protected readonly occupe = signal(false);
-  protected readonly envoyeA = signal<string | null>(null);
 
   protected maj(champ: keyof Modele, e: Event) {
     const cible = e.target as HTMLInputElement;
@@ -100,7 +101,9 @@ export class Inscription {
       });
       // Le mot de passe ne reste pas en mémoire une fois envoyé.
       this.m.update((x) => ({ ...x, motDePasse: '' }));
-      this.envoyeA.set(v.email.trim());
+      await this.routeur.navigate(['/inscription/verifie-ton-email'], {
+        state: { email: v.email.trim() },
+      });
     } catch (e) {
       this.surErreur(e);
     } finally {
