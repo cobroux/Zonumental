@@ -243,7 +243,7 @@ Ces règles précisent ou complètent RG-021 à RG-045 ; en cas de conflit, la r
 - Exemple : rayon 150 m, distance réelle 151,2 m : refusé, message « Tu es à 160 m ».
 - Cas limite : grand site (Versailles) : la distance se mesure au point de référence, pas au bord de l'enceinte ; c'est le rayon ajusté (RG-021) qui compense.
 
-**RG-047 — Précision GPS insuffisante : conduite à tenir.** Un refus pour précision (RG-031) n'enregistre rien et ne compte pas dans la limite de fréquence (RG-030). « Réessayer » relit la position et renvoie la même photo tant que l'écran reste ouvert **[à valider]** ; aucune limite au nombre d'essais autre que RG-030. L'appli n'accepte jamais une précision mauvaise « faute de mieux ».
+**RG-047 — Précision GPS insuffisante : conduite à tenir.** Un refus pour précision (RG-031) n'enregistre rien et ne compte pas dans la limite de fréquence (RG-030). « Réessayer » relit la position et renvoie la même photo tant que l'écran reste ouvert ; aucune limite au nombre d'essais autre que RG-030. L'appli n'accepte jamais une précision mauvaise « faute de mieux ».
 - Exemple : précision 140 m dans une rue étroite ; l'explorateur sort sur la place, « Réessayer », précision 25 m : capture acceptée.
 - Cas limite : précision toujours > 100 m en intérieur ou en sous-sol : pas de capture possible, message RG-039 ; pas de mode dégradé.
 
@@ -251,7 +251,7 @@ Ces règles précisent ou complètent RG-021 à RG-045 ; en cas de conflit, la r
 - Exemple : capture à 14 h 32 à Paris : « 22/10/2026 ».
 - Cas limite : un appareil à l'heure fausse n'a aucun effet sur les contrôles.
 
-**RG-049 — Ce qui est conservé d'une capture.** Exactement : explorateur, monument, date (RG-048), distance mesurée, photo. Ne sont conservés ni la position, ni sa précision, ni l'appareil, ni les métadonnées de la photo. Les refus peuvent être journalisés (type de refus, date, compte), jamais avec une position, 30 jours maximum **[à valider]**.
+**RG-049 — Ce qui est conservé d'une capture.** Exactement : explorateur, monument, date (RG-048), distance mesurée, photo. Ne sont conservés ni la position, ni sa précision, ni l'appareil, ni les métadonnées de la photo. Les refus peuvent être journalisés (type de refus, date, compte), jamais avec une position, 30 jours maximum (durée à confirmer par le tech lead back à la conception).
 - Exemple : l'export (RG-013) d'un explorateur ne contient pour chaque capture que monument, date, distance et photo.
 - Cas limite : la précision GPS, utilisée pour le contrôle, est oubliée une fois la réponse donnée (cohérent avec RG-036).
 
@@ -263,7 +263,7 @@ Ces règles précisent ou complètent RG-021 à RG-045 ; en cas de conflit, la r
 - Exemple : photo prise en portrait : elle s'affiche à l'endroit ; aucune coordonnée GPS dedans.
 - Cas limite : un remplacement (RG-035) est tout ou rien : si le nouvel envoi échoue, l'ancienne photo reste.
 
-**RG-052 — Pas de modération en R1.** Les photos sont privées (RG-037) : aucun contrôle de contenu (monument visible, personnes, légalité), aucune file de modération. Le contenu relève de la responsabilité de l'explorateur (CGU). Le partage d'une photo (R4) est une action volontaire ; sa modération éventuelle est à arbitrer avant R4 **[à valider]**.
+**RG-052 — Pas de modération en R1.** Les photos sont privées (RG-037) : aucun contrôle de contenu (monument visible, personnes, légalité), aucune file de modération. Le contenu relève de la responsabilité de l'explorateur (CGU). Le partage d'une photo (R4) est une action volontaire ; sa modération éventuelle est une question ouverte, reportée à R4 (Q-28).
 - Exemple : un selfie à la place du monument est accepté tant que la position est bonne.
 - Cas limite : signalement d'un contenu illicite par un tiers : traité à la main par l'équipe (adresse de contact des mentions légales), pas d'outil en R1.
 
@@ -278,23 +278,24 @@ Ces règles précisent ou complètent RG-021 à RG-045 ; en cas de conflit, la r
 | Numéro | oui | oui | oui |
 | Nom, type, ville, rareté | silhouette + numéro seulement | oui | oui |
 | Distance | non | oui | oui |
-| Image | non | noir et blanc | couleur + photo souvenir **[à valider]** |
-| Stats (année, style, hauteur) | non | non **[à valider]** | oui |
+| Image | non | noir et blanc | couleur + photo souvenir |
+| Indice : siècle de construction | non | oui (« — » si inconnu) | oui |
+| Stats : année exacte, style, hauteur | non | non (verrouillées) | oui |
 | Histoire | non | cadenas | oui (RG-055) |
 | Tampon | non | non | oui |
 
-- Exemple : n° 12 non capturé : le carnet montre « 12 » et une silhouette ; sa fiche donne le nom et la photo noir et blanc.
+- Exemple : n° 12 non capturé : le carnet montre « 12 » et une silhouette ; sa fiche donne le nom, le siècle (« XVIIe siècle ») et la photo noir et blanc ; l'année exacte reste cachée.
 - Cas limite : le contenu verrouillé n'est jamais obtenable avant la capture, même en connaissant l'adresse technique de la fiche (le serveur ne l'envoie pas).
 
 **RG-055 — Déblocage de la section histoire.** Elle se débloque dans la réponse de la capture réussie, avant toute autre action ; le déblocage est définitif et indépendant d'un remplacement de photo. Texte, source et licence (RG-022) sont affichés.
 - Exemple : tampon posé, l'écran suivant montre la fiche avec l'histoire lisible.
 - Cas limite : monument sans texte : « Histoire à venir » (RG-023) ; la capture reste valide, et le texte, une fois importé, est visible sans nouvelle action.
 
-**RG-056 — Liste Tamponner et monuments déjà capturés.** La liste de RG-024 inclut les monuments déjà capturés, marqués « tamponné ». L'état du bouton (RG-025) ne tient compte que des monuments non capturés ; si tout ce qui est proche est déjà capturé, il est gris avec le texte « Déjà tamponné ici » **[à valider]**.
+**RG-056 — Liste Tamponner et monuments déjà capturés.** La liste de RG-024 inclut les monuments déjà capturés, marqués « tamponné ». L'état du bouton (RG-025) ne tient compte que des monuments non capturés ; si tout ce qui est proche est déjà capturé, il est gris avec le texte « Déjà tamponné ici ».
 - Exemple : à 50 m de la tour Eiffel déjà capturée, rien d'autre à 2 km : bouton gris « Déjà tamponné ici », pas de halo.
 - Cas limite : le remplacement de photo reste accessible depuis la fiche.
 
-**RG-057 — Hors ligne au moment de la capture.** Complète RG-040. L'appli (écrans) se charge sans réseau, mais carnet, fiches et capture exigent le réseau : message « Pas de connexion. Réessayer ». Rien n'est gardé sur l'appareil. La photo n'est conservée qu'en mémoire tant que l'écran de capture reste ouvert ; quitter l'écran ou fermer l'appli la perd. À « Réessayer », la position est relue si elle date de plus de 30 s **[à valider]**.
+**RG-057 — Hors ligne au moment de la capture.** Complète RG-040. L'appli (écrans) se charge sans réseau, mais carnet, fiches et capture exigent le réseau : message « Pas de connexion. Réessayer ». Rien n'est gardé sur l'appareil. La photo n'est conservée qu'en mémoire tant que l'écran de capture reste ouvert ; quitter l'écran ou fermer l'appli la perd. À « Réessayer », la position est relue si elle date de plus de 30 s.
 - Exemple : tunnel puis sortie : « Réessayer » relit la position, renvoie la photo, capture validée.
 - Cas limite : la capture est enregistrée mais la réponse est perdue : l'explorateur retrouve le tampon dans le carnet ; l'animation n'est pas rejouée, et « Réessayer » ne crée pas de doublon (RG-034).
 
@@ -329,13 +330,13 @@ Chacune porte une proposition par défaut, à valider par le PO / client. Les va
 | Q-19 | Nom de la collection (« Pokédex » = marque) et libellé « Explorer » / « Accueil » | En attente du PO ; la documentation dit « carnet » |
 | Q-20 | Formats d'image acceptés | JPEG, PNG, WebP |
 | Q-21 | Comportement si l'explorateur change d'appareil / de navigateur en pleine capture (session expirée) | Reconnexion puis nouvelle prise de photo |
-| Q-23 | Après un refus de précision GPS, garde-t-on la photo et relit-on la position, ou faut-il reprendre la photo ? (RG-047) | Garder la photo, relire la position |
-| Q-24 | Fraîcheur maximale de la position à « Réessayer » (RG-057) | 30 s |
-| Q-25 | Stats (année, style, hauteur) visibles avant capture ? Photo souvenir affichée sur la fiche capturée ? (RG-054) | Stats verrouillées ; photo souvenir affichée |
-| Q-26 | Monuments déjà capturés dans la liste Tamponner et état du bouton (RG-056) | Listés « tamponné » ; bouton gris « Déjà tamponné ici » |
-| Q-27 | Journalisation des refus de capture, sans position (RG-049) | Oui, 30 jours |
-| Q-28 | Modération avant partage en R4 ; aucun contrôle de contenu en R1 (RG-052) | R1 : aucun ; R4 : à arbitrer |
 | Q-22 | Mot de passe ≥ 12 caractères, pseudo unique et âge ≥ 15 ans sont partiellement hors CDC (pseudo unique et 12 caractères non écrits) | Retenus comme consignes AMOA ; à faire confirmer |
+| Q-23 | Après un refus de précision GPS : photo gardée, position relue (RG-047) | **Tranchée 2026-10-22** : oui |
+| Q-24 | Fraîcheur maximale de la position à « Réessayer » (RG-057) | **Tranchée 2026-10-22** : 30 s |
+| Q-25 | Que révèle la fiche avant capture ? (RG-054) | **Tranchée 2026-10-22** : « quelques indices » = siècle de construction ; année exacte, style, hauteur, histoire verrouillés ; après capture tout + photo souvenir |
+| Q-26 | Monuments déjà capturés dans la liste Tamponner et état du bouton (RG-056) | **Tranchée 2026-10-22** : listés « tamponné », bouton gris « Déjà tamponné ici » |
+| Q-27 | Journal des refus de capture, sans position (RG-049) | **Tranchée 2026-10-22** : oui, 30 jours (durée confirmée par le tech lead back) |
+| Q-28 | Modération des photos (RG-052) | **Tranchée 2026-10-22** : aucune en R1 ; question reportée à R4 |
 
 ## Décisions client (2026-10-19)
 
