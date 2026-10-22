@@ -12,7 +12,7 @@ Cahier §7 : export (JSON + zip des photos), suppression définitive sous 30 jou
 
 **Consentements (RG-003, RG-012)** : journal en ajout seul `compte.consentement` (type, accordé oui/non, version du texte, horodatage). L'état courant = dernière ligne par type. Types : `CGU`, `CONFIDENTIALITE` (obligatoires à l'inscription), `CLASSEMENT`, `EMAILS` (facultatifs, faux par défaut). La version enregistrée est celle envoyée par le front et doit égaler la version courante configurée (`zonumental.legal.version-cgu`, `…-confidentialite`), sinon `409 version-texte-obsolete`. Les consentements facultatifs sont versionnés avec la version de la politique de confidentialité.
 
-**Export (RG-013)** : `GET /api/compte/export` renvoie **toujours un zip** `zonumental-export-<date>.zip` contenant `donnees.json` (compte sans hash ni jetons, consentements datés, `captures: []` en R0) et, à partir de R1, `photos/<numero>.webp`. Format fixé dès R0 pour que le contrat ne change pas. En R1, `compte` déclare une interface publique de contribution à l'export que `capture` implémente (pas de dépendance de `compte` vers `capture`).
+**Export (RG-013)** : `GET /api/compte/export` renvoie **toujours un zip** `zonumental-export-<date>.zip` contenant `donnees.json` (compte sans hash ni jetons, consentements datés, `captures: []` en R0) et, à partir de R1, `photos/<numero>.jpg` (amendé 2026-10-22, voir ADR 0006). Format fixé dès R0 pour que le contrat ne change pas. En R1, `compte` déclare une interface publique de contribution à l'export que `capture` implémente (pas de dépendance de `compte` vers `capture`).
 
 **Suppression (RG-014, Q-9)** :
 1. `POST /api/compte/suppression` : `suppression_demandee_le = maintenant`, toutes les sessions révoquées, e-mail de confirmation.

@@ -27,6 +27,8 @@ tags:
     description: Inscription, vérification, mot de passe, profil, consentements, RGPD
   - name: catalogue
     description: Monuments en lecture
+  - name: capture
+    description: Capture d'un monument et photo souvenir (R1)
 
 paths:
   /api/health:
@@ -282,7 +284,7 @@ paths:
       operationId: exporterMesDonnees
       summary: Archive zip de mes données (RG-013)
       description: |
-        Zip contenant `donnees.json` (schéma `ExportDonnees`) et, à partir de R1, `photos/<numero>.webp`.
+        Zip contenant `donnees.json` (schéma `ExportDonnees`) et, à partir de R1, `photos/<numero>.jpg`.
         Ne contient ni mot de passe, ni jeton, ni position GPS.
       responses:
         '200':
@@ -410,6 +412,89 @@ paths:
             application/problem+json:
               schema: { $ref: '#/components/schemas/Probleme' }
 
+  /api/captures:
+    post:
+      tags: [capture]
+      operationId: capturer
+      summary: Capturer un monument (RG-038, RG-049, RG-053, RG-055)
+      description: >
+        Contrôles dans l'ordre RG-053, une seule erreur renvoyée : connexion, e-mail vérifié,
+        monument existant, déjà capturé, image (format, taille), précision, distance.
+        La position et la précision servent au contrôle puis sont oubliées (RG-036) ;
+        date = horloge du serveur (RG-048).
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [numero, latitude, longitude, precisionMetres, photo]
+              properties:
+                numero: { type: integer, minimum: 1 }
+                latitude: { type: number, format: double, minimum: -90, maximum: 90 }
+                longitude: { type: number, format: double, minimum: -180, maximum: 180 }
+                precisionMetres: { type: number, format: double, minimum: 0 }
+                photo:
+                  type: string
+                  format: binary
+                  description: JPEG, PNG ou WebP réel, 5 000 000 octets max (RG-051)
+      responses:
+        '201':
+          description: Capture enregistrée, histoire débloquée
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/CaptureReussie' }
+        '400': { $ref: '#/components/responses/Validation' }
+        '401': { $ref: '#/components/responses/NonAuthentifie' }
+        '403':
+          description: '`email-non-verifie`'
+          content:
+            application/problem+json:
+              schema: { $ref: '#/components/schemas/Probleme' }
+        '404':
+          description: '`introuvable` : monument inconnu ou retiré du catalogue'
+          content:
+            application/problem+json:
+              schema: { $ref: '#/components/schemas/Probleme' }
+        '409':
+          description: '`deja-capture`'
+          content:
+            application/problem+json:
+              schema: { $ref: '#/components/schemas/Probleme' }
+        '422':
+          description: >
+            `image-invalide` (pas une vraie image JPEG/PNG/WebP, ou plus de 5 000 000 octets),
+            `precision-insuffisante` (précision > 100 m),
+            `trop-loin` (distance > rayon ; `distanceMetres` arrondie à la dizaine supérieure, RG-046)
+          content:
+            application/problem+json:
+              schema: { $ref: '#/components/schemas/ProblemeCapture' }
+
+  /api/captures/{numero}/photo:
+    get:
+      tags: [capture]
+      operationId: lirePhotoCapture
+      summary: Photo souvenir de l'appelant pour ce monument (RG-037)
+      description: >
+        Servie par le backend, jamais d'URL publique. Le front la lit avec `fetch` (jeton Bearer)
+        et l'affiche via `URL.createObjectURL`. `Cache-Control: private, no-store`.
+      parameters:
+        - name: numero
+          in: path
+          required: true
+          schema: { type: integer, minimum: 1 }
+      responses:
+        '200':
+          description: Photo réencodée (JPEG, 1600 px max, sans métadonnées)
+          content:
+            image/jpeg: { schema: { type: string, format: binary } }
+        '401': { $ref: '#/components/responses/NonAuthentifie' }
+        '404':
+          description: '`introuvable` : pas de capture de ce monument par l''appelant'
+          content:
+            application/problem+json:
+              schema: { $ref: '#/components/schemas/Probleme' }
+
 components:
   securitySchemes:
     jwt:
@@ -507,6 +592,11 @@ components:
         - non-authentifie
         - introuvable
         - erreur-interne
+        - email-non-verifie
+        - deja-capture
+        - image-invalide
+        - precision-insuffisante
+        - trop-loin
     ErreurChamp:
       type: object
       required: [champ, code]
@@ -633,6 +723,35 @@ components:
           type: array
           description: Vide en R0 ; en R1 numéro, nom, date, distance, fichier photo. Jamais de position.
           items: { type: object }
+
+    # ------------------------------------------------------------ capture
+    CaptureReussie:
+      type: object
+      description: Exactement ce qui est conservé (RG-049) + l'histoire débloquée (RG-055). Jamais de position.
+      required: [numero, captureeLe, distanceMetres, photoUrl, histoire]
+      properties:
+        numero: { type: integer, minimum: 1 }
+        captureeLe: { type: string, format: date-time }
+        distanceMetres: { type: integer, description: Distance mesurée, arrondie au mètre }
+        photoUrl: { type: string, examples: ['/api/captures/12/photo'] }
+        histoire:
+          description: Null si le monument n'a pas d'histoire
+          oneOf:
+            - type: object
+              required: [texte, sourceUrl, licence]
+              properties:
+                texte: { type: string }
+                sourceUrl: { type: string, format: uri }
+                licence: { type: string }
+            - type: 'null'
+    ProblemeCapture:
+      allOf:
+        - $ref: '#/components/schemas/Probleme'
+        - type: object
+          properties:
+            distanceMetres:
+              type: integer
+              description: Présent uniquement pour `trop-loin` ; multiple de 10, toujours > rayon
 
     # ------------------------------------------------------------ catalogue
     TypeMonument:
