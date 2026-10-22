@@ -169,6 +169,14 @@ class ConnexionTest {
   }
 
   @Test
+  void delaiDeSuppressionEcouleRepond401() throws Exception {
+    jdbc.update("update compte.utilisateur set suppression_demandee_le = '2026-09-20T08:00:00Z'");
+    connexion(EMAIL, MDP)
+        .andExpect(status().isUnauthorized())
+        .andExpect(jsonPath("$.code").value("identifiants-invalides"));
+  }
+
+  @Test
   void compteEnSuppressionRepond409AvecLaDateDefinitiveSansSession() throws Exception {
     jdbc.update("update compte.utilisateur set suppression_demandee_le = '2026-10-10T08:00:00Z'");
     String corps =
@@ -185,7 +193,7 @@ class ConnexionTest {
             .get("suppressionDefinitiveLe")
             .asString();
     assertThat(OffsetDateTime.parse(date).toInstant())
-        .isEqualTo(Instant.parse("2026-11-09T08:00:00Z"));
+        .isEqualTo(Instant.parse("2026-11-08T08:00:00Z"));
     assertThat(sessions()).isZero();
   }
 

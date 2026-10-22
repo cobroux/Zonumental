@@ -1,0 +1,8 @@
+Suppression de ton compte Zonumental
+Tu as demandé la suppression de ton compte Zonumental. Il est désactivé dès maintenant.
+
+Ton compte et toutes tes données seront effacés définitivement le %s.
+
+Tu as changé d'avis ? Jusqu'à cette date, reconnecte-toi avec ton e-mail et ton mot de passe : la suppression sera annulée.
+
+Si tu n'es pas à l'origine de cette demande, reconnecte-toi sans attendre pour l'annuler, puis change ton mot de passe.

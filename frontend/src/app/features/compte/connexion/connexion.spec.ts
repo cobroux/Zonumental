@@ -30,6 +30,7 @@ describe('Connexion', () => {
     await fixture.whenStable();
   };
   const message = () => racine().querySelector('zn-message');
+  const annuler = () => racine().querySelector<HTMLButtonElement>('button.annuler');
 
   async function ouvrir(params: Record<string, string> = {}) {
     TestBed.configureTestingModule({
@@ -145,7 +146,73 @@ describe('Connexion', () => {
       status: 409,
       suppressionDefinitiveLe: '2026-11-19T10:00:00Z',
     });
-    expect(message()?.textContent).toContain('supprimé le 19 novembre 2026');
+    expect(message()?.textContent).toContain('Ton compte sera supprimé le 19 novembre 2026');
+    expect(document.activeElement).toBe(message());
+    expect(annuler()).toBeTruthy();
+  });
+
+  describe('annulation de la suppression', () => {
+    const ANNUL = '/api/compte/suppression/annulation';
+    const ouvrirEn409 = async (params = {}) => {
+      await ouvrir(params);
+      await envoyer(409, {
+        code: 'suppression-en-cours',
+        status: 409,
+        suppressionDefinitiveLe: '2026-11-19T10:00:00Z',
+      });
+    };
+
+    it('200 : rappelle avec les identifiants saisis, connecté, va sur la destination demandée', async () => {
+      await ouvrirEn409({ retour: '/profil' });
+      annuler()!.click();
+      await fixture.whenStable();
+      const req = http.expectOne(ANNUL);
+      expect(req.request.body).toEqual({
+        email: 'marco@exemple.fr',
+        motDePasse: 'chat-bleu-47-lune',
+      });
+      req.flush({ jetonAcces: 'J2', expireDans: 900 });
+      await apres();
+      expect(TestBed.inject(Session).jeton()).toBe('J2');
+      expect(router.navigateByUrl).toHaveBeenCalledWith('/profil');
+    });
+
+    it('pas de double envoi, bouton aria-busy', async () => {
+      await ouvrirEn409();
+      annuler()!.click();
+      annuler()!.click();
+      await fixture.whenStable();
+      expect(annuler()!.getAttribute('aria-busy')).toBe('true');
+      http.expectOne(ANNUL).flush({ jetonAcces: 'J', expireDans: 900 });
+      await apres();
+    });
+
+    it('401 : message d’identifiants, plus de bouton d’annulation', async () => {
+      await ouvrirEn409();
+      annuler()!.click();
+      await fixture.whenStable();
+      http.expectOne(ANNUL).flush(JSON.stringify({ code: 'identifiants-invalides', status: 401 }), {
+        status: 401,
+        statusText: '',
+      });
+      await apres();
+      expect(message()?.textContent).toContain('E-mail ou mot de passe incorrect');
+      expect(annuler()).toBeNull();
+      expect(router.navigateByUrl).not.toHaveBeenCalled();
+    });
+
+    it('429 : minutes depuis Retry-After', async () => {
+      await ouvrirEn409();
+      annuler()!.click();
+      await fixture.whenStable();
+      http.expectOne(ANNUL).flush(JSON.stringify({ code: 'connexion-bloquee', status: 429 }), {
+        status: 429,
+        statusText: '',
+        headers: { 'Retry-After': '841' },
+      });
+      await apres();
+      expect(message()?.textContent).toContain('Réessaie dans 15 min');
+    });
   });
 
   it('429 connexion-bloquee : minutes arrondies au supérieur depuis Retry-After', async () => {

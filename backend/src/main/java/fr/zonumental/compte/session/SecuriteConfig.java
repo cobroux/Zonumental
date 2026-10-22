@@ -51,6 +51,7 @@ class SecuriteConfig {
                         "/api/compte/email/verification/renvoi",
                         "/api/compte/mot-de-passe/oubli",
                         "/api/compte/mot-de-passe/reinitialisation",
+                        "/api/compte/suppression/annulation",
                         "/api/auth/connexion",
                         "/api/auth/renouvellement",
                         "/api/auth/deconnexion")
