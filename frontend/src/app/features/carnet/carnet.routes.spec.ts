@@ -19,5 +19,7 @@ describe('carnet.routes', () => {
     const harness = await RouterTestingHarness.create();
     await harness.navigateByUrl('/carnet');
     expect(harness.routeNativeElement?.querySelector('h1')?.textContent).toBe('Mon carnet');
+    const profil = harness.routeNativeElement?.querySelector('a[href="/profil"]');
+    expect(profil?.getAttribute('aria-label')).toBe('Mon profil');
   });
 });

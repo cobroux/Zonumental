@@ -41,6 +41,11 @@ const explorer: Routes = [
     path: 'carnet',
     loadChildren: () => import('./features/carnet/carnet.routes').then((m) => m.CARNET_ROUTES),
   },
+  {
+    path: 'tamponner',
+    loadChildren: () =>
+      import('./features/tamponner/tamponner.routes').then((m) => m.TAMPONNER_ROUTES),
+  },
 ];
 
 const compte: Routes = [

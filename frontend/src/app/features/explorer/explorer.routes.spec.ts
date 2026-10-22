@@ -19,5 +19,7 @@ describe('explorer.routes', () => {
     const harness = await RouterTestingHarness.create();
     await harness.navigateByUrl('/explorer');
     expect(harness.routeNativeElement?.querySelector('h1')?.textContent).toBe('Explorer');
+    const profil = harness.routeNativeElement?.querySelector('a[href="/profil"]');
+    expect(profil?.getAttribute('aria-label')).toBe('Mon profil');
   });
 });
