@@ -52,6 +52,16 @@ class PhotosTest {
   }
 
   @Test
+  void pngValideDe24MegapixelsEtPlusRefuseMemePetitEnOctets() throws Exception {
+    // Vrai PNG (se décode) mais 6000 x 4001 > 24 Mpx : seule la limite le refuse.
+    var gris = new BufferedImage(6_000, 4_001, BufferedImage.TYPE_BYTE_GRAY);
+    var sortie = new java.io.ByteArrayOutputStream();
+    ImageIO.write(gris, "png", sortie);
+    assertThat(sortie.size()).isLessThan(Photos.OCTETS_MAX);
+    assertImageInvalide(sortie.toByteArray());
+  }
+
+  @Test
   void tailleLimiteA5000000Octets() {
     assertImageInvalide(new byte[5_000_001]);
   }
