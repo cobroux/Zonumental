@@ -1,9 +1,9 @@
 package fr.zonumental.compte.export;
 
 import fr.zonumental.commun.ErreurMetier;
-import java.io.ByteArrayOutputStream;
+import fr.zonumental.compte.CapturesExportables;
 import java.io.IOException;
-import java.io.UncheckedIOException;
+import java.io.OutputStream;
 import java.time.Clock;
 import java.time.LocalDate;
 import java.time.OffsetDateTime;
@@ -14,18 +14,19 @@ import java.util.zip.ZipOutputStream;
 import org.springframework.http.HttpStatus;
 import org.springframework.jdbc.core.simple.JdbcClient;
 import org.springframework.stereotype.Service;
+import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
 import tools.jackson.databind.ObjectMapper;
 import tools.jackson.databind.SerializationFeature;
 
 /**
  * Export RGPD (RG-013) : zip {@code donnees.json}. Pas de mot de passe ni de position (RG-006,
- * RG-036). Les photos iront dans {@code photos/<numero>.webp} quand les captures existeront (R1) :
- * {@code captures} est vide en R0.
+ * RG-036). Captures dans {@code donnees.json}, photos dans {@code photos/<numero>.jpg}. Le zip est
+ * écrit en flux : une seule photo en mémoire à la fois.
  */
 @Service
 class Export {
 
-  record Archive(String nom, byte[] contenu) {}
+  record Archive(String nom, StreamingResponseBody contenu) {}
 
   record Compte(
       String pseudo,
@@ -37,20 +38,25 @@ class Export {
   record Consentement(
       String type, boolean accorde, String versionTexte, OffsetDateTime horodatage) {}
 
+  record Capture(
+      int numero, String nom, OffsetDateTime captureeLe, long distanceMetres, String photo) {}
+
   record Donnees(
       OffsetDateTime exporteLe,
       Compte compte,
       List<Consentement> consentements,
-      List<Object> captures) {}
+      List<Capture> captures) {}
 
   private final JdbcClient jdbc;
   private final Clock horloge;
+  private final CapturesExportables sourceCaptures;
   private final ObjectMapper json =
       new ObjectMapper().rebuild().enable(SerializationFeature.INDENT_OUTPUT).build();
 
-  Export(JdbcClient jdbc, Clock horloge) {
+  Export(JdbcClient jdbc, Clock horloge, CapturesExportables sourceCaptures) {
     this.jdbc = jdbc;
     this.horloge = horloge;
+    this.sourceCaptures = sourceCaptures;
   }
 
   Archive archive(UUID utilisateur) {
@@ -83,17 +89,43 @@ class Export {
                         r.getObject("horodatage", OffsetDateTime.class)))
             .list();
     OffsetDateTime maintenant = OffsetDateTime.now(horloge);
-    var donnees = new Donnees(maintenant, compte, consentements, List.of());
-    try (var sortie = new ByteArrayOutputStream();
-        var zip = new ZipOutputStream(sortie)) {
-      zip.putNextEntry(new ZipEntry("donnees.json"));
-      zip.write(json.writeValueAsBytes(donnees));
-      zip.closeEntry();
-      zip.finish();
-      return new Archive(
-          "zonumental-export-" + maintenant.toLocalDate() + ".zip", sortie.toByteArray());
-    } catch (IOException e) {
-      throw new UncheckedIOException(e);
+    List<Capture> captures =
+        sourceCaptures.captures(utilisateur).stream()
+            .map(
+                c ->
+                    new Capture(
+                        c.numero(),
+                        c.nom(),
+                        c.captureeLe(),
+                        c.distanceMetres(),
+                        "photos/" + c.numero() + ".jpg"))
+            .toList();
+    // Avant le flux : une fois les en-têtes 200 partis, une photo manquante donnerait un zip
+    // tronqué.
+    if (captures.stream().anyMatch(c -> !sourceCaptures.photoPresente(utilisateur, c.numero()))) {
+      throw new ErreurMetier(HttpStatus.SERVICE_UNAVAILABLE, "export-indisponible");
     }
+    var donnees = new Donnees(maintenant, compte, consentements, captures);
+    return new Archive(
+        "zonumental-export-" + maintenant.toLocalDate() + ".zip",
+        sortie -> ecrire(sortie, utilisateur, donnees));
+  }
+
+  private void ecrire(OutputStream sortie, UUID utilisateur, Donnees donnees) throws IOException {
+    var zip = new ZipOutputStream(sortie);
+    zip.putNextEntry(new ZipEntry("donnees.json"));
+    zip.write(json.writeValueAsBytes(donnees));
+    zip.closeEntry();
+    for (Capture c : donnees.captures()) {
+      // Course rare (photo supprimée depuis le contrôle) : le flux échoue, voir archive().
+      byte[] photo =
+          sourceCaptures
+              .photo(utilisateur, c.numero())
+              .orElseThrow(() -> new IllegalStateException("photo introuvable : " + c.numero()));
+      zip.putNextEntry(new ZipEntry(c.photo()));
+      zip.write(photo);
+      zip.closeEntry();
+    }
+    zip.finish();
   }
 }

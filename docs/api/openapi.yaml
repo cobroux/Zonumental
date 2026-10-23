@@ -300,6 +300,8 @@ paths:
                 type: string
                 contentMediaType: application/zip
         '401': { $ref: '#/components/responses/NonAuthentifie' }
+        '503':
+          description: Une photo est introuvable dans le stockage (code `export-indisponible`) ; aucun zip partiel n'est envoyé, réessayer plus tard.
 
   /api/compte/suppression:
     post:
@@ -721,8 +723,16 @@ components:
               horodatage: { type: string, format: date-time }
         captures:
           type: array
-          description: Vide en R0 ; en R1 numéro, nom, date, distance, fichier photo. Jamais de position.
-          items: { type: object }
+          description: Vide sans capture. Jamais de position, de précision ni de clé de stockage.
+          items:
+            type: object
+            required: [numero, nom, captureeLe, distanceMetres, photo]
+            properties:
+              numero: { type: integer, minimum: 1 }
+              nom: { type: string }
+              captureeLe: { type: string, format: date-time }
+              distanceMetres: { type: integer, description: Distance mesurée, arrondie au mètre }
+              photo: { type: string, description: Chemin dans l'archive, examples: ['photos/12.jpg'] }
 
     # ------------------------------------------------------------ capture
     CaptureReussie:

@@ -41,6 +41,15 @@ class StockagePhotos {
     }
   }
 
+  boolean existe(UUID utilisateur, UUID photo) {
+    try {
+      s3.headObject(b -> b.bucket(bucket).key(cle(utilisateur, photo)));
+      return true;
+    } catch (NoSuchKeyException e) {
+      return false;
+    }
+  }
+
   void supprimer(UUID utilisateur, UUID photo) {
     s3.deleteObject(b -> b.bucket(bucket).key(cle(utilisateur, photo)));
   }
