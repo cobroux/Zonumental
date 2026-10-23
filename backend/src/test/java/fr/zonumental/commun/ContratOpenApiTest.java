@@ -29,7 +29,7 @@ import org.yaml.snakeyaml.Yaml;
 class ContratOpenApiTest {
 
   /** Parties du contrat dont le code n'existe pas encore ; retirer le préfixe à chaque story. */
-  private static final String[] NON_IMPLEMENTE = {"/api/compte/", "/api/captures"};
+  private static final String[] NON_IMPLEMENTE = {"/api/compte/"};
 
   /** Opérations de ces préfixes déjà implémentées (donc contrôlées). */
   private static final Set<String> IMPLEMENTE =
@@ -46,8 +46,7 @@ class ContratOpenApiTest {
           "/api/compte/suppression/annulation",
           "/api/auth/connexion",
           "/api/auth/renouvellement",
-          "/api/auth/deconnexion",
-          "/api/captures/{numero}/photo");
+          "/api/auth/deconnexion");
 
   @Autowired MockMvc mvc;
 

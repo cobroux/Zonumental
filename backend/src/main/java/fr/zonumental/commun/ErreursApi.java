@@ -13,6 +13,7 @@ import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.multipart.MaxUploadSizeExceededException;
 import tools.jackson.databind.exc.InvalidFormatException;
 
 /** Erreurs au format du contrat : problem+json avec `code` (et `erreurs` pour `validation`). */
@@ -30,6 +31,12 @@ class ErreursApi {
     return r.body(p);
   }
 
+  /** Fichier au-delà de la limite du conteneur (10 Mo) : même réponse qu'une photo invalide. */
+  @ExceptionHandler(MaxUploadSizeExceededException.class)
+  ResponseEntity<ProblemDetail> tropVolumineux(MaxUploadSizeExceededException e) {
+    return metier(new ErreurMetier(HttpStatus.UNPROCESSABLE_ENTITY, "image-invalide"));
+  }
+
   @ExceptionHandler(MethodArgumentNotValidException.class)
   ProblemDetail validation(MethodArgumentNotValidException e) {
     List<Map<String, String>> erreurs =
@@ -37,8 +44,13 @@ class ErreursApi {
             .map(
                 f ->
                     Map.of(
-                        "champ", f.getField(),
-                        "code", codeContrainte(f.unwrap(ConstraintViolation.class))))
+                        "champ",
+                        f.getField(),
+                        "code",
+                        // Sans contrainte : erreur de conversion (ex. numero = "abc").
+                        f.contains(ConstraintViolation.class)
+                            ? codeContrainte(f.unwrap(ConstraintViolation.class))
+                            : "format"))
             .toList();
     ProblemDetail p = probleme(HttpStatus.BAD_REQUEST, "validation");
     p.setProperty("erreurs", erreurs);
