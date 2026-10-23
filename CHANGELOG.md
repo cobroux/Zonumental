@@ -25,6 +25,10 @@ Format : [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/).
 - r0-socle-19 : numéros de monuments jamais réutilisés, même après un retrait (dernier numéro persisté, migration V7) ; rareté arrondie au plus proche et attribuée aux seuls nouveaux monuments à chaque import.
 - r0-socle-20 : API du catalogue (`GET /api/catalogue/monuments` et `/{numero}`, authentifiée) : source, licence et auteur du texte et de l'image, stats inconnues à `null` jamais inventées, image `null` (silhouette) sans licence identifiable.
 - r0-socle-21 : images du catalogue servies publiquement (`GET /api/catalogue/images/{numero}.{jpg|png|webp}`) depuis le dossier de l'import, cache d'un an, 404 sans fuite pour tout autre nom ou tentative de sortie du dossier.
+- r1-capturer-8 : barre de navigation des pages connectées (Explorer, Tamponner au centre, Carnet ; Carte et Défis viendront en R3/R6), lien « Mon profil », `/` connecté mène à `/explorer` ; pages Explorer, Carnet et Tamponner encore vides.
+- r1-capturer-1 : photos de capture vérifiées (format réel, 5 Mo, 24 Mpx avant décodage), redressées, réduites à 1600 px et réencodées en JPEG sans aucune métadonnée, stockées en S3 privé ; `GET /api/captures/{numero}/photo` réservé à l'explorateur ; captures et photos effacées avec le compte. MinIO de test dans le lanceur local.
+- r1-capturer-2 : capture d'un monument (`POST /api/captures`) : contrôles serveur dans l'ordre RG-053 (e-mail vérifié, monument, déjà capturé, photo, précision ≤ 100 m, distance calculée par PostGIS), date du serveur, aucune position stockée, une seule capture même en cas d'envois simultanés, photo effacée si l'enregistrement échoue.
+- r1-capturer-7 : l'export des données inclut les captures (numéro, nom, date, distance) et leurs photos `photos/<numero>.jpg`, écrit en flux ; refus clair (503 `export-indisponible`) plutôt qu'un zip tronqué si une photo manque.
 - Lanceur local (`./mvnw spring-boot:test-run -Dspring-boot.run.main-class=fr.zonumental.LancementLocal`) : PostGIS et Mailpit dans Docker ; `npm start` passe `/api` au back par le proxy.
 
 ### Modifié

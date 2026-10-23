@@ -17,7 +17,7 @@ Source : `cahier-des-charges.md` (CDC). Vocabulaire du jeu = vocabulaire du carn
 | Numéro | Numéro d'ordre fixe d'un monument dans le carnet, attribué une fois, jamais réutilisé. |
 | Type | Catégorie du monument (Château, Religieux, Pont, Phare…). Détermine la forme du tampon. |
 | Stats | Caractéristiques d'un monument : année, style, hauteur. |
-| Rareté | Classe d'un monument : Légendaire (5 % les plus populaires), Rare (20 % suivants), Commun (le reste). Calculée à l'import ; affichage et usage en R2. |
+| Rareté | Classe d'un monument : Légendaire (5 % les plus populaires), Rare (20 % suivants), Commun (le reste). Calculée à l'import ; affichée dès R1 (décision client du 2026-10-19). |
 | Zone de capture | Disque autour du monument dans lequel la capture est possible. Rayon de capture : 150 m par défaut, ajustable par monument. |
 | Capture | Action de photographier un monument, en direct, depuis sa zone de capture, et de la faire valider. Une par monument et par explorateur. |
 | Tampon | Représentation du monument capturé dans le carnet. « Tamponner » = capturer. |
@@ -28,7 +28,7 @@ Source : `cahier-des-charges.md` (CDC). Vocabulaire du jeu = vocabulaire du carn
 | Limite de fréquence | Nombre maximal de captures par heure pour un explorateur. |
 | Carnet | Collection de l'explorateur : tous les monuments numérotés, tampons pour les capturés, silhouettes pour les autres. (Nom provisoire de la collection : « Pokédex » est une marque, voir CDC §12.) |
 | Page | Regroupement d'entrées du carnet. Définition à confirmer (voir Questions ouvertes Q-17). |
-| Silhouette | Forme grisée d'un monument non capturé : numéro visible, contenu masqué. |
+| Silhouette | Case du carnet d'un monument non capturé : forme grisée + numéro. Sa fiche montre nom, rareté, distance et photo noir et blanc (RG-054). |
 | Fiche monument | Écran détaillé d'un monument : numéro, nom, type, stats, source et licence. Section histoire visible seulement après capture. |
 | Section histoire | Texte historique du monument, débloqué à la capture. |
 | Explorer | Écran d'accueil : « où je tamponne maintenant ? » (libellé à confirmer, CDC §12). |

@@ -12,6 +12,7 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
 
 @RestController
 @Tag(name = "compte")
@@ -26,8 +27,12 @@ class ExportController {
   @GetMapping(value = "/api/compte/export", produces = "application/zip")
   @Operation(
       operationId = "exporterMesDonnees",
-      responses = {@ApiResponse(responseCode = "200"), @ApiResponse(responseCode = "401")})
-  ResponseEntity<byte[]> exporter(@AuthenticationPrincipal Jwt jwt) {
+      responses = {
+        @ApiResponse(responseCode = "200"),
+        @ApiResponse(responseCode = "401"),
+        @ApiResponse(responseCode = "503")
+      })
+  ResponseEntity<StreamingResponseBody> exporter(@AuthenticationPrincipal Jwt jwt) {
     Export.Archive archive = export.archive(UUID.fromString(jwt.getSubject()));
     return ResponseEntity.ok()
         .contentType(MediaType.parseMediaType("application/zip"))

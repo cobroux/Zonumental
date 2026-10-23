@@ -1,8 +1,10 @@
 package fr.zonumental.compte.export;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.asyncDispatch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.request;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import fr.zonumental.TestcontainersConfiguration;
@@ -78,11 +80,12 @@ class ExportTest {
 
   @Test
   void zipAvecDonneesDuCompteSansSecret() throws Exception {
-    var reponse =
+    var debut =
         mvc.perform(get("/api/compte/export").header("Authorization", bearer))
-            .andExpect(status().isOk())
-            .andReturn()
-            .getResponse();
+            .andExpect(request().asyncStarted())
+            .andReturn();
+    var reponse =
+        mvc.perform(asyncDispatch(debut)).andExpect(status().isOk()).andReturn().getResponse();
 
     assertThat(reponse.getContentType()).startsWith("application/zip");
     assertThat(reponse.getHeader("Content-Disposition"))

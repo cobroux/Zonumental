@@ -7,8 +7,8 @@ import org.springframework.test.context.DynamicPropertyRegistrar;
 import org.testcontainers.containers.GenericContainer;
 
 /**
- * Lance l'appli en local avec PostGIS et Mailpit dans Docker : {@code ./mvnw spring-boot:test-run}.
- * Les données repartent de zéro à chaque lancement.
+ * Lance l'appli en local avec PostGIS, MinIO (via TestcontainersConfiguration) et Mailpit dans
+ * Docker : {@code ./mvnw spring-boot:test-run}. Les données repartent de zéro à chaque lancement.
  */
 public final class LancementLocal {
 
