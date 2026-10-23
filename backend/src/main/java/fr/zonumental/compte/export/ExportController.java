@@ -27,7 +27,11 @@ class ExportController {
   @GetMapping(value = "/api/compte/export", produces = "application/zip")
   @Operation(
       operationId = "exporterMesDonnees",
-      responses = {@ApiResponse(responseCode = "200"), @ApiResponse(responseCode = "401")})
+      responses = {
+        @ApiResponse(responseCode = "200"),
+        @ApiResponse(responseCode = "401"),
+        @ApiResponse(responseCode = "503")
+      })
   ResponseEntity<StreamingResponseBody> exporter(@AuthenticationPrincipal Jwt jwt) {
     Export.Archive archive = export.archive(UUID.fromString(jwt.getSubject()));
     return ResponseEntity.ok()

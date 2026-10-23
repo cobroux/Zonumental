@@ -16,6 +16,9 @@ public interface CapturesExportables {
   /** Triées par numéro de monument ; jamais de position ni de clé de stockage. */
   List<Capture> captures(UUID utilisateur);
 
+  /** Vrai si l'objet photo existe (HEAD, sans le télécharger). */
+  boolean photoPresente(UUID utilisateur, int numero);
+
   /** Une photo à la fois : l'export ne garde jamais toutes les photos en mémoire. */
   Optional<byte[]> photo(UUID utilisateur, int numero);
 }

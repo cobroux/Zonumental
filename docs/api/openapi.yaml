@@ -300,6 +300,8 @@ paths:
                 type: string
                 contentMediaType: application/zip
         '401': { $ref: '#/components/responses/NonAuthentifie' }
+        '503':
+          description: Une photo est introuvable dans le stockage (code `export-indisponible`) ; aucun zip partiel n'est envoyé, réessayer plus tard.
 
   /api/compte/suppression:
     post:

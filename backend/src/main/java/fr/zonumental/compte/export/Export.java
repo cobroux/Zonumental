@@ -100,6 +100,11 @@ class Export {
                         c.distanceMetres(),
                         "photos/" + c.numero() + ".jpg"))
             .toList();
+    // Avant le flux : une fois les en-têtes 200 partis, une photo manquante donnerait un zip
+    // tronqué.
+    if (captures.stream().anyMatch(c -> !sourceCaptures.photoPresente(utilisateur, c.numero()))) {
+      throw new ErreurMetier(HttpStatus.SERVICE_UNAVAILABLE, "export-indisponible");
+    }
     var donnees = new Donnees(maintenant, compte, consentements, captures);
     return new Archive(
         "zonumental-export-" + maintenant.toLocalDate() + ".zip",
@@ -112,7 +117,7 @@ class Export {
     zip.write(json.writeValueAsBytes(donnees));
     zip.closeEntry();
     for (Capture c : donnees.captures()) {
-      // Photo absente : on échoue (zip tronqué) plutôt que d'exporter sans le dire.
+      // Course rare (photo supprimée depuis le contrôle) : le flux échoue, voir archive().
       byte[] photo =
           sourceCaptures
               .photo(utilisateur, c.numero())

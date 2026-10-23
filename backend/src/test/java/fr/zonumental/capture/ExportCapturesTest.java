@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.jwt;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.asyncDispatch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.request;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -140,5 +141,17 @@ class ExportCapturesTest {
 
     assertThat(zip).containsOnlyKeys("donnees.json");
     assertThat(new ObjectMapper().readTree(zip.get("donnees.json")).get("captures")).isEmpty();
+  }
+
+  @Test
+  void photo_manquante_refus_propre_sans_zip_tronque() throws Exception {
+    capture(marco, 9101, 42.4, photo1, "2026-03-01T10:00:00Z");
+    UUID photoId = jdbc.queryForObject("select photo_id from capture.capture", UUID.class);
+    stockage.supprimer(marco, photoId);
+
+    mvc.perform(get("/api/compte/export").with(jwt().jwt(j -> j.subject(marco.toString()))))
+        .andExpect(status().isServiceUnavailable())
+        .andExpect(request().asyncNotStarted())
+        .andExpect(jsonPath("$.code").value("export-indisponible"));
   }
 }

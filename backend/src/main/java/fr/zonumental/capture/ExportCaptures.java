@@ -38,12 +38,20 @@ class ExportCaptures implements CapturesExportables {
   }
 
   @Override
-  public Optional<byte[]> photo(UUID utilisateur, int numero) {
+  public boolean photoPresente(UUID utilisateur, int numero) {
+    return photoId(utilisateur, numero).map(p -> stockage.existe(utilisateur, p)).orElse(false);
+  }
+
+  private Optional<UUID> photoId(UUID utilisateur, int numero) {
     return jdbc.sql(
             "select photo_id from capture.capture where utilisateur_id = ? and numero_monument = ?")
         .params(utilisateur, numero)
         .query(UUID.class)
-        .optional()
-        .flatMap(photo -> stockage.lire(utilisateur, photo));
+        .optional();
+  }
+
+  @Override
+  public Optional<byte[]> photo(UUID utilisateur, int numero) {
+    return photoId(utilisateur, numero).flatMap(photo -> stockage.lire(utilisateur, photo));
   }
 }
