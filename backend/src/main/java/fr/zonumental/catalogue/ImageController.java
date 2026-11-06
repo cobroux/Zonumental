@@ -21,13 +21,15 @@ import org.springframework.web.bind.annotation.RestController;
 
 /**
  * Sert les images copiées par {@link ImportCatalogue} (RG-022 : seules les images sous licence y
- * sont copiées). Le nom doit être {@code <numéro>.<ext>} : aucun séparateur de chemin possible.
+ * sont copiées). Seule la variante noir et blanc est publique (ADR 0021) : le nom doit être {@code
+ * <numéro>-nb.jpg} : aucun séparateur de chemin possible.
  */
 @RestController
 @Tag(name = "catalogue")
 class ImageController {
 
-  private static final Map<String, MediaType> TYPES =
+  /** Types des fichiers couleur, aussi lus par {@link MonumentController}. */
+  static final Map<String, MediaType> TYPES =
       Map.of(
           "jpg", MediaType.IMAGE_JPEG,
           "png", MediaType.IMAGE_PNG,
@@ -39,7 +41,7 @@ class ImageController {
     this.dossier = dossier;
   }
 
-  @GetMapping("/api/catalogue/images/{fichier:[0-9]+\\.(?:jpg|png|webp)}")
+  @GetMapping("/api/catalogue/images/{fichier:[0-9]+-nb\\.jpg}")
   @Operation(
       operationId = "lireImageMonument",
       responses = {@ApiResponse(responseCode = "200"), @ApiResponse(responseCode = "404")})
@@ -50,7 +52,7 @@ class ImageController {
     }
     // Le fichier d'un numéro est remplacé seulement par un nouvel import : cache long.
     return ResponseEntity.ok()
-        .contentType(TYPES.get(fichier.substring(fichier.indexOf('.') + 1)))
+        .contentType(MediaType.IMAGE_JPEG)
         .cacheControl(CacheControl.maxAge(Duration.ofDays(365)).cachePublic().immutable())
         .body(new FileSystemResource(chemin));
   }
