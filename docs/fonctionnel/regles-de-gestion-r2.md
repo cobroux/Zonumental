@@ -58,7 +58,8 @@ Principe (cahier §5) : succès et collections sont définis en configuration ; 
 
 | Code | Nom | Critère |
 | --- | --- | --- |
-| VILLE-<insee> | « Tout <ville> » (une par ville de la config, dont « Tout Paris ») | ville = INSEE |
+| VILLE-75056 | « Tout Paris » (seule collection ville livrée en R2, décision client) | ville = INSEE 75056 |
+| VILLE-<insee> (autres villes) | « Tout <ville> » : hors R2, affichée en « bientôt » (work-in-progress visible) | ville = INSEE |
 | TYPE-CHATEAU | Châteaux de France | type CHATEAU |
 | TYPE-RELIGIEUX | Édifices religieux | type RELIGIEUX |
 | TYPE-PONT | Ponts | type PONT |
