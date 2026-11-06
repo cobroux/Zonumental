@@ -100,4 +100,17 @@ describe('Tamponner', () => {
   it('bonne précision : pas de message de signal', () => {
     expect(rendre(ok(100), [proche(2, 420)]).el.textContent).not.toContain('Signal trop faible');
   });
+
+  it('lien vers la fiche pour le non capturé seulement', () => {
+    const { el } = rendre(ok(), [proche(1, 30, true), proche(2, 420)]);
+    const liens = [...el.querySelectorAll('a')].map((a) => a.getAttribute('href'));
+    expect(liens).toEqual(['/monument/2']);
+  });
+
+  it('lien « Voir la fiche » hors du label, nom accessible explicite', () => {
+    const { el } = rendre(ok(), [proche(2, 420)]);
+    const a = el.querySelector('a') as HTMLAnchorElement;
+    expect(a.closest('label')).toBeNull();
+    expect(a.getAttribute('aria-label')).toContain('Voir la fiche de');
+  });
 });

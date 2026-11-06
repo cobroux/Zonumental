@@ -1,5 +1,5 @@
 import { MonumentResume } from '../api/models/monument-resume';
-import { distanceMetres, etatBouton, formaterDistance, proches } from './proximite';
+import { capVers, distanceMetres, etatBouton, formaterDistance, proches } from './proximite';
 
 const monument = (numero: number, latitude: number, captureeLe: string | null = null, rayon = 50) =>
   ({
@@ -74,5 +74,14 @@ describe('etatBouton', () => {
     const lat = 48 + 55 / 111195;
     expect(etatBouton(proches([monument(1, lat, null, 50)], ici()), ok()).etat).toBe('proche');
     expect(etatBouton(proches([monument(1, lat, null, 60)], ici()), ok()).etat).toBe('zone');
+  });
+});
+
+describe('capVers', () => {
+  it('nord, est, sud, ouest', () => {
+    expect(capVers(ici(), { latitude: 48.001, longitude: 2 })).toBeCloseTo(0, 0);
+    expect(capVers(ici(), { latitude: 48, longitude: 2.001 })).toBeCloseTo(90, 0);
+    expect(capVers(ici(), { latitude: 47.999, longitude: 2 })).toBeCloseTo(180, 0);
+    expect(capVers(ici(), { latitude: 48, longitude: 1.999 })).toBeCloseTo(270, 0);
   });
 });

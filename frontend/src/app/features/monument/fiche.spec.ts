@@ -1,6 +1,8 @@
 import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
+import { signal } from '@angular/core';
+import { Position } from '../../core/position/position';
 import { Fiche } from './fiche';
 
 const image = (couleur: string | null) => ({
@@ -19,7 +21,15 @@ const base = {
   histoire: null,
   photoUrl: null,
 };
-const verrouille = { ...base, captureeLe: null, image: image(null) };
+const verrouille = {
+  ...base,
+  captureeLe: null,
+  image: image(null),
+  type: 'TOUR',
+  rarete: 'LEGENDAIRE',
+  position: { latitude: 48.001, longitude: 2 },
+  rayonCaptureMetres: 50,
+};
 const capture = {
   ...base,
   captureeLe: '2026-11-01T10:00:00Z',
@@ -34,8 +44,19 @@ const attendre = async (f: { detectChanges(): void }) => {
   f.detectChanges();
 };
 
-async function rendre(monument: object) {
-  TestBed.configureTestingModule({ providers: [provideHttpClient(), provideHttpClientTesting()] });
+const ici = (latitude = 48, precision = 10) => ({
+  statut: 'ok' as const,
+  coords: { latitude, longitude: 2, precision },
+});
+
+async function rendre(monument: object, etat: object = { statut: 'attente' }) {
+  TestBed.configureTestingModule({
+    providers: [
+      provideHttpClient(),
+      provideHttpClientTesting(),
+      { provide: Position, useValue: { etat: signal(etat) } },
+    ],
+  });
   const http = TestBed.inject(HttpTestingController);
   const fixture = TestBed.createComponent(Fiche);
   fixture.componentRef.setInput('numero', '7');
@@ -58,7 +79,7 @@ describe('Fiche', () => {
     expect(el.textContent).toContain('XIXe siècle');
     expect(el.textContent).toContain('image modifiée : noir et blanc');
     expect(el.querySelector('img')?.getAttribute('src')).toBe('/api/catalogue/images/7-nb.jpg');
-    expect(el.textContent).not.toContain('Histoire');
+    expect(el.textContent).not.toContain('Histoire à venir');
     expect(el.textContent).not.toContain('1889');
     expect(el.querySelector('[data-photo]')).toBeNull();
   });
@@ -95,5 +116,69 @@ describe('Fiche', () => {
     await attendre(fixture);
     fixture.destroy();
     expect(URL.revokeObjectURL).toHaveBeenCalledWith('blob:x');
+  });
+
+  describe('non capturé', () => {
+    it('identité : numéro, type, rareté en lettres, siècle, histoire cadenassée, pas de tampon', async () => {
+      const { el } = await rendre({ ...verrouille, siecle: 17 });
+      const t = el.textContent ?? '';
+      expect(t).toContain('N° 7');
+      expect(t).toContain('Tour');
+      expect(t).toContain('Légendaire');
+      expect(t).toContain('XVIIe siècle');
+      expect(t).toContain('Histoire verrouillée');
+      expect(t).toContain('Stats verrouillées');
+      expect(el.querySelector('[data-tampon]')).toBeNull();
+    });
+
+    it('sans date : siècle « — »', async () => {
+      const { el } = await rendre({ ...verrouille, siecle: null });
+      expect(el.textContent).toContain('Paris · —');
+    });
+
+    it('hors zone : distance, direction lue, bouton verrouillé', async () => {
+      const { el } = await rendre(verrouille, ici());
+      expect(el.textContent).toContain('110 m');
+      expect(el.textContent).toContain('Direction : nord');
+      expect(el.querySelector('button')?.disabled).toBe(true);
+    });
+
+    it('dans la zone : « Aller le tamponner » actif', async () => {
+      const { el } = await rendre(verrouille, ici(48.0008));
+      const b = el.querySelector('button');
+      expect(b?.textContent).toContain('Aller le tamponner');
+      expect(b?.disabled).toBe(false);
+    });
+
+    it('sans position : pas de distance', async () => {
+      const { el } = await rendre(verrouille);
+      expect(el.textContent).not.toContain('Direction');
+      expect(el.textContent).not.toMatch(/\d m\b/);
+    });
+
+    it('image absente : silhouette', async () => {
+      const { el } = await rendre({ ...verrouille, image: null });
+      expect(el.querySelector('img')).toBeNull();
+      expect(el.querySelector('[data-silhouette]')).not.toBeNull();
+    });
+
+    it('hors ligne : « Pas de connexion » et Réessayer', async () => {
+      TestBed.configureTestingModule({
+        providers: [
+          provideHttpClient(),
+          provideHttpClientTesting(),
+          { provide: Position, useValue: { etat: signal({ statut: 'attente' }) } },
+        ],
+      });
+      const http = TestBed.inject(HttpTestingController);
+      const fixture = TestBed.createComponent(Fiche);
+      fixture.componentRef.setInput('numero', '7');
+      fixture.detectChanges();
+      http.expectOne('/api/catalogue/monuments/7').error(new ProgressEvent('error'));
+      await attendre(fixture);
+      const el = fixture.nativeElement as HTMLElement;
+      expect(el.textContent).toContain('Pas de connexion.');
+      expect(el.querySelector('button')?.textContent).toContain('Réessayer');
+    });
   });
 });
