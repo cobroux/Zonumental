@@ -32,6 +32,7 @@ Format : [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/).
 - r1-capturer-3 : limite de 10 captures par heure, contrôle de vitesse plausible (300 km/h max) entre deux captures, journal des refus purgé à 30 jours, plafond de décodages photo simultanés.
 - r1-capturer-5 : le catalogue indique les monuments capturés par l'explorateur (date de capture) dans la liste et la fiche ; monument retiré visible seulement pour ceux qui l'ont capturé ; contrat `docs/api/openapi.yaml` mis à jour.
 - r1-capturer-9 : position de l'explorateur (jamais envoyée au serveur ni conservée) ; liste « Tamponner » des monuments à moins de 2 km, du plus proche au plus lointain, avec présélection si un seul ; bouton contextuel (gris « > 2 km », vert avec halo sous 150 m, bordeaux avec la distance, gris « Déjà tamponné ici ») ; message et accès au carnet si rien à proximité ou localisation refusée ; lien vers la fiche reporté à r1-capturer-13.
+- r1-capturer-6 : fiche monument verrouillée côté serveur : un monument non capturé ne renvoie que nom, numéro, type, ville, rareté, siècle et image en noir et blanc (année, style, hauteur, histoire, image couleur et photo souvenir absents) ; une fiche capturée renvoie tout, avec l'histoire sourcée et l'image couleur authentifiée côté front ; contrat `docs/api/openapi.yaml` mis à jour.
 - Lanceur local (`./mvnw spring-boot:test-run -Dspring-boot.run.main-class=fr.zonumental.LancementLocal`) : PostGIS et Mailpit dans Docker ; `npm start` passe `/api` au back par le proxy.
 
 ### Modifié
