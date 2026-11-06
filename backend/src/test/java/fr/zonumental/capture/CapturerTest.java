@@ -7,6 +7,7 @@ import static org.hamcrest.Matchers.nullValue;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.jwt;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -46,6 +47,7 @@ class CapturerTest {
   @Autowired MockMvc mvc;
   @Autowired JdbcTemplate jdbc;
   @Autowired S3Client s3;
+  @Autowired PurgeRefus purge;
 
   @Value("${zonumental.s3.bucket}")
   String bucket;
@@ -56,7 +58,8 @@ class CapturerTest {
   @BeforeEach
   void donnees() {
     jdbc.update("delete from capture.capture");
-    jdbc.update("delete from catalogue.monument where numero in (9001, 9002)");
+    jdbc.update("delete from capture.refus");
+    jdbc.update("delete from catalogue.monument where numero in (9001, 9002, 9003)");
     jdbc.update("delete from catalogue.ville where code_insee = '99001'");
     jdbc.update("insert into catalogue.ville values ('99001', 'Testville', 1)");
     monument(9001, "'Une histoire.', 'https://fr.wikipedia.org/wiki/T', 'CC BY-SA 4.0'");
@@ -316,5 +319,102 @@ class CapturerTest {
     assertThat(statuts.stream().filter(s -> s == 409)).hasSize(n - 1);
     assertThat(lignes()).isEqualTo(1);
     assertThat(objets()).isEqualTo(1);
+  }
+
+  // ---------------------------------------------------------------- r1-capturer-3
+
+  /** Capture déjà enregistrée il y a {@code minutes} minutes. */
+  void captureIl(int numero, int minutes) {
+    jdbc.update(
+        "insert into capture.capture (utilisateur_id, numero_monument, capturee_le, distance_m,"
+            + " photo_id) values (?, ?, now() - make_interval(mins => ?), 1, ?)",
+        moi,
+        numero,
+        minutes,
+        UUID.randomUUID());
+  }
+
+  /** Monument 9003 à ~600 km au nord de 9001. */
+  void monumentLointain() {
+    jdbc.update("delete from catalogue.monument where numero = 9003");
+    jdbc.execute(
+        "insert into catalogue.monument (numero, wikidata_id, nom, type, ville_code_insee,"
+            + " latitude, longitude, rarete, popularite) values (9003, 'Q9003', 'Loin', 'TOUR',"
+            + " '99001', 51.2, 4.83, 'COMMUN', 1)");
+  }
+
+  List<String> journal() {
+    return jdbc.queryForList("select type from capture.refus", String.class);
+  }
+
+  @Test
+  void onzieme_capture_dans_l_heure_refusee_avec_delai() throws Exception {
+    jdbc.update("delete from capture.refus");
+    for (int i = 1; i <= 10; i++) {
+      captureIl(i, 50 + i - 1); // la plus ancienne : 59 min -> ~60 s d'attente
+    }
+    envoyer(moi, 9001, LAT, 10, png)
+        .andExpect(status().isTooManyRequests())
+        .andExpect(jsonPath("$.code").value("limite-frequence"))
+        .andExpect(header().exists("Retry-After"));
+    assertThat(journal()).containsExactly("limite-frequence");
+    assertThat(lignes()).isEqualTo(10);
+  }
+
+  @Test
+  void dix_captures_dont_une_ancienne_de_plus_d_une_heure_laissent_passer() throws Exception {
+    for (int i = 1; i <= 9; i++) {
+      captureIl(i, 5);
+    }
+    captureIl(10, 61);
+    envoyer(moi, 9001, LAT, 10, png).andExpect(status().isCreated());
+  }
+
+  @Test
+  void refus_de_precision_ne_comptent_pas_et_ne_bloquent_pas_le_compte() throws Exception {
+    jdbc.update("delete from capture.refus");
+    for (int i = 0; i < 20; i++) {
+      envoyer(moi, 9001, LAT, 500, png).andExpect(status().isUnprocessableEntity());
+    }
+    assertThat(journal()).hasSize(20).containsOnly("precision-insuffisante");
+    for (int i = 1; i <= 9; i++) {
+      captureIl(i, 5);
+    }
+    envoyer(moi, 9001, LAT, 10, png).andExpect(status().isCreated());
+  }
+
+  @Test
+  void vitesse_impossible_refusee_sans_accusation_puis_acceptee_plus_tard() throws Exception {
+    monumentLointain();
+    captureIl(9001, 10);
+    envoyer(moi, 9003, 51.2, 10, png)
+        .andExpect(status().isTooManyRequests())
+        .andExpect(jsonPath("$.code").value("deplacement-improbable"))
+        .andExpect(header().exists("Retry-After"));
+    jdbc.update("update capture.capture set capturee_le = now() - interval '4 hours'");
+    envoyer(moi, 9003, 51.2, 10, png).andExpect(status().isCreated());
+  }
+
+  @Test
+  void aucune_capture_anterieure_aucun_controle_de_vitesse() throws Exception {
+    monumentLointain();
+    envoyer(moi, 9003, 51.2, 10, png).andExpect(status().isCreated());
+  }
+
+  @Test
+  void journal_des_refus_sans_position_et_purge_a_30_jours() {
+    assertThat(
+            jdbc.queryForList(
+                "select column_name from information_schema.columns"
+                    + " where table_schema = 'capture' and table_name = 'refus'",
+                String.class))
+        .containsExactlyInAnyOrder("utilisateur_id", "type", "refuse_le");
+    jdbc.update("delete from capture.refus");
+    jdbc.update(
+        "insert into capture.refus values (?, 'trop-loin', now() - interval '31 days')", moi);
+    jdbc.update(
+        "insert into capture.refus values (?, 'trop-loin', now() - interval '29 days')", moi);
+    purge.purger();
+    assertThat(journal()).hasSize(1);
   }
 }

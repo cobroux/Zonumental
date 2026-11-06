@@ -55,7 +55,9 @@ class CaptureController {
         @ApiResponse(responseCode = "403"),
         @ApiResponse(responseCode = "404"),
         @ApiResponse(responseCode = "409"),
-        @ApiResponse(responseCode = "422")
+        @ApiResponse(responseCode = "422"),
+        @ApiResponse(responseCode = "429"),
+        @ApiResponse(responseCode = "503")
       })
   Capturer.Reussite capturer(@Valid Demande d, @AuthenticationPrincipal Jwt jwt) {
     try {

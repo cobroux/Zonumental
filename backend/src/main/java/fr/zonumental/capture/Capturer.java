@@ -8,6 +8,7 @@ import java.util.Map;
 import java.util.UUID;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.http.HttpStatus;
 import org.springframework.jdbc.core.simple.JdbcClient;
@@ -36,9 +37,19 @@ class Capturer {
   private final Photos photos;
   private final StockagePhotos stockage;
   private final JdbcClient jdbc;
+  private final int frequenceMax;
+  private final double vitesseMaxKmh;
 
   Capturer(
-      Comptes comptes, Cibles cibles, Photos photos, StockagePhotos stockage, JdbcClient jdbc) {
+      Comptes comptes,
+      Cibles cibles,
+      Photos photos,
+      StockagePhotos stockage,
+      JdbcClient jdbc,
+      @Value("${zonumental.capture.frequence-max}") int frequenceMax,
+      @Value("${zonumental.capture.vitesse-max-kmh}") double vitesseMaxKmh) {
+    this.frequenceMax = frequenceMax;
+    this.vitesseMaxKmh = vitesseMaxKmh;
     this.comptes = comptes;
     this.cibles = cibles;
     this.photos = photos;
@@ -70,7 +81,8 @@ class Capturer {
     } catch (ErreurMetier e) {
       throw refus(utilisateur, e.statut(), e.code(), Map.of());
     }
-    // r1-capturer-3 : fréquence (RG-030) puis vitesse (RG-033) viennent ici, avant la précision.
+    verifierFrequence(utilisateur);
+    verifierVitesse(utilisateur, numero);
     if (precisionMetres > PRECISION_MAX_M) {
       throw refus(utilisateur, HttpStatus.UNPROCESSABLE_ENTITY, "precision-insuffisante", Map.of());
     }
@@ -89,6 +101,70 @@ class Capturer {
         Math.round(cible.distanceMetres()),
         "/api/captures/" + numero + "/photo",
         cible.histoire());
+  }
+
+  /**
+   * RG-030 : au plus {@code frequenceMax} captures sur l'heure glissante (date serveur, RG-048).
+   */
+  private void verifierFrequence(UUID utilisateur) {
+    // Les refus ne sont pas en base de captures : ils ne comptent pas (RG-047).
+    jdbc.sql(
+            "select ceil(extract(epoch from (min(capturee_le) + interval '1 hour' - now())))"
+                + " from (select capturee_le from capture.capture where utilisateur_id = ?"
+                + " and capturee_le > now() - interval '1 hour'"
+                + " order by capturee_le desc limit ?) d having count(*) >= ?")
+        .params(utilisateur, frequenceMax, frequenceMax)
+        .query(Long.class)
+        .optional()
+        .ifPresent(
+            s -> {
+              throw refusAvecDelai(utilisateur, "limite-frequence", s);
+            });
+  }
+
+  /**
+   * RG-033 : vitesse entre la dernière capture et celle-ci, sur les positions des monuments (jamais
+   * celle de l'explorateur). Sans capture antérieure, pas de contrôle (R1-31).
+   */
+  private void verifierVitesse(UUID utilisateur, int numero) {
+    jdbc.sql(
+            "select numero_monument, extract(epoch from (now() - capturee_le)) from capture.capture"
+                + " where utilisateur_id = ? order by capturee_le desc limit 1")
+        .params(utilisateur)
+        .query((r, i) -> new double[] {r.getInt(1), r.getDouble(2)})
+        .optional()
+        .flatMap(
+            d ->
+                cibles
+                    .distanceEntre((int) d[0], numero)
+                    .map(metres -> metres / (vitesseMaxKmh / 3.6) - d[1]))
+        .filter(attente -> attente > 0)
+        .ifPresent(
+            attente -> {
+              throw refusAvecDelai(
+                  utilisateur, "deplacement-improbable", (long) Math.ceil(attente));
+            });
+  }
+
+  private ErreurMetier refusAvecDelai(UUID utilisateur, String code, long secondes) {
+    journaliser(utilisateur, code);
+    LOG.info("capture refusée : {} (compte {})", code, utilisateur);
+    return new ErreurMetier(
+        HttpStatus.TOO_MANY_REQUESTS,
+        code,
+        Map.of(),
+        Map.of("Retry-After", Long.toString(Math.max(1, secondes))));
+  }
+
+  /** RG-049 : type, date et compte seulement. Un échec du journal ne masque pas le refus. */
+  private void journaliser(UUID utilisateur, String code) {
+    try {
+      jdbc.sql("insert into capture.refus (utilisateur_id, type) values (?, ?)")
+          .params(utilisateur, code)
+          .update();
+    } catch (RuntimeException e) {
+      LOG.warn("journal des refus indisponible", e);
+    }
   }
 
   /** Photo d'abord, ligne ensuite ; si la ligne échoue, la photo déposée est effacée. */
@@ -130,8 +206,9 @@ class Capturer {
   }
 
   /** Refus journalisé en INFO : code et compte, jamais de position (RG-049, Q-27). */
-  private static ErreurMetier refus(
+  private ErreurMetier refus(
       UUID utilisateur, HttpStatus statut, String code, Map<String, Object> proprietes) {
+    journaliser(utilisateur, code);
     LOG.info("capture refusée : {} (compte {})", code, utilisateur);
     return new ErreurMetier(statut, code, proprietes);
   }

@@ -471,6 +471,26 @@ paths:
           content:
             application/problem+json:
               schema: { $ref: '#/components/schemas/ProblemeCapture' }
+        '429':
+          description: >
+            `limite-frequence` (10 captures dans l'heure glissante, RG-030) ou
+            `deplacement-improbable` (vitesse > 300 km/h depuis la dernière capture, RG-033 ;
+            message neutre côté appli). `Retry-After` : secondes avant le prochain essai possible.
+          headers:
+            Retry-After:
+              description: Secondes avant le prochain essai possible
+              schema: { type: integer }
+          content:
+            application/problem+json:
+              schema: { $ref: '#/components/schemas/Probleme' }
+        '503':
+          description: '`indisponible` : trop de photos en cours de traitement ; réessayer après `Retry-After`'
+          headers:
+            Retry-After:
+              schema: { type: integer }
+          content:
+            application/problem+json:
+              schema: { $ref: '#/components/schemas/Probleme' }
 
   /api/captures/{numero}/photo:
     get:
@@ -599,6 +619,9 @@ components:
         - image-invalide
         - precision-insuffisante
         - trop-loin
+        - limite-frequence
+        - deplacement-improbable
+        - indisponible
     ErreurChamp:
       type: object
       required: [champ, code]
