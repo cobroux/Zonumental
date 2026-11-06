@@ -26,6 +26,9 @@ class EffacementCaptures {
     jdbc.sql("delete from capture.capture where utilisateur_id = ?")
         .param(evenement.utilisateurId())
         .update();
+    jdbc.sql("delete from capture.refus where utilisateur_id = ?")
+        .param(evenement.utilisateurId())
+        .update();
     stockage.supprimerTout(evenement.utilisateurId());
   }
 }

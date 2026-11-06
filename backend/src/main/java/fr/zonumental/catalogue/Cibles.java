@@ -41,4 +41,15 @@ public class Cibles {
                             r.getString("histoire_licence"))))
         .optional();
   }
+
+  /** Distance géodésique en mètres entre deux monuments ; vide si l'un n'existe plus (RG-033). */
+  public Optional<Double> distanceEntre(int a, int b) {
+    return jdbc.sql(
+            "select ST_Distance(m1.position, m2.position) from catalogue.monument m1,"
+                + " catalogue.monument m2 where m1.numero = :a and m2.numero = :b")
+        .param("a", a)
+        .param("b", b)
+        .query(Double.class)
+        .optional();
+  }
 }

@@ -12,7 +12,10 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.Iterator;
+import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.Semaphore;
+import java.util.concurrent.TimeUnit;
 import javax.imageio.IIOImage;
 import javax.imageio.ImageIO;
 import javax.imageio.ImageReader;
@@ -20,6 +23,8 @@ import javax.imageio.ImageWriteParam;
 import javax.imageio.ImageWriter;
 import javax.imageio.stream.ImageInputStream;
 import javax.imageio.stream.MemoryCacheImageOutputStream;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 
@@ -37,10 +42,30 @@ class Photos {
   static final float QUALITE = 0.85f;
   private static final Set<String> FORMATS = Set.of("jpeg", "png", "webp");
 
+  private final Semaphore decodages;
+
+  Photos() {
+    this(2);
+  }
+
+  @Autowired
+  Photos(@Value("${zonumental.capture.decodages-max}") int decodagesMax) {
+    this.decodages = new Semaphore(decodagesMax);
+  }
+
   /** {@code image-invalide} (422) pour tout fichier refusé, sans détail sur la raison. */
   byte[] reencoder(byte[] octets) {
     if (octets.length > OCTETS_MAX) {
       throw invalide();
+    }
+    try {
+      if (!decodages.tryAcquire(10, TimeUnit.SECONDS)) {
+        throw new ErreurMetier(
+            HttpStatus.SERVICE_UNAVAILABLE, "indisponible", Map.of(), Map.of("Retry-After", "10"));
+      }
+    } catch (InterruptedException e) {
+      Thread.currentThread().interrupt();
+      throw new ErreurMetier(HttpStatus.SERVICE_UNAVAILABLE, "indisponible");
     }
     try {
       BufferedImage source = decoder(octets);
@@ -50,6 +75,8 @@ class Photos {
         throw erreur;
       }
       throw invalide();
+    } finally {
+      decodages.release();
     }
   }
 
