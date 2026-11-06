@@ -93,3 +93,18 @@ i {
   inline-size: 24px;
   block-size: 24px; /* place de l'icône des autres entrées : libellés alignés */
 }
+[data-etat='proche'] .rond,
+[data-etat='imprecis'] .rond {
+  background: var(--zn-bordeaux);
+}
+[data-etat='zone'] .rond {
+  background: var(--zn-sapin);
+  box-shadow:
+    0 0 0 4px var(--zn-papier),
+    0 0 0 8px rgb(47 93 74 / 35%),
+    0 12px 20px -10px rgb(26 28 32 / 55%),
+    inset 0 -3px 0 rgb(0 0 0 / 18%);
+}
+[data-etat='zone'] {
+  color: var(--zn-sapin);
+}

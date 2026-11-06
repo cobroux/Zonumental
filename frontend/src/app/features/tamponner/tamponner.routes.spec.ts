@@ -1,6 +1,7 @@
 import { TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 import { RouterTestingHarness } from '@angular/router/testing';
+import { Proximite } from '../../core/position/proximite';
 import { Session } from '../../core/session/session';
 import { TAMPONNER_ROUTES } from './tamponner.routes';
 
@@ -14,6 +15,14 @@ describe('tamponner.routes', () => {
       providers: [
         provideRouter([{ path: 'tamponner', children: TAMPONNER_ROUTES }]),
         { provide: Session, useValue: { connecte: () => true } },
+        {
+          provide: Proximite,
+          useValue: {
+            position: { etat: () => ({ statut: 'attente' }) },
+            proches: () => [],
+            erreur: () => false,
+          },
+        },
       ],
     });
     const harness = await RouterTestingHarness.create();

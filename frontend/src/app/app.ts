@@ -2,6 +2,7 @@ import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { NavigationEnd, Router, RouterOutlet } from '@angular/router';
 import { filter, map } from 'rxjs';
+import { Proximite } from './core/position/proximite';
 import { ZnNavigation } from './shared/ui/navigation';
 
 @Component({
@@ -13,6 +14,7 @@ import { ZnNavigation } from './shared/ui/navigation';
 })
 export class App {
   private readonly router = inject(Router);
+  protected readonly bouton = inject(Proximite).bouton;
   /** Les pages connectées déclarent `data: { navigation: true }` ; onboarding, légal et caméra s'abstiennent. */
   protected readonly navigation = toSignal(
     this.router.events.pipe(

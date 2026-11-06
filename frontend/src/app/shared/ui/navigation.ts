@@ -1,5 +1,5 @@
 /* eslint-disable @angular-eslint/component-selector -- préfixe `zn` du design system (ADR 0016) */
-import { ChangeDetectionStrategy, Component } from '@angular/core';
+import { ChangeDetectionStrategy, Component, input } from '@angular/core';
 import { RouterLink, RouterLinkActive } from '@angular/router';
 
 /** Barre du bas (maquette NavBar). R1 : 3 entrées ; Carte (R3) et Défis (R6) s'ajouteront. */
@@ -18,13 +18,13 @@ import { RouterLink, RouterLinkActive } from '@angular/router';
         <span>Explorer</span>
         <i aria-hidden="true"></i>
       </a>
-      <!-- État « loin » tant que la position n'est pas connue (r1-capturer-9 le branche). -->
       <a
         class="tamponner"
         routerLink="/tamponner"
         routerLinkActive="actif"
         ariaCurrentWhenActive="page"
-        data-etat="loin"
+        [attr.data-etat]="bouton().etat"
+        [attr.aria-label]="bouton().etat === 'zone' ? null : 'Tamponner : ' + bouton().texte"
       >
         <span class="rond">
           <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
@@ -34,7 +34,7 @@ import { RouterLink, RouterLinkActive } from '@angular/router';
           </svg>
         </span>
         <b class="vide" aria-hidden="true"></b>
-        <span>Tamponner</span>
+        <span>{{ bouton().texte }}</span>
         <i aria-hidden="true"></i>
       </a>
       <a routerLink="/carnet" routerLinkActive="actif" ariaCurrentWhenActive="page">
@@ -55,4 +55,7 @@ import { RouterLink, RouterLinkActive } from '@angular/router';
   styleUrl: './navigation.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class ZnNavigation {}
+export class ZnNavigation {
+  /** État et texte du bouton central, calculés par l'appelant (la barre ne connaît pas la position). */
+  readonly bouton = input.required<{ etat: string; texte: string }>();
+}
