@@ -1,5 +1,6 @@
 import { signal } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
+import { provideRouter } from '@angular/router';
 import { EtatPosition } from '../../core/position/position';
 import { Proche, Proximite } from '../../core/position/proximite';
 import { Tamponner } from './tamponner';
@@ -12,6 +13,7 @@ function rendre(etat: EtatPosition, liste: Proche[] = [], erreur = false) {
   const recharger = vi.fn();
   TestBed.configureTestingModule({
     providers: [
+      provideRouter([]),
       {
         provide: Proximite,
         useValue: {
@@ -36,8 +38,8 @@ const bouton = (el: HTMLElement, texte: string) =>
   [...el.querySelectorAll('button')].find((b) => b.textContent?.includes(texte));
 
 describe('Tamponner', () => {
-  it('liste les monuments proches avec leur distance, le plus proche non capturé présélectionné', () => {
-    const { el } = rendre(ok(), [proche(1, 30, true), proche(2, 420), proche(3, 1234)]);
+  it('liste les monuments proches avec leur distance, seul monument non capturé présélectionné', () => {
+    const { el } = rendre(ok(), [proche(1, 30, true), proche(2, 420), proche(3, 1234, true)]);
     expect(el.querySelector('h1')?.textContent).toBe('Tamponner');
     const radios = [...el.querySelectorAll<HTMLInputElement>('input[type=radio]')];
     expect(radios.map((r) => r.checked)).toEqual([false, true, false]);
@@ -47,6 +49,12 @@ describe('Tamponner', () => {
     expect(texte).toContain('420 m');
     expect(texte).toContain('1,2 km');
     expect(texte).toContain('Déjà tamponné');
+  });
+
+  it('plusieurs monuments non capturés proches : aucune présélection (R1-51)', () => {
+    const { el } = rendre(ok(), [proche(2, 420), proche(3, 900)]);
+    const radios = [...el.querySelectorAll<HTMLInputElement>('input[type=radio]')];
+    expect(radios.map((r) => r.checked)).toEqual([false, false]);
   });
 
   it('choisir un autre monument change la sélection', () => {
@@ -60,6 +68,7 @@ describe('Tamponner', () => {
   it('liste vide : « Rien à tamponner près de toi »', () => {
     const { el } = rendre(ok());
     expect(el.textContent).toContain('Rien à tamponner près de toi');
+    expect(el.querySelector('a')?.getAttribute('href')).toBe('/carnet');
   });
 
   it.each(['attente', 'refus'] as const)('%s : bouton Activer déclenche la position', (statut) => {

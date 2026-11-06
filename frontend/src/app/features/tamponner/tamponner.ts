@@ -1,9 +1,11 @@
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
+import { RouterLink } from '@angular/router';
 import { PRECISION_MAX_METRES, Proximite, formaterDistance } from '../../core/position/proximite';
 
 /** Monuments à moins de 2 km (RG-024). La capture elle-même vient avec r1-capturer-2. */
 @Component({
   selector: 'app-tamponner',
+  imports: [RouterLink],
   template: `
     <h1>Tamponner</h1>
     @if (erreur()) {
@@ -32,6 +34,7 @@ import { PRECISION_MAX_METRES, Proximite, formaterDistance } from '../../core/po
           }
           @if (!proches().length) {
             <p>Rien à tamponner près de toi</p>
+            <a routerLink="/carnet">Voir mon carnet</a>
           } @else {
             <fieldset>
               <legend>Monuments à moins de 2 km</legend>
@@ -65,10 +68,11 @@ export class Tamponner {
   protected readonly erreur = this.proximite.erreur;
   protected readonly distance = formaterDistance;
   protected readonly choisi = signal<number | null>(null);
-  /** Choix de l'explorateur, sinon le plus proche non capturé. */
-  protected readonly choix = computed(
-    () => this.choisi() ?? this.proches().find((m) => !m.capture)?.numero ?? null,
-  );
+  /** Choix de l'explorateur, sinon présélection seulement s'il n'y a qu'un monument non capturé (R1-51). */
+  protected readonly choix = computed(() => {
+    const libres = this.proches().filter((m) => !m.capture);
+    return this.choisi() ?? (libres.length === 1 ? libres[0].numero : null);
+  });
   protected readonly imprecis = computed(() => {
     const p = this.etat().coords?.precision;
     return p === undefined || p > PRECISION_MAX_METRES;
