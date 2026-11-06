@@ -7,9 +7,14 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import java.math.BigDecimal;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.time.OffsetDateTime;
 import java.util.List;
+import java.util.Map;
+import java.util.UUID;
 import org.springframework.http.HttpStatus;
 import org.springframework.jdbc.core.simple.JdbcClient;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RestController;
@@ -33,7 +38,8 @@ class MonumentController {
       Rarete rarete,
       Position position,
       int rayonCaptureMetres,
-      Image image) {}
+      Image image,
+      OffsetDateTime captureeLe) {}
 
   record Stats(Integer annee, String style, BigDecimal hauteurMetres) {}
 
@@ -48,11 +54,13 @@ class MonumentController {
       Position position,
       int rayonCaptureMetres,
       Image image,
+      OffsetDateTime captureeLe,
       Stats stats,
       Histoire histoire) {
 
     Resume versResume() {
-      return new Resume(numero, nom, type, ville, rarete, position, rayonCaptureMetres, image);
+      return new Resume(
+          numero, nom, type, ville, rarete, position, rayonCaptureMetres, image, captureeLe);
     }
   }
 
@@ -61,17 +69,22 @@ class MonumentController {
           + " join catalogue.ville v on v.code_insee = m.ville_code_insee";
 
   private final JdbcClient jdbc;
+  private final CapturesExplorateur captures;
 
-  MonumentController(JdbcClient jdbc) {
+  MonumentController(JdbcClient jdbc, CapturesExplorateur captures) {
     this.jdbc = jdbc;
+    this.captures = captures;
   }
 
   @GetMapping("/api/catalogue/monuments")
   @Operation(
       operationId = "listerMonuments",
       responses = {@ApiResponse(responseCode = "200"), @ApiResponse(responseCode = "401")})
-  List<Resume> lister() {
-    return jdbc.sql(SELECT + " order by m.numero").query((r, i) -> resume(r)).list();
+  List<Resume> lister(@AuthenticationPrincipal Jwt jwt) {
+    Map<Integer, OffsetDateTime> dates = dates(jwt);
+    return jdbc.sql(SELECT + " order by m.numero")
+        .query((r, i) -> fiche(r, dates).versResume())
+        .list();
   }
 
   @GetMapping("/api/catalogue/monuments/{numero}")
@@ -82,19 +95,20 @@ class MonumentController {
         @ApiResponse(responseCode = "401"),
         @ApiResponse(responseCode = "404")
       })
-  Fiche lire(@PathVariable int numero) {
+  Fiche lire(@PathVariable int numero, @AuthenticationPrincipal Jwt jwt) {
+    Map<Integer, OffsetDateTime> dates = dates(jwt);
     return jdbc.sql(SELECT + " where m.numero = ?")
         .param(numero)
-        .query((r, i) -> fiche(r))
+        .query((r, i) -> fiche(r, dates))
         .optional()
         .orElseThrow(() -> new ErreurMetier(HttpStatus.NOT_FOUND, "introuvable"));
   }
 
-  private static Resume resume(ResultSet r) throws SQLException {
-    return fiche(r).versResume();
+  private Map<Integer, OffsetDateTime> dates(Jwt jwt) {
+    return captures.datesDeCapture(UUID.fromString(jwt.getSubject()));
   }
 
-  private static Fiche fiche(ResultSet r) throws SQLException {
+  private static Fiche fiche(ResultSet r, Map<Integer, OffsetDateTime> dates) throws SQLException {
     String urlImage = r.getString("image_url");
     // Image sans url (licence inconnue, RG-022) : null, le client affiche la silhouette.
     Image image =
@@ -121,6 +135,7 @@ class MonumentController {
         new Position(r.getDouble("latitude"), r.getDouble("longitude")),
         r.getInt("rayon_capture_m"),
         image,
+        dates.get(r.getInt("numero")),
         new Stats(
             r.getObject("annee", Integer.class),
             r.getString("style"),

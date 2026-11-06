@@ -70,6 +70,8 @@ Les noms de classes sont indicatifs ; la règle (sous-package = fonctionnalité,
 
 **Suppression (r0-socle-14)** : `POST /api/compte/suppression` → demande datée, sessions révoquées, e-mail → `202 {suppressionDefinitiveLe}`. Purge nocturne, une transaction par compte, publication de `CompteSupprime`. Annulation : `POST /api/compte/suppression/annulation {email, motDePasse}` → comme une connexion réussie.
 
+**Port `catalogue.CapturesExplorateur`** (r1-capturer-5) : implémenté par `capture` (`DatesDeCapture`), il donne au catalogue les dates de capture de l'explorateur courant sans cycle de modules.
+
 **Import (r0-socle-18 à -20)** : lecture et validation du yml → lectures réseau (aucune écriture) → `SelectionCatalogue` (places libres, numéros, rareté) → une transaction sous verrou consultatif → journal de synthèse → arrêt de l'appli.
 
 ## 3. Modèle de données R0
