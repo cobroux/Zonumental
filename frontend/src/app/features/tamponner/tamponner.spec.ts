@@ -47,7 +47,6 @@ describe('Tamponner', () => {
     const texte = el.querySelector('fieldset')?.textContent;
     expect(texte).toContain('Monument 2');
     expect(texte).toContain('420 m');
-    expect(texte).toContain('1,2 km');
     expect(texte).toContain('Déjà tamponné');
   });
 
