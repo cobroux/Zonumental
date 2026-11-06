@@ -818,7 +818,7 @@ components:
         auteur: { type: [string, 'null'], description: Obligatoire si la licence exige l'attribution }
     MonumentResume:
       type: object
-      required: [numero, nom, type, ville, rarete, position, rayonCaptureMetres, image]
+      required: [numero, nom, type, ville, rarete, position, rayonCaptureMetres, image, captureeLe]
       properties:
         numero: { type: integer, minimum: 1 }
         nom: { type: string }
@@ -831,6 +831,7 @@ components:
           oneOf:
             - $ref: '#/components/schemas/Image'
             - type: 'null'
+        captureeLe: { type: [string, 'null'], format: date-time, description: "null = non capturé par l'explorateur courant (RG-037)" }
     Monument:
       allOf:
         - $ref: '#/components/schemas/MonumentResume'

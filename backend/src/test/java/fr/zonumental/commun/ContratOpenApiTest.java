@@ -95,6 +95,22 @@ class ContratOpenApiTest {
     }
   }
 
+  @Test
+  @SuppressWarnings("unchecked")
+  void resumeMonumentExposeCaptureeLeObligatoireEtNullable() throws Exception {
+    String genere =
+        mvc.perform(get("/v3/api-docs.yaml")).andReturn().getResponse().getContentAsString();
+    Map<String, Object> contrat =
+        (Map<String, Object>)
+            ((Map<String, Object>)
+                    ((Map<String, Object>) new Yaml().load(lireContrat())).get("components"))
+                .get("schemas");
+    Map<String, Object> resume = (Map<String, Object>) contrat.get("MonumentResume");
+    assertThat((java.util.List<String>) resume.get("required")).contains("captureeLe");
+    assertThat(((Map<String, Object>) resume.get("properties"))).containsKey("captureeLe");
+    assertThat(genere).contains("captureeLe");
+  }
+
   private static String lireContrat() throws IOException {
     Path p = Path.of("..", "docs", "api", "openapi.yaml");
     return Files.readString(p);
