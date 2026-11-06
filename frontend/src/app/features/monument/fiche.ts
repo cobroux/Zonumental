@@ -33,6 +33,11 @@ function urlBlob(url: () => string | undefined): Signal<string | null> {
   return objet;
 }
 
+/** ISO -> jj/mm/aaaa, heure de Paris (RG-043). */
+function formaterDate(iso: string): string {
+  return new Date(iso).toLocaleDateString('fr-FR', { timeZone: 'Europe/Paris' });
+}
+
 const RARETES = { COMMUN: 'Commun', RARE: 'Rare', LEGENDAIRE: 'Légendaire' };
 const TYPES = {
   CHATEAU: 'Château',
@@ -83,9 +88,12 @@ const POINTS = ['nord', 'nord-est', 'est', 'sud-est', 'sud', 'sud-ouest', 'ouest
         </figure>
       }
       @if (m.captureeLe) {
+        <p data-tampon>Capturé le {{ date(m.captureeLe) }}</p>
         @if (photo(); as p) {
           <img data-photo [src]="p" alt="Ta photo" />
         }
+        <!-- Flux dépendant de la caméra : r1-capturer-15 -->
+        <button type="button">Remplacer la photo</button>
         @if (m.stats; as s) {
           <dl>
             <dt>Année</dt>
@@ -129,6 +137,7 @@ export class Fiche {
   );
   private readonly position = inject(Position).etat;
   protected readonly siecle = formaterSiecle;
+  protected readonly date = formaterDate;
   protected readonly raretes = RARETES;
   protected readonly types = TYPES;
   protected readonly horsLigne = computed(
