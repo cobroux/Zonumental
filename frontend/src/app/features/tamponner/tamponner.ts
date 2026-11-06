@@ -49,6 +49,9 @@ import { PRECISION_MAX_METRES, Proximite, formaterDistance } from '../../core/po
                     (change)="choisi.set(m.numero)"
                   />
                   <span>{{ m.nom }}, {{ m.ville.nom }}</span>
+                  @if (!m.capture) {
+                    <a [routerLink]="['/monument', m.numero]">Voir la fiche</a>
+                  }
                   <span>{{ m.capture ? 'Déjà tamponné' : distance(m.distance) }}</span>
                 </label>
               }

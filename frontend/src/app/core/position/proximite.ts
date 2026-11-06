@@ -24,6 +24,20 @@ export function distanceMetres(
   return 2 * 6371008.8 * Math.asin(Math.sqrt(h));
 }
 
+/** Cap géographique de a vers b, en degrés (0 = nord, sens horaire). */
+export function capVers(
+  a: { latitude: number; longitude: number },
+  b: { latitude: number; longitude: number },
+): number {
+  const rad = Math.PI / 180;
+  const dl = (b.longitude - a.longitude) * rad;
+  const y = Math.sin(dl) * Math.cos(b.latitude * rad);
+  const x =
+    Math.cos(a.latitude * rad) * Math.sin(b.latitude * rad) -
+    Math.sin(a.latitude * rad) * Math.cos(b.latitude * rad) * Math.cos(dl);
+  return (Math.atan2(y, x) / rad + 360) % 360;
+}
+
 export function formaterDistance(m: number): string {
   const arrondi = Math.round(m / 10) * 10;
   return arrondi < 1000 ? `${arrondi} m` : `${(m / 1000).toFixed(1).replace('.', ',')} km`;
