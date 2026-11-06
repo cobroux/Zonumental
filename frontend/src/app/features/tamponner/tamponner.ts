@@ -39,21 +39,27 @@ import { PRECISION_MAX_METRES, Proximite, formaterDistance } from '../../core/po
             <fieldset>
               <legend>Monuments à moins de 2 km</legend>
               @for (m of proches(); track m.numero) {
-                <label>
-                  <input
-                    type="radio"
-                    name="monument"
-                    [value]="m.numero"
-                    [checked]="m.numero === choix()"
-                    [disabled]="m.capture"
-                    (change)="choisi.set(m.numero)"
-                  />
-                  <span>{{ m.nom }}, {{ m.ville.nom }}</span>
+                <div>
+                  <label>
+                    <input
+                      type="radio"
+                      name="monument"
+                      [value]="m.numero"
+                      [checked]="m.numero === choix()"
+                      [disabled]="m.capture"
+                      (change)="choisi.set(m.numero)"
+                    />
+                    <span>{{ m.nom }}, {{ m.ville.nom }}</span>
+                    <span>{{ m.capture ? 'Déjà tamponné' : distance(m.distance) }}</span>
+                  </label>
                   @if (!m.capture) {
-                    <a [routerLink]="['/monument', m.numero]">Voir la fiche</a>
+                    <a
+                      [routerLink]="['/monument', m.numero]"
+                      [attr.aria-label]="'Voir la fiche de ' + m.nom"
+                      >Voir la fiche</a
+                    >
                   }
-                  <span>{{ m.capture ? 'Déjà tamponné' : distance(m.distance) }}</span>
-                </label>
+                </div>
               }
             </fieldset>
           }
