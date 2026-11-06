@@ -367,7 +367,13 @@ paths:
     get:
       tags: [catalogue]
       operationId: lireMonument
-      summary: Fiche complète d'un monument (RG-022, RG-023)
+      summary: Fiche d'un monument, verrouillée tant qu'il n'est pas capturé (RG-042, RG-054)
+      description: >
+        Deux états, distingués par `captureeLe` (explorateur courant). **Non capturé** : indices
+        seulement (numéro, nom, type, ville, rareté, position, rayon, `siecle`, image noir et
+        blanc) ; `stats`, `histoire`, `photoUrl` et `image.urlCouleur` valent null.
+        **Capturé** : fiche complète ; `histoire` reste null tant que le texte n'est pas importé
+        (R1-77), lu à chaque appel (aucune copie à la capture).
       parameters:
         - name: numero
           in: path
@@ -390,24 +396,52 @@ paths:
     get:
       tags: [catalogue]
       operationId: lireImageMonument
-      summary: Image d'un monument copiée chez nous (RG-022) ; publique, cache long, immuable
+      summary: Image noir et blanc d'un monument (RG-022, RG-054) ; publique, cache long
       description: >
-        `image.url` d'un monument. Nom au format `<numéro>.(jpg|png|webp)` ; tout autre nom,
-        nom inconnu ou chemin forgé (`../`, encodé ou non) donne 404.
-        `Cache-Control: public, max-age=31536000, immutable`.
+        `image.url` d'un monument, utilisable directement dans `<img src>` (ADR 0021). Variante
+        générée à l'import. Nom au format `<numéro>-nb.jpg` ; tout autre nom (dont l'ancien
+        `<numéro>.(jpg|png|webp)` couleur), nom inconnu ou chemin forgé (`../`, encodé ou non)
+        donne 404. `Cache-Control: public, max-age=31536000, immutable`.
       security: []
       parameters:
         - name: fichier
           in: path
           required: true
-          schema: { type: string, pattern: '^[0-9]+\.(jpg|png|webp)$', examples: ['1.jpg'] }
+          schema: { type: string, pattern: '^[0-9]+-nb\.jpg$', examples: ['1-nb.jpg'] }
       responses:
         '200':
           description: Image
           content:
             image/jpeg: { schema: { type: string, format: binary } }
+        '404':
+          description: '`introuvable`'
+          content:
+            application/problem+json:
+              schema: { $ref: '#/components/schemas/Probleme' }
+
+  /api/catalogue/monuments/{numero}/image:
+    get:
+      tags: [catalogue]
+      operationId: lireImageCouleurMonument
+      summary: Image couleur d'un monument capturé par l'appelant (RG-054, ADR 0021)
+      description: >
+        `image.urlCouleur`. Authentifiée : le front la lit avec `fetch` + `Authorization: Bearer`
+        puis `URL.createObjectURL` (comme la photo souvenir, ADR 0015). Monument non capturé par
+        l'appelant, sans image ou inconnu : 404 `introuvable` (même réponse dans les trois cas).
+        `Cache-Control: private, max-age=86400`.
+      parameters:
+        - name: numero
+          in: path
+          required: true
+          schema: { type: integer, minimum: 1 }
+      responses:
+        '200':
+          description: Image couleur, format d'origine
+          content:
+            image/jpeg: { schema: { type: string, format: binary } }
             image/png: { schema: { type: string, format: binary } }
             image/webp: { schema: { type: string, format: binary } }
+        '401': { $ref: '#/components/responses/NonAuthentifie' }
         '404':
           description: '`introuvable`'
           content:
@@ -808,10 +842,14 @@ components:
         longitude: { type: number, format: double }
     Image:
       type: object
-      description: Image de référence ; absente (null) si sa licence est inconnue → silhouette (RG-022).
-      required: [url, sourceUrl, licence]
+      description: >
+        Image de référence ; absente (null) si sa licence est inconnue → silhouette (RG-022).
+        Attribution : la variante noir et blanc est une œuvre modifiée, le front l'indique
+        (« image modifiée : noir et blanc ») à côté de la licence.
+      required: [url, urlCouleur, sourceUrl, licence]
       properties:
-        url: { type: string, format: uri }
+        url: { type: string, format: uri, description: 'Noir et blanc, publique (`<img src>`) : `/api/catalogue/images/<numéro>-nb.jpg`' }
+        urlCouleur: { type: [string, 'null'], format: uri, description: "Authentifiée (fetch + Bearer) : `/api/catalogue/monuments/<numéro>/image` ; null si non capturé par l'explorateur courant" }
         sourceUrl: { type: string, format: uri, description: Page Wikimedia Commons du fichier }
         licence: { type: string, examples: ['CC BY-SA 4.0'] }
         licenceUrl: { type: [string, 'null'], format: uri }
@@ -836,18 +874,31 @@ components:
       allOf:
         - $ref: '#/components/schemas/MonumentResume'
         - type: object
-          required: [stats, histoire]
+          required: [siecle, stats, histoire, photoUrl]
           properties:
+            siecle:
+              type: [integer, 'null']
+              description: >
+                Indice visible dans les deux états, déduit de l'année (1675 → 17 ; -19 → -1, siècle
+                avant J.-C. ; jamais 0). Null si l'année est inconnue, affiché « — » (R1-72b, RG-023).
+                Le front formate en français (« XVIIe siècle », « Ier siècle av. J.-C. »), sans framework i18n (ADR 0019).
+              examples: [17]
             stats:
-              type: object
-              description: Valeur inconnue = null, affichée « — » (RG-023)
-              required: [annee, style, hauteurMetres]
-              properties:
-                annee: { type: [integer, 'null'] }
-                style: { type: [string, 'null'] }
-                hauteurMetres: { type: [number, 'null'] }
+              description: Null tant que le monument n'est pas capturé (RG-054). Capturé - valeur inconnue = null, affichée « — » (RG-023)
+              oneOf:
+                - type: object
+                  required: [annee, style, hauteurMetres]
+                  properties:
+                    annee: { type: [integer, 'null'] }
+                    style: { type: [string, 'null'] }
+                    hauteurMetres: { type: [number, 'null'] }
+                - type: 'null'
+            photoUrl:
+              type: [string, 'null']
+              format: uri
+              description: 'Photo souvenir de l''appelant (`/api/captures/<numéro>/photo`, authentifiée) ; null si non capturé (R1-74)'
             histoire:
-              description: Null si absente (R0) ou, à partir de R1, tant que le monument n'est pas capturé (RG-043).
+              description: Null tant que le monument n'est pas capturé (RG-043), ou capturé sans texte importé (« Histoire à venir », R1-77).
               oneOf:
                 - type: object
                   required: [texte, sourceUrl, licence]

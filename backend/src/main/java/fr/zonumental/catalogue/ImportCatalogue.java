@@ -2,6 +2,9 @@ package fr.zonumental.catalogue;
 
 import fr.zonumental.catalogue.SelectionCatalogue.Existant;
 import fr.zonumental.catalogue.SelectionCatalogue.Numerote;
+import java.awt.Color;
+import java.awt.Graphics2D;
+import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.nio.file.Files;
@@ -13,6 +16,11 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
+import javax.imageio.IIOImage;
+import javax.imageio.ImageIO;
+import javax.imageio.ImageWriteParam;
+import javax.imageio.ImageWriter;
+import javax.imageio.stream.ImageOutputStream;
 import org.springframework.jdbc.core.simple.JdbcClient;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.support.TransactionTemplate;
@@ -168,6 +176,51 @@ public class ImportCatalogue {
             rafraichir(c, images.get(c.wikidataId()));
           }
         });
+    genererNoirEtBlancManquants();
+  }
+
+  /** ADR 0021 : passe idempotente, couvre nouveaux monuments et déjà importés. */
+  private void genererNoirEtBlancManquants() {
+    for (Map<String, Object> m :
+        jdbc.sql("select numero, image_url from catalogue.monument where image_url is not null")
+            .query()
+            .listOfRows()) {
+      String url = (String) m.get("image_url");
+      Path couleur = dossierImages.resolve(url.substring(url.lastIndexOf('/') + 1));
+      Path nb = dossierImages.resolve(m.get("numero") + "-nb.jpg");
+      if (Files.exists(nb) || !Files.isRegularFile(couleur)) {
+        continue;
+      }
+      try {
+        BufferedImage source = ImageIO.read(couleur.toFile());
+        if (source != null) {
+          ecrireNoirEtBlanc(source, nb);
+        }
+      } catch (IOException e) {
+        throw new UncheckedIOException(e);
+      }
+    }
+  }
+
+  /** Niveaux de gris sur fond blanc (transparence PNG), JPEG 0,85. */
+  private static void ecrireNoirEtBlanc(BufferedImage source, Path cible) throws IOException {
+    BufferedImage gris =
+        new BufferedImage(source.getWidth(), source.getHeight(), BufferedImage.TYPE_BYTE_GRAY);
+    Graphics2D g = gris.createGraphics();
+    g.setColor(Color.WHITE);
+    g.fillRect(0, 0, gris.getWidth(), gris.getHeight());
+    g.drawImage(source, 0, 0, null);
+    g.dispose();
+    ImageWriter w = ImageIO.getImageWritersByFormatName("jpeg").next();
+    ImageWriteParam param = w.getDefaultWriteParam();
+    param.setCompressionMode(ImageWriteParam.MODE_EXPLICIT);
+    param.setCompressionQuality(0.85f);
+    try (ImageOutputStream out = ImageIO.createImageOutputStream(cible.toFile())) {
+      w.setOutput(out);
+      w.write(null, new IIOImage(gris, null, null), param);
+    } finally {
+      w.dispose();
+    }
   }
 
   private void valider(Proposition p) {

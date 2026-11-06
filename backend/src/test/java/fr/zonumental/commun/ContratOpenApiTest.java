@@ -111,6 +111,26 @@ class ContratOpenApiTest {
     assertThat(genere).contains("captureeLe");
   }
 
+  @Test
+  @SuppressWarnings("unchecked")
+  void ficheDecritLesDeuxEtats() throws Exception {
+    String genere =
+        mvc.perform(get("/v3/api-docs.yaml")).andReturn().getResponse().getContentAsString();
+    Map<String, Object> schemas =
+        (Map<String, Object>)
+            ((Map<String, Object>)
+                    ((Map<String, Object>) new Yaml().load(lireContrat())).get("components"))
+                .get("schemas");
+    Map<String, Object> monument = (Map<String, Object>) schemas.get("Monument");
+    Map<String, Object> propre =
+        (Map<String, Object>) ((java.util.List<Object>) monument.get("allOf")).get(1);
+    assertThat((java.util.List<String>) propre.get("required"))
+        .contains("siecle", "stats", "histoire", "photoUrl");
+    Map<String, Object> image = (Map<String, Object>) schemas.get("Image");
+    assertThat((java.util.List<String>) image.get("required")).contains("urlCouleur");
+    assertThat(genere).contains("siecle", "photoUrl", "urlCouleur");
+  }
+
   private static String lireContrat() throws IOException {
     Path p = Path.of("..", "docs", "api", "openapi.yaml");
     return Files.readString(p);

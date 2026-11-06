@@ -29,6 +29,7 @@ class ImportCatalogueTest {
   @Autowired PlatformTransactionManager tm;
   @TempDir Path dossier;
 
+  byte[] imageSource = {1, 2, 3};
   Map<String, List<Candidat>> donnees = new java.util.HashMap<>();
   SourceMonuments source =
       new SourceMonuments() {
@@ -39,7 +40,7 @@ class ImportCatalogueTest {
 
         @Override
         public byte[] telechargerImage(Candidat c) {
-          return new byte[] {1, 2, 3};
+          return imageSource;
         }
       };
 
@@ -99,6 +100,57 @@ class ImportCatalogueTest {
     assertThat(p.nouveaux()).hasSize(2);
     assertThat(p.nouveaux().getFirst().candidat().wikidataId()).isEqualTo("Q2");
     assertThat(p.nouveaux().getFirst().numeroPropose()).isEqualTo(1);
+  }
+
+  static byte[] png(int argb) throws IOException {
+    java.awt.image.BufferedImage img =
+        new java.awt.image.BufferedImage(8, 8, java.awt.image.BufferedImage.TYPE_INT_ARGB);
+    for (int x = 0; x < 8; x++) {
+      for (int y = 0; y < 8; y++) {
+        img.setRGB(x, y, x < 4 ? argb : 0); // moitié gauche opaque, moitié droite transparente
+      }
+    }
+    java.io.ByteArrayOutputStream o = new java.io.ByteArrayOutputStream();
+    javax.imageio.ImageIO.write(img, "png", o);
+    return o.toByteArray();
+  }
+
+  @Test
+  void figer_ecrit_un_noir_et_blanc_jpeg_en_niveaux_de_gris_fond_blanc() throws IOException {
+    imageSource = png(0xFFFF0000);
+    donnees.put(LYON, List.of(c("Q1", "A", 10, true)));
+    ImportCatalogue imp = importeur(10, Map.of());
+    imp.figer(relire(imp));
+
+    Path nb = dossier.resolve("images/1-nb.jpg");
+    java.awt.image.BufferedImage img = javax.imageio.ImageIO.read(nb.toFile());
+    assertThat(img).isNotNull();
+    for (int[] xy : new int[][] {{1, 1}, {6, 6}}) {
+      int rgb = img.getRGB(xy[0], xy[1]);
+      int r = (rgb >> 16) & 0xFF;
+      int g = (rgb >> 8) & 0xFF;
+      int b = rgb & 0xFF;
+      assertThat(Math.abs(r - g)).isLessThanOrEqualTo(2);
+      assertThat(Math.abs(g - b)).isLessThanOrEqualTo(2);
+    }
+    assertThat(img.getRGB(6, 6) & 0xFF).isGreaterThan(240); // transparence -> blanc
+    assertThat(img.getRGB(1, 1) & 0xFF).isLessThan(200); // rouge -> gris plus sombre
+  }
+
+  @Test
+  void figer_genere_les_noir_et_blanc_manquants_sans_reecrire_les_existants() throws Exception {
+    imageSource = png(0xFF00FF00);
+    donnees.put(LYON, List.of(c("Q1", "A", 10, true)));
+    ImportCatalogue imp = importeur(10, Map.of());
+    imp.figer(relire(imp));
+    Path nb = dossier.resolve("images/1-nb.jpg");
+    Files.setLastModifiedTime(nb, java.nio.file.attribute.FileTime.fromMillis(1_000_000L));
+    imp.figer(relire(imp));
+    assertThat(Files.getLastModifiedTime(nb).toMillis()).isEqualTo(1_000_000L);
+
+    Files.delete(nb);
+    imp.figer(relire(imp));
+    assertThat(nb).exists();
   }
 
   @Test
