@@ -5,7 +5,7 @@ import {
   provideAppInitializer,
   provideBrowserGlobalErrorListeners,
 } from '@angular/core';
-import { provideRouter, withInMemoryScrolling } from '@angular/router';
+import { provideRouter, withComponentInputBinding, withInMemoryScrolling } from '@angular/router';
 import { provideHttpClient, withInterceptors } from '@angular/common/http';
 import { provideApiConfiguration } from './core/api/api-configuration';
 import { jetonInterceptor } from './core/session/jeton.interceptor';
@@ -21,7 +21,11 @@ export const appConfig: ApplicationConfig = {
     provideAppInitializer(() => inject(Session).renouveler()),
     // '' et non '/' : le client génère sinon //api/..., une URL relative au protocole.
     provideApiConfiguration(''),
-    provideRouter(routes, withInMemoryScrolling({ anchorScrolling: 'enabled' })),
+    provideRouter(
+      routes,
+      withComponentInputBinding(),
+      withInMemoryScrolling({ anchorScrolling: 'enabled' }),
+    ),
     provideServiceWorker('ngsw-worker.js', {
       enabled: !isDevMode(),
       registrationStrategy: 'registerWhenStable:30000',
