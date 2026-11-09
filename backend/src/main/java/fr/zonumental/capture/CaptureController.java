@@ -13,10 +13,10 @@ import java.io.UncheckedIOException;
 import java.util.UUID;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -30,6 +30,7 @@ class CaptureController {
       @NotNull @DecimalMin("-90") @DecimalMax("90") Double latitude,
       @NotNull @DecimalMin("-180") @DecimalMax("180") Double longitude,
       @NotNull @DecimalMin("0") Double precisionMetres,
+      Boolean remplacer,
       @NotNull MultipartFile photo) {
 
     @Override
@@ -45,10 +46,10 @@ class CaptureController {
   }
 
   @PostMapping(path = "/api/captures", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-  @ResponseStatus(HttpStatus.CREATED)
   @Operation(
       operationId = "capturer",
       responses = {
+        @ApiResponse(responseCode = "200"),
         @ApiResponse(responseCode = "201"),
         @ApiResponse(responseCode = "400"),
         @ApiResponse(responseCode = "401"),
@@ -59,15 +60,19 @@ class CaptureController {
         @ApiResponse(responseCode = "429"),
         @ApiResponse(responseCode = "503")
       })
-  Capturer.Reussite capturer(@Valid Demande d, @AuthenticationPrincipal Jwt jwt) {
+  ResponseEntity<Capturer.Reussite> capturer(@Valid Demande d, @AuthenticationPrincipal Jwt jwt) {
     try {
-      return capturer.capturer(
-          UUID.fromString(jwt.getSubject()),
-          d.numero(),
-          d.latitude(),
-          d.longitude(),
-          d.precisionMetres(),
-          d.photo().getBytes());
+      boolean remplacer = Boolean.TRUE.equals(d.remplacer());
+      var r =
+          capturer.capturer(
+              UUID.fromString(jwt.getSubject()),
+              d.numero(),
+              d.latitude(),
+              d.longitude(),
+              d.precisionMetres(),
+              d.photo().getBytes(),
+              remplacer);
+      return ResponseEntity.status(remplacer ? HttpStatus.OK : HttpStatus.CREATED).body(r);
     } catch (IOException e) {
       throw new UncheckedIOException(e);
     }

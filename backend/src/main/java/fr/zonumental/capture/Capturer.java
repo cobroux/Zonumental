@@ -63,7 +63,8 @@ class Capturer {
       double latitude,
       double longitude,
       double precisionMetres,
-      byte[] photo) {
+      byte[] photo,
+      boolean remplacer) {
     // L'ordre des contrôles est celui de RG-053 : ne pas le changer.
     if (!comptes.emailVerifie(utilisateur)) {
       throw refus(utilisateur, HttpStatus.FORBIDDEN, "email-non-verifie", Map.of());
@@ -72,8 +73,10 @@ class Capturer {
         cibles
             .pour(numero, latitude, longitude)
             .orElseThrow(() -> refus(utilisateur, HttpStatus.NOT_FOUND, "introuvable", Map.of()));
-    if (dejaCapture(utilisateur, numero)) {
-      throw refus(utilisateur, HttpStatus.CONFLICT, "deja-capture", Map.of());
+    if (dejaCapture(utilisateur, numero) != remplacer) {
+      throw remplacer
+          ? refus(utilisateur, HttpStatus.NOT_FOUND, "introuvable", Map.of())
+          : refus(utilisateur, HttpStatus.CONFLICT, "deja-capture", Map.of());
     }
     byte[] jpeg;
     try {
@@ -82,7 +85,9 @@ class Capturer {
       throw refus(utilisateur, e.statut(), e.code(), Map.of());
     }
     verifierFrequence(utilisateur);
-    verifierVitesse(utilisateur, numero);
+    if (!remplacer) { // R1-68
+      verifierVitesse(utilisateur, numero);
+    }
     if (precisionMetres > PRECISION_MAX_M) {
       throw refus(utilisateur, HttpStatus.UNPROCESSABLE_ENTITY, "precision-insuffisante", Map.of());
     }
@@ -94,7 +99,10 @@ class Capturer {
           "trop-loin",
           Map.of("distanceMetres", affichee));
     }
-    OffsetDateTime le = enregistrer(utilisateur, numero, cible.distanceMetres(), jpeg);
+    OffsetDateTime le =
+        remplacer
+            ? remplacerPhoto(utilisateur, numero, jpeg)
+            : enregistrer(utilisateur, numero, cible.distanceMetres(), jpeg);
     return new Reussite(
         numero,
         le,
@@ -181,6 +189,33 @@ class Capturer {
     } catch (DuplicateKeyException e) { // envoi simultané : l'autre a gagné
       effacer(utilisateur, photoId);
       throw refus(utilisateur, HttpStatus.CONFLICT, "deja-capture", Map.of());
+    } catch (RuntimeException e) {
+      effacer(utilisateur, photoId);
+      throw e;
+    }
+  }
+
+  /** Nouvelle photo, bascule de la ligne, puis effacement de l'ancienne (ADR 0006). */
+  private OffsetDateTime remplacerPhoto(UUID utilisateur, int numero, byte[] jpeg) {
+    UUID photoId = UUID.randomUUID();
+    stockage.deposer(utilisateur, photoId, jpeg);
+    try {
+      var ancienne =
+          jdbc.sql(
+                  "select photo_id, capturee_le from capture.capture"
+                      + " where utilisateur_id = ? and numero_monument = ? for update")
+              .params(utilisateur, numero)
+              .query(
+                  (r, i) ->
+                      Map.entry(r.getObject(1, UUID.class), r.getObject(2, OffsetDateTime.class)))
+              .single();
+      jdbc.sql(
+              "update capture.capture set photo_id = ?"
+                  + " where utilisateur_id = ? and numero_monument = ?")
+          .params(photoId, utilisateur, numero)
+          .update();
+      effacer(utilisateur, ancienne.getKey());
+      return ancienne.getValue();
     } catch (RuntimeException e) {
       effacer(utilisateur, photoId);
       throw e;
