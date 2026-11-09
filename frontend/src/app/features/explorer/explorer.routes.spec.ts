@@ -1,3 +1,5 @@
+import { provideHttpClient } from '@angular/common/http';
+import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 import { RouterTestingHarness } from '@angular/router/testing';
@@ -12,6 +14,8 @@ describe('explorer.routes', () => {
     expect(route.title).toBe('Explorer');
     TestBed.configureTestingModule({
       providers: [
+        provideHttpClient(),
+        provideHttpClientTesting(),
         provideRouter([{ path: 'explorer', children: EXPLORER_ROUTES }]),
         { provide: Session, useValue: { connecte: () => true } },
       ],
