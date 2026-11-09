@@ -9,6 +9,7 @@ import {
   input,
   signal,
 } from '@angular/core';
+import { Router } from '@angular/router';
 import { Position } from '../../core/position/position';
 import {
   PRECISION_MAX_METRES,
@@ -70,7 +71,9 @@ const POINTS = ['nord', 'nord-est', 'est', 'sud-est', 'sud', 'sud-ouest', 'ouest
             <span>Direction : {{ v.point }}</span>
           </p>
         }
-        <button type="button" [disabled]="!dansLaZone()">Aller le tamponner</button>
+        <button type="button" [disabled]="!dansLaZone()" (click)="aller()">
+          Aller le tamponner
+        </button>
       }
       @if (!m.image) {
         <div data-silhouette role="img" aria-label="Image indisponible"></div>
@@ -136,6 +139,7 @@ export class Fiche {
     () => `/api/catalogue/monuments/${this.numero()}`,
   );
   private readonly position = inject(Position).etat;
+  private readonly router = inject(Router);
   protected readonly siecle = formaterSiecle;
   protected readonly date = formaterDate;
   protected readonly raretes = RARETES;
@@ -165,6 +169,9 @@ export class Fiche {
       !!x && x.distance <= x.m.rayonCaptureMetres && p !== undefined && p <= PRECISION_MAX_METRES
     );
   });
+  protected aller(): void {
+    void this.router.navigate(['/monument', this.numero(), 'capturer']);
+  }
   protected readonly couleur = urlBlob(() => {
     const m = this.monument.hasValue() ? this.monument.value() : undefined;
     return m?.captureeLe ? (m.image?.urlCouleur ?? undefined) : undefined;
