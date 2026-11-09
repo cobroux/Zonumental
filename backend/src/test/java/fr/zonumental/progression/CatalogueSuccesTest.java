@@ -29,7 +29,8 @@ class CatalogueSuccesTest {
   @Test
   void succes_valide_est_charge() {
     var c = lire("succes:\n  - { code: A, critere: CAPTURES, seuil: 1 }\n");
-    assertThat(c.succes()).containsExactly(new CatalogueSucces.Succes("A", "CAPTURES", null, 1));
+    assertThat(c.succes())
+        .containsExactly(new CatalogueSucces.Succes("A", "CAPTURES", null, 1, "A"));
   }
 
   @Test

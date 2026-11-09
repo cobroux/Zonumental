@@ -14,7 +14,7 @@ public record CatalogueSucces(List<Succes> succes) {
   private static final Set<String> CRITERES =
       Set.of("CAPTURES", "VILLES", "TYPES", "RARETE", "VILLE", "COLLECTIONS");
 
-  public record Succes(String code, String critere, String valeur, int seuil) {}
+  public record Succes(String code, String critere, String valeur, int seuil, String libelle) {}
 
   public static CatalogueSucces charger(InputStream in) {
     Object brut = new Yaml().load(in);
@@ -39,7 +39,14 @@ public record CatalogueSucces(List<Succes> succes) {
         throw new IllegalArgumentException("code de succès en double : " + code);
       }
       Object valeur = m.get("valeur");
-      succes.add(new Succes(code, critere, valeur == null ? null : valeur.toString(), seuil));
+      Object libelle = m.get("libelle");
+      succes.add(
+          new Succes(
+              code,
+              critere,
+              valeur == null ? null : valeur.toString(),
+              seuil,
+              libelle == null ? code : libelle.toString()));
     }
     return new CatalogueSucces(List.copyOf(succes));
   }

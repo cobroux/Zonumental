@@ -805,7 +805,7 @@ components:
     CaptureReussie:
       type: object
       description: Exactement ce qui est conservé (RG-049) + l'histoire débloquée (RG-055). Jamais de position.
-      required: [numero, captureeLe, distanceMetres, photoUrl, histoire]
+      required: [numero, captureeLe, distanceMetres, photoUrl, histoire, succesGagnes]
       properties:
         numero: { type: integer, minimum: 1 }
         captureeLe: { type: string, format: date-time }
@@ -821,6 +821,15 @@ components:
                 sourceUrl: { type: string, format: uri }
                 licence: { type: string }
             - type: 'null'
+        succesGagnes:
+          type: array
+          description: Succès débloqués par cette capture (RG-R2-03). Vide au remplacement de photo ou si le calcul a échoué (rattrapé à la capture suivante).
+          items:
+            type: object
+            required: [code, libelle]
+            properties:
+              code: { type: string, examples: [PREMIER_TAMPON] }
+              libelle: { type: string }
     ProblemeCapture:
       allOf:
         - $ref: '#/components/schemas/Probleme'

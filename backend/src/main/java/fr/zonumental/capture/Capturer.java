@@ -3,7 +3,9 @@ package fr.zonumental.capture;
 import fr.zonumental.catalogue.Cibles;
 import fr.zonumental.commun.ErreurMetier;
 import fr.zonumental.compte.Comptes;
+import fr.zonumental.progression.CalculSucces;
 import java.time.OffsetDateTime;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import org.slf4j.Logger;
@@ -30,13 +32,15 @@ class Capturer {
       OffsetDateTime captureeLe,
       long distanceMetres,
       String photoUrl,
-      Cibles.Histoire histoire) {}
+      Cibles.Histoire histoire,
+      List<CalculSucces.Gagne> succesGagnes) {}
 
   private final Comptes comptes;
   private final Cibles cibles;
   private final Photos photos;
   private final StockagePhotos stockage;
   private final JdbcClient jdbc;
+  private final CalculSucces calcul;
   private final int frequenceMax;
   private final double vitesseMaxKmh;
 
@@ -46,6 +50,7 @@ class Capturer {
       Photos photos,
       StockagePhotos stockage,
       JdbcClient jdbc,
+      CalculSucces calcul,
       @Value("${zonumental.capture.frequence-max}") int frequenceMax,
       @Value("${zonumental.capture.vitesse-max-kmh}") double vitesseMaxKmh) {
     this.frequenceMax = frequenceMax;
@@ -55,6 +60,7 @@ class Capturer {
     this.photos = photos;
     this.stockage = stockage;
     this.jdbc = jdbc;
+    this.calcul = calcul;
   }
 
   Reussite capturer(
@@ -108,7 +114,18 @@ class Capturer {
         le,
         Math.round(cible.distanceMetres()),
         "/api/captures/" + numero + "/photo",
-        cible.histoire());
+        cible.histoire(),
+        remplacer ? List.of() : succesGagnes(utilisateur)); // pas de recalcul au remplacement
+  }
+
+  /** RG-R2-03 : un échec ne défait pas la capture ; le prochain calcul rattrape. */
+  private List<CalculSucces.Gagne> succesGagnes(UUID utilisateur) {
+    try {
+      return calcul.calculer(utilisateur);
+    } catch (RuntimeException e) {
+      LOG.warn("calcul des succès indisponible, compte {}", utilisateur, e);
+      return List.of();
+    }
   }
 
   /**
