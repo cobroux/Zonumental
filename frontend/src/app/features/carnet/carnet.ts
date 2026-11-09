@@ -167,9 +167,7 @@ const ETATS: [Etat, string][] = [
                 <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
                   <path [attr.d]="formes[x.type]" />
                 </svg>
-                <span class="num" aria-hidden="true">{{
-                  x.captureeLe ? numero(x) : x.numero
-                }}</span>
+                <span class="num" aria-hidden="true">{{ numero(x) }}</span>
                 @if (x.captureeLe) {
                   @if (x.rarete === 'LEGENDAIRE') {
                     <svg class="etoile" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
