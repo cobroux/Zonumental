@@ -26,6 +26,7 @@ interface Refus {
   reessayer: boolean;
   distance?: number;
   email?: boolean;
+  remplacer?: boolean;
 }
 
 /** Corps problem+json (le client généré le livre en chaîne). */
@@ -80,6 +81,12 @@ export function refusDe(e: unknown): Refus | null {
         texte: "Cette photo n'est pas valide ou dépasse 5 Mo. Reprends-en une.",
         reessayer: false,
       };
+    case 'deja-capture':
+      return {
+        texte: 'Ce monument est déjà tamponné. Tu peux remplacer ta photo souvenir.',
+        reessayer: false,
+        remplacer: true,
+      };
     case 'email-non-verifie':
       return { texte: 'Vérifie ton e-mail pour pouvoir tamponner.', reessayer: false, email: true };
     default:
@@ -117,7 +124,11 @@ function enBlob(canvas: HTMLCanvasElement, qualite: number): Promise<Blob | null
     }
     @if (!cameraRefusee()) {
       <video #video autoplay playsinline muted aria-label="Aperçu de la caméra"></video>
-      @if (photo && refus()?.reessayer) {
+      @if (photo && refus()?.remplacer) {
+        <button type="button" data-remplacer [disabled]="envoi()" (click)="reessayer()">
+          {{ envoi() ? 'Envoi en cours…' : 'Remplacer la photo' }}
+        </button>
+      } @else if (photo && refus()?.reessayer) {
         <button type="button" data-reessayer [disabled]="envoi()" (click)="reessayer()">
           {{ envoi() ? 'Envoi en cours…' : 'Réessayer' }}
         </button>
@@ -150,6 +161,8 @@ export class Camera implements OnInit {
   protected readonly point = computed(() => POINTS[Math.round((this.cap() ?? 0) / 45) % 8]);
   /** Reste en mémoire pour « Réessayer » ; perdue avec l'écran (RG-057, R1-82). */
   protected photo: Blob | null = null;
+  /** Après `deja-capture` : les envois suivants remplacent la photo, sans récompense. */
+  private remplacement = false;
 
   constructor() {
     inject(DestroyRef).onDestroy(() => this.flux?.getTracks().forEach((t) => t.stop()));
@@ -207,6 +220,7 @@ export class Camera implements OnInit {
   /** Même photo, position relue (jamais celle d'avant : RG-057). */
   protected async reessayer(): Promise<void> {
     if (this.envoi()) return;
+    this.remplacement ||= !!this.refus()?.remplacer;
     this.envoi.set(true);
     this.refus.set(null);
     const coords = await this.pos.relire();
@@ -236,13 +250,17 @@ export class Camera implements OnInit {
           longitude: coords.longitude,
           precisionMetres: coords.precision ?? 0,
           photo: this.photo!,
+          ...(this.remplacement && { remplacer: true }),
         },
       });
-      // la fiche joue l'animation du tampon (r1-capturer-17)
-      await this.router.navigate(['/monument', this.numero()], { state: { capture: true } });
+      // la fiche joue l'animation du tampon (r1-capturer-17), sauf remplacement : pas de récompense
+      await this.router.navigate(
+        ['/monument', this.numero()],
+        this.remplacement ? undefined : { state: { capture: true } },
+      );
     } catch (e) {
       const refus = refusDe(e);
-      if (refus && !refus.reessayer) this.photo = null;
+      if (refus && !refus.reessayer && !refus.remplacer) this.photo = null;
       this.refus.set(refus);
       this.envoi.set(false);
       if (refus?.distance !== undefined) this.orienter(coords);
