@@ -77,6 +77,17 @@ describe('Camera', () => {
     expect(declencher(el).textContent).toContain('Prendre la photo');
   });
 
+  it('transmet les succès gagnés à la fiche', async () => {
+    const { el, fixture, http } = await rendre();
+    const navigate = vi.spyOn(TestBed.inject(Router), 'navigate').mockResolvedValue(true);
+    declencher(el).click();
+    await fixture.whenStable();
+    const succes = [{ code: 'PREMIER_TAMPON', libelle: 'Premier tampon' }];
+    http.expectOne('/api/captures').flush({ succesGagnes: succes });
+    await vide();
+    expect(navigate).toHaveBeenCalledWith(['/monument', '7'], { state: { capture: true, succes } });
+  });
+
   it('envoie id, position et précision lus à la prise, bouton bloqué pendant l’envoi', async () => {
     const { el, fixture, http } = await rendre();
     const navigate = vi.spyOn(TestBed.inject(Router), 'navigate').mockResolvedValue(true);
@@ -95,7 +106,9 @@ describe('Camera', () => {
     expect((corps.get('photo') as Blob).type).toBe('image/jpeg');
     req.flush({});
     await vide();
-    expect(navigate).toHaveBeenCalledWith(['/monument', '7'], { state: { capture: true } });
+    expect(navigate).toHaveBeenCalledWith(['/monument', '7'], {
+      state: { capture: true, succes: [] },
+    });
     http.verify();
   });
 
@@ -185,7 +198,9 @@ describe('Camera', () => {
     const navigate = vi.spyOn(TestBed.inject(Router), 'navigate').mockResolvedValue(true);
     req.flush({});
     await vide();
-    expect(navigate).toHaveBeenCalledWith(['/monument', '7'], { state: { capture: true } });
+    expect(navigate).toHaveBeenCalledWith(['/monument', '7'], {
+      state: { capture: true, succes: [] },
+    });
     expect(fixture.nativeElement.querySelector('zn-message')).toBeNull();
   });
 

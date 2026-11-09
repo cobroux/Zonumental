@@ -243,7 +243,7 @@ export class Camera implements OnInit {
     this.envoi.set(true);
     this.cap.set(null);
     try {
-      await this.api.invoke(capturer, {
+      const r = await this.api.invoke(capturer, {
         body: {
           numero: Number(this.numero()),
           latitude: coords.latitude,
@@ -256,7 +256,7 @@ export class Camera implements OnInit {
       // la fiche joue l'animation du tampon (r1-capturer-17), sauf remplacement : pas de récompense
       await this.router.navigate(
         ['/monument', this.numero()],
-        this.remplacement ? undefined : { state: { capture: true } },
+        this.remplacement ? undefined : { state: { capture: true, succes: r?.succesGagnes ?? [] } },
       );
     } catch (e) {
       const refus = refusDe(e);
