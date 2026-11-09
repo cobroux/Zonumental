@@ -119,10 +119,39 @@ class ExportTest {
     // Compte sans capture : export valide, liste vide.
     assertThat(json.get("captures").isArray()).isTrue();
     assertThat(json.get("captures")).isEmpty();
+    // Aucun succès : section présente et vide.
+    assertThat(json.get("succes").isArray()).isTrue();
+    assertThat(json.get("succes")).isEmpty();
 
     assertThat(brut.toLowerCase())
         .doesNotContain("motdepasse", "mot_de_passe", "hash", "empreinte", "argon", "bcrypt")
         .doesNotContain("latitude", "longitude", "jeton")
         .doesNotContain("$2");
+  }
+
+  @Test
+  void exporteCodeEtDateDesSucces() throws Exception {
+    UUID id = jdbc.queryForObject("select id from compte.utilisateur", UUID.class);
+    jdbc.update(
+        "insert into progression.succes_obtenu (utilisateur_id, code, obtenu_le) values"
+            + " (?, 'B', '2026-03-02T00:00:00Z'), (?, 'A', '2026-03-01T00:00:00Z')",
+        id,
+        id);
+    var debut =
+        mvc.perform(get("/api/compte/export").header("Authorization", bearer))
+            .andExpect(request().asyncStarted())
+            .andReturn();
+    var reponse =
+        mvc.perform(asyncDispatch(debut)).andExpect(status().isOk()).andReturn().getResponse();
+    String brut;
+    try (var zip = new ZipInputStream(new ByteArrayInputStream(reponse.getContentAsByteArray()))) {
+      zip.getNextEntry();
+      brut = new String(zip.readAllBytes(), StandardCharsets.UTF_8);
+    }
+    JsonNode succes = new ObjectMapper().readTree(brut).get("succes");
+    assertThat(succes).hasSize(2);
+    assertThat(succes.get(0).get("code").asText()).isEqualTo("A");
+    assertThat(succes.get(0).get("obtenuLe").asText()).startsWith("2026-03-01");
+    assertThat(succes.get(1).get("code").asText()).isEqualTo("B");
   }
 }
