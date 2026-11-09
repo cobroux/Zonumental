@@ -4,7 +4,7 @@ import { TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 import { signal } from '@angular/core';
 import { Position } from '../../core/position/position';
-import { Carnet } from './carnet';
+import { Carnet, SEUIL_FILTRES } from './carnet';
 
 const m = (
   numero: number,
@@ -135,5 +135,64 @@ describe('Carnet', () => {
     TestBed.tick();
     await f.whenStable();
     expect(document.activeElement).toBe(el.querySelector('h2'));
+  });
+
+  describe('filtres', () => {
+    const TYPES_8 = ['CHATEAU', 'RELIGIEUX', 'PONT', 'PHARE', 'PALAIS', 'TOUR', 'MUSEE', 'AUTRE'];
+    const liste = (n: number) =>
+      Array.from({ length: n }, (_, i) => ({
+        ...m(i + 1, `M${i + 1}`, '2026-01-01T00:00:00Z'),
+        type: i === 0 ? 'PONT' : 'CHATEAU',
+      }));
+    const chips = (el: HTMLElement) => [
+      ...el.querySelectorAll<HTMLButtonElement>('[aria-label="Filtres"] button[aria-pressed]'),
+    ];
+    const chip = (el: HTMLElement, t: string) => chips(el).find((b) => b.textContent!.includes(t))!;
+
+    it('moins de 20 tampons : aucun filtre', async () => {
+      const { el } = await rendre(liste(SEUIL_FILTRES - 1));
+      expect(el.querySelector('[aria-label="Filtres"]')).toBeNull();
+    });
+
+    it('20 tampons : état (3) et types (8) en boutons aria-pressed avec icône, une seule rangée', async () => {
+      const { el } = await rendre(liste(SEUIL_FILTRES));
+      expect(chips(el).length).toBe(3 + TYPES_8.length);
+      expect(chip(el, 'Tous').getAttribute('aria-pressed')).toBe('true');
+      expect(chips(el).every((b) => b.querySelector('svg') !== null)).toBe(true);
+      expect(el.querySelectorAll('[aria-label="Filtres"]').length).toBe(1);
+    });
+
+    it('filtre type : cases filtrées, compteur du catalogue inchangé, résultats annoncés', async () => {
+      const { f, el } = await rendre(liste(SEUIL_FILTRES));
+      chip(el, 'Pont').click();
+      f.detectChanges();
+      expect(cases(el).length).toBe(1);
+      expect(chip(el, 'Pont').getAttribute('aria-pressed')).toBe('true');
+      expect(chip(el, 'Pont').querySelector('.coche')).not.toBeNull();
+      expect(el.querySelector('.compteur')?.textContent).toContain('20 sur 20');
+      expect(el.querySelector('.resultats[role="status"]')?.textContent).toContain('1 résultat');
+      chip(el, 'Pont').click();
+      f.detectChanges();
+      expect(cases(el).length).toBe(20);
+    });
+
+    it('filtre état : à découvrir, puis aucun résultat avec Effacer les filtres', async () => {
+      const { f, el } = await rendre([...liste(SEUIL_FILTRES), m(99, 'Z', null)]);
+      chip(el, 'À découvrir').click();
+      f.detectChanges();
+      expect(cases(el).length).toBe(1);
+      chip(el, 'Pont').click();
+      f.detectChanges();
+      expect(cases(el).length).toBe(0);
+      expect(el.textContent).toContain('Aucun monument ne correspond');
+      (
+        [...el.querySelectorAll('button')].find((b) =>
+          b.textContent!.includes('Effacer les filtres'),
+        ) as HTMLButtonElement
+      ).click();
+      f.detectChanges();
+      expect(cases(el).length).toBe(21);
+      expect(chip(el, 'Tous').getAttribute('aria-pressed')).toBe('true');
+    });
   });
 });

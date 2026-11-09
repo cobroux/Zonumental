@@ -137,3 +137,46 @@
     animation: none;
   }
 }
+
+.filtres {
+  display: flex;
+  gap: var(--zn-esp-2);
+  overflow-x: auto;
+  padding-block: var(--zn-esp-1);
+}
+.filtres button {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  gap: var(--zn-esp-1);
+  min-block-size: var(--zn-cible);
+  padding-inline: var(--zn-esp-3);
+  border: var(--zn-trait);
+  border-radius: var(--zn-rayon-pastille);
+  background: var(--zn-papier-clair);
+  color: var(--zn-texte);
+  font: inherit;
+}
+.filtres button[aria-pressed='true'] {
+  background: var(--zn-encre);
+  color: var(--zn-papier);
+}
+.filtres button:focus-visible {
+  outline: 3px solid var(--zn-focus);
+  outline-offset: 2px;
+}
+.filtres svg {
+  inline-size: 20px;
+  block-size: 20px;
+  fill: currentcolor;
+}
+.filtres .coche {
+  fill: none;
+  stroke: currentcolor;
+  stroke-width: 3;
+}
+@media (forced-colors: active) {
+  .filtres button {
+    border-color: CanvasText;
+  }
+}
