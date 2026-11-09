@@ -458,6 +458,10 @@ paths:
         monument existant, déjà capturé, image (format, taille), précision, distance.
         La position et la précision servent au contrôle puis sont oubliées (RG-036) ;
         date = horloge du serveur (RG-048).
+        `remplacer=true` remplace la photo d'une capture existante (R1-25) : mêmes contrôles
+        sauf la vitesse (R1-68), 200 avec la capture inchangée (date d'origine) et la nouvelle photo ;
+        l'ancienne photo n'est effacée qu'après la bascule. Monument non capturé : `introuvable`.
+        Sans `remplacer`, un monument déjà capturé donne `deja-capture` (le client propose le remplacement).
       requestBody:
         required: true
         content:
@@ -470,11 +474,17 @@ paths:
                 latitude: { type: number, format: double, minimum: -90, maximum: 90 }
                 longitude: { type: number, format: double, minimum: -180, maximum: 180 }
                 precisionMetres: { type: number, format: double, minimum: 0 }
+                remplacer: { type: boolean, default: false, description: Remplacer la photo d'une capture existante }
                 photo:
                   type: string
                   format: binary
                   description: JPEG, PNG ou WebP réel, 5 000 000 octets max (RG-051)
       responses:
+        '200':
+          description: Photo remplacée (`remplacer=true`), date d'origine conservée
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/CaptureReussie' }
         '201':
           description: Capture enregistrée, histoire débloquée
           content:
@@ -508,7 +518,7 @@ paths:
         '429':
           description: >
             `limite-frequence` (10 captures dans l'heure glissante, RG-030) ou
-            `deplacement-improbable` (vitesse > 300 km/h depuis la dernière capture, RG-033 ;
+            `deplacement-improbable` (vitesse > 300 km/h depuis la dernière capture, RG-033, sauf remplacement ;
             message neutre côté appli). `Retry-After` : secondes avant le prochain essai possible.
           headers:
             Retry-After:
