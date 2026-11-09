@@ -230,7 +230,7 @@ describe('Fiche', () => {
       const { el } = await rendre(verrouille, ici(48.0008));
       const navigate = vi.spyOn(TestBed.inject(Router), 'navigate').mockResolvedValue(true);
       el.querySelector('button')?.click();
-      expect(navigate).toHaveBeenCalledWith(['/monument', '7', 'capturer']);
+      expect(navigate).toHaveBeenCalledWith(['/monument', '7', 'capturer'], undefined);
     });
 
     it('« Remplacer la photo » ouvre l’écran caméra en mode remplacement', async () => {
