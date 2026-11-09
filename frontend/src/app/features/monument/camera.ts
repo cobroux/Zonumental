@@ -238,8 +238,8 @@ export class Camera implements OnInit {
           photo: this.photo!,
         },
       });
-      // r1-capturer-17 branchera l'animation ici
-      await this.router.navigate(['/monument', this.numero()]);
+      // la fiche joue l'animation du tampon (r1-capturer-17)
+      await this.router.navigate(['/monument', this.numero()], { state: { capture: true } });
     } catch (e) {
       const refus = refusDe(e);
       if (refus && !refus.reessayer) this.photo = null;

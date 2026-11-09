@@ -141,6 +141,59 @@ describe('Fiche', () => {
     expect(URL.revokeObjectURL).toHaveBeenCalledWith('blob:x');
   });
 
+  describe('animation du tampon (après capture)', () => {
+    const reduit = (v: boolean) => (window.matchMedia = vi.fn(() => ({ matches: v })) as never);
+    const anim = (el: HTMLElement) => el.querySelector<HTMLElement>('[data-animation]');
+    afterEach(() => {
+      history.replaceState(null, '');
+      vi.useRealTimers();
+    });
+
+    it('rareté en toutes lettres, histoire déjà lisible, ni succès ni XP', async () => {
+      reduit(false);
+      history.replaceState({ capture: true }, '');
+      const { el } = await rendre({ ...capture, rarete: 'LEGENDAIRE' });
+      expect(anim(el)?.textContent).toContain('Légendaire');
+      expect(anim(el)?.textContent).not.toMatch(/succès|XP/i);
+      expect(el.textContent).toContain('Construite pour 1889.');
+    });
+
+    it('un appui sur Continuer passe l’animation', async () => {
+      reduit(false);
+      history.replaceState({ capture: true }, '');
+      const { fixture, el } = await rendre(capture);
+      el.querySelector<HTMLButtonElement>('[data-animation] button')!.click();
+      fixture.detectChanges();
+      expect(anim(el)).toBeNull();
+      expect(history.state?.capture).toBeUndefined();
+    });
+
+    it('se termine seule à la fin de l’animation', async () => {
+      reduit(false);
+      history.replaceState({ capture: true }, '');
+      const { fixture, el } = await rendre(capture);
+      vi.useFakeTimers();
+      anim(el)!.dispatchEvent(new Event('animationend', { bubbles: true }));
+      fixture.detectChanges();
+      expect(anim(el)).toBeNull();
+    });
+
+    it('mouvement réduit : tampon fixe, reste jusqu’à l’appui', async () => {
+      reduit(true);
+      history.replaceState({ capture: true }, '');
+      const { fixture, el } = await rendre(capture);
+      anim(el)!.dispatchEvent(new Event('animationend', { bubbles: true }));
+      fixture.detectChanges();
+      expect(anim(el)).not.toBeNull();
+      expect(anim(el)!.classList.contains('fixe')).toBe(true);
+    });
+
+    it('ouverture normale de la fiche : pas d’animation', async () => {
+      const { el } = await rendre(capture);
+      expect(anim(el)).toBeNull();
+    });
+  });
+
   describe('non capturé', () => {
     it('identité : numéro, type, rareté en lettres, siècle, histoire cadenassée, pas de tampon', async () => {
       const { el } = await rendre({ ...verrouille, siecle: 17 });
