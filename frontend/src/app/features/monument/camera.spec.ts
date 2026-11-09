@@ -255,4 +255,64 @@ describe('Camera', () => {
     expect(texte(el)).toContain('position');
     http.verify();
   });
+
+  describe('déjà capturé (r1-capturer-4)', () => {
+    const remplacer = (el: HTMLElement) =>
+      el.querySelector<HTMLButtonElement>('button[data-remplacer]');
+
+    it('deja-capture : propose « Remplacer la photo » sans récompense', async () => {
+      const { el } = await refuser({ code: 'deja-capture' }, 409);
+      expect(texte(el)).toContain('déjà tamponné');
+      expect(remplacer(el)!.textContent).toContain('Remplacer la photo');
+      expect(reessayer(el)).toBeNull();
+    });
+
+    it('« Remplacer la photo » renvoie la même photo avec remplacer=true, puis fiche sans animation', async () => {
+      const { el, fixture, http } = await refuser({ code: 'deja-capture' }, 409);
+      const prises = (HTMLCanvasElement.prototype.toBlob as ReturnType<typeof vi.fn>).mock.calls
+        .length;
+      relire.mockResolvedValue({ latitude: 48.2, longitude: 2.3, precision: 20 });
+      remplacer(el)!.click();
+      await fixture.whenStable();
+      const req = http.expectOne('/api/captures');
+      const corps = req.request.body as FormData;
+      expect(corps.get('remplacer')).toBe('true');
+      expect(corps.get('latitude')).toBe('48.2');
+      expect(HTMLCanvasElement.prototype.toBlob).toHaveBeenCalledTimes(prises);
+      const navigate = vi.spyOn(TestBed.inject(Router), 'navigate').mockResolvedValue(true);
+      req.flush({}, { status: 200, statusText: 'OK' });
+      await vide();
+      expect(navigate).toHaveBeenCalledWith(['/monument', '7'], undefined);
+    });
+
+    it('remplacement trop loin : message #42, « Réessayer » garde le remplacement', async () => {
+      const { el, fixture, http } = await refuser({ code: 'deja-capture' }, 409);
+      remplacer(el)!.click();
+      await fixture.whenStable();
+      http
+        .expectOne('/api/captures')
+        .flush({ code: 'trop-loin', distanceMetres: 500 }, { status: 422, statusText: 'x' });
+      await vide();
+      http.match('/api/catalogue/monuments/7');
+      fixture.detectChanges();
+      expect(texte(el)).toContain('Tu es à 500 m');
+      reessayer(el)!.click();
+      await fixture.whenStable();
+      expect((http.expectOne('/api/captures').request.body as FormData).get('remplacer')).toBe(
+        'true',
+      );
+    });
+
+    it('échec d’envoi du remplacement : reste sur l’écran, aucune navigation (ancienne photo conservée)', async () => {
+      const { el, fixture, http } = await refuser({ code: 'deja-capture' }, 409);
+      const navigate = vi.spyOn(TestBed.inject(Router), 'navigate').mockResolvedValue(true);
+      remplacer(el)!.click();
+      await fixture.whenStable();
+      http.expectOne('/api/captures').error(new ProgressEvent('error'));
+      await vide();
+      fixture.detectChanges();
+      expect(texte(el)).toContain('Pas de connexion.');
+      expect(navigate).not.toHaveBeenCalled();
+    });
+  });
 });
