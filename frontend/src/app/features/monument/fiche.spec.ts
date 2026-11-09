@@ -2,6 +2,7 @@ import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
 import { signal } from '@angular/core';
+import { Router, provideRouter } from '@angular/router';
 import { Position } from '../../core/position/position';
 import { Fiche } from './fiche';
 
@@ -52,6 +53,7 @@ const ici = (latitude = 48, precision = 10) => ({
 async function rendre(monument: object, etat: object = { statut: 'attente' }) {
   TestBed.configureTestingModule({
     providers: [
+      provideRouter([]),
       provideHttpClient(),
       provideHttpClientTesting(),
       { provide: Position, useValue: { etat: signal(etat) } },
@@ -169,6 +171,13 @@ describe('Fiche', () => {
       const b = el.querySelector('button');
       expect(b?.textContent).toContain('Aller le tamponner');
       expect(b?.disabled).toBe(false);
+    });
+
+    it('« Aller le tamponner » ouvre l’écran caméra', async () => {
+      const { el } = await rendre(verrouille, ici(48.0008));
+      const navigate = vi.spyOn(TestBed.inject(Router), 'navigate').mockResolvedValue(true);
+      el.querySelector('button')?.click();
+      expect(navigate).toHaveBeenCalledWith(['/monument', '7', 'capturer']);
     });
 
     it('sans position : pas de distance', async () => {
