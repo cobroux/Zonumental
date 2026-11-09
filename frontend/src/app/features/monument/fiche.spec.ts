@@ -188,6 +188,50 @@ describe('Fiche', () => {
       expect(anim(el)!.classList.contains('fixe')).toBe(true);
     });
 
+    const duo = [
+      { code: 'A', libelle: 'Premier tampon' },
+      { code: 'B', libelle: 'Dix tampons' },
+    ];
+    const bouton = (el: HTMLElement) =>
+      el.querySelector<HTMLButtonElement>('[data-succes] button')!;
+
+    it('succès : un écran par succès, annoncé en toutes lettres, Suivant puis Terminer', async () => {
+      reduit(false);
+      history.replaceState({ capture: true, succes: duo }, '');
+      const { fixture, el } = await rendre(capture);
+      el.querySelector<HTMLButtonElement>('[data-animation] button')!.click();
+      fixture.detectChanges();
+      const s = el.querySelector('[data-succes]')!;
+      expect(s.getAttribute('role')).toBe('status');
+      expect(s.textContent).toContain('Premier tampon');
+      expect(bouton(el).textContent).toContain('Suivant');
+      bouton(el).click();
+      fixture.detectChanges();
+      expect(el.querySelector('[data-succes]')!.textContent).toContain('Dix tampons');
+      expect(bouton(el).textContent).toContain('Terminer');
+      bouton(el).click();
+      fixture.detectChanges();
+      expect(el.querySelector('[data-succes]')).toBeNull();
+    });
+
+    it('succès, mouvement réduit : affichage statique', async () => {
+      reduit(true);
+      history.replaceState({ capture: true, succes: duo }, '');
+      const { fixture, el } = await rendre(capture);
+      el.querySelector<HTMLButtonElement>('[data-animation] button')!.click();
+      fixture.detectChanges();
+      expect(el.querySelector('[data-succes]')!.classList.contains('fixe')).toBe(true);
+    });
+
+    it('aucun succès : pas d’écran de succès', async () => {
+      reduit(false);
+      history.replaceState({ capture: true, succes: [] }, '');
+      const { fixture, el } = await rendre(capture);
+      el.querySelector<HTMLButtonElement>('[data-animation] button')!.click();
+      fixture.detectChanges();
+      expect(el.querySelector('[data-succes]')).toBeNull();
+    });
+
     it('ouverture normale de la fiche : pas d’animation', async () => {
       const { el } = await rendre(capture);
       expect(anim(el)).toBeNull();

@@ -69,6 +69,13 @@ const TYPES = {
           <p class="sceau">Capturé · {{ raretes[m.rarete] }}</p>
           <button type="button" (click)="fin()">Continuer</button>
         </div>
+      } @else if (succes()[rang()]; as s) {
+        <div data-succes class="tampon-anim" [class.fixe]="reduit" role="status">
+          <p class="sceau">Succès · {{ s.libelle }}</p>
+          <button type="button" (click)="suivant()">
+            {{ rang() < succes().length - 1 ? 'Suivant' : 'Terminer' }}
+          </button>
+        </div>
       }
       <h1>{{ m.nom }}</h1>
       <p>N° {{ m.numero }} · {{ types[m.type] }} · {{ raretes[m.rarete] }}</p>
@@ -191,6 +198,18 @@ export class Fiche {
   protected fin(): void {
     this.animation.set(false);
     history.replaceState({ ...history.state, capture: undefined }, '');
+  }
+  /** Succès gagnés par la capture, un écran chacun après le tampon. */
+  protected readonly succes = signal<{ code: string; libelle: string }[]>(
+    history.state?.succes ?? [],
+  );
+  protected readonly rang = signal(0);
+  protected suivant(): void {
+    if (this.rang() < this.succes().length - 1) this.rang.update((r) => r + 1);
+    else {
+      this.succes.set([]);
+      history.replaceState({ ...history.state, succes: undefined }, '');
+    }
   }
   private readonly position = inject(Position).etat;
   private readonly router = inject(Router);
