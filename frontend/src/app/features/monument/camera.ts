@@ -161,8 +161,8 @@ export class Camera implements OnInit {
   protected readonly point = computed(() => POINTS[Math.round((this.cap() ?? 0) / 45) % 8]);
   /** Reste en mémoire pour « Réessayer » ; perdue avec l'écran (RG-057, R1-82). */
   protected photo: Blob | null = null;
-  /** Après `deja-capture` : les envois suivants remplacent la photo, sans récompense. */
-  private remplacement = false;
+  /** Ouverte depuis la fiche, ou après `deja-capture` : les envois remplacent la photo, sans récompense. */
+  private remplacement = history.state?.remplacer === true;
 
   constructor() {
     inject(DestroyRef).onDestroy(() => this.flux?.getTracks().forEach((t) => t.stop()));
