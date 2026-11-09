@@ -1,6 +1,8 @@
 package fr.zonumental.progression;
 
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import org.springframework.jdbc.core.simple.JdbcClient;
 import org.springframework.stereotype.Service;
@@ -27,16 +29,27 @@ public class CalculSucces {
     this.jdbc = jdbc;
   }
 
-  public List<Gagne> calculer(UUID utilisateur) {
+  /** Valeur courante de chaque succès du catalogue, non plafonnée. */
+  Map<String, Long> valeurs(UUID utilisateur) {
+    List<Prise> prises = prises(utilisateur);
+    Map<String, Long> m = new LinkedHashMap<>();
+    catalogue.succes().forEach(s -> m.put(s.code(), valeur(s, prises)));
+    return m;
+  }
+
+  private List<Prise> prises(UUID utilisateur) {
     // Lecture directe du schéma capture : pas de dépendance Java vers le module capture.
-    List<Prise> prises =
-        jdbc.sql(
-                "select m.rarete, m.ville_code_insee, m.type from capture.capture c"
-                    + " join catalogue.monument m on m.numero = c.numero_monument"
-                    + " where c.utilisateur_id = ?")
-            .params(utilisateur)
-            .query((r, i) -> new Prise(r.getString(1), r.getString(2), r.getString(3)))
-            .list();
+    return jdbc.sql(
+            "select m.rarete, m.ville_code_insee, m.type from capture.capture c"
+                + " join catalogue.monument m on m.numero = c.numero_monument"
+                + " where c.utilisateur_id = ?")
+        .params(utilisateur)
+        .query((r, i) -> new Prise(r.getString(1), r.getString(2), r.getString(3)))
+        .list();
+  }
+
+  public List<Gagne> calculer(UUID utilisateur) {
+    List<Prise> prises = prises(utilisateur);
     return catalogue.succes().stream()
         .filter(s -> valeur(s, prises) >= s.seuil())
         .filter(s -> obtenus.enregistrer(utilisateur, s.code()))

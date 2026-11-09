@@ -29,6 +29,8 @@ tags:
     description: Monuments en lecture
   - name: capture
     description: Capture d'un monument et photo souvenir (R1)
+  - name: progression
+    description: Succès du joueur connecté (R2)
 
 paths:
   /api/health:
@@ -561,6 +563,22 @@ paths:
             application/problem+json:
               schema: { $ref: '#/components/schemas/Probleme' }
 
+  /api/progression/succes:
+    get:
+      tags: [progression]
+      operationId: mesSucces
+      summary: Succès obtenus et en cours de l'appelant uniquement (RG-R2-01, RG-R2-02)
+      description: >
+        Le catalogue de succès est provisoire : seule la forme est contractuelle.
+        `valeur` est plafonnée au `seuil`.
+      responses:
+        '200':
+          description: Succès de l'appelant
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/MesSucces' }
+        '401': { $ref: '#/components/responses/NonAuthentifie' }
+
 components:
   securitySchemes:
     jwt:
@@ -748,6 +766,29 @@ components:
         pseudo: { type: string }
         email: { type: string, format: email }
         emailVerifie: { type: boolean }
+    MesSucces:
+      type: object
+      required: [obtenus, enCours]
+      properties:
+        obtenus:
+          type: array
+          items:
+            type: object
+            required: [code, libelle, obtenuLe]
+            properties:
+              code: { type: string }
+              libelle: { type: string }
+              obtenuLe: { type: string, format: date-time }
+        enCours:
+          type: array
+          items:
+            type: object
+            required: [code, libelle, valeur, seuil]
+            properties:
+              code: { type: string }
+              libelle: { type: string }
+              valeur: { type: integer, format: int64, minimum: 0, description: Plafonnée au seuil }
+              seuil: { type: integer, minimum: 1 }
     ConsentementsFacultatifs:
       type: object
       required: [classement, emails]
