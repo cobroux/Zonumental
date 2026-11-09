@@ -95,6 +95,27 @@ describe('Fiche', () => {
     expect(el.textContent).not.toContain('image modifiée');
   });
 
+  it('capturée : tampon, date jj/mm/aaaa en heure de Paris, Remplacer la photo', async () => {
+    const { el } = await rendre({ ...capture, captureeLe: '2026-10-31T23:30:00Z' });
+    expect(el.querySelector('[data-tampon]')?.textContent).toContain('01/11/2026');
+    expect(el.textContent).toContain('Remplacer la photo');
+  });
+
+  it('capturée : stats inconnues « — »', async () => {
+    const { el } = await rendre({
+      ...capture,
+      stats: { annee: null, style: null, hauteurMetres: null },
+    });
+    expect(el.querySelectorAll('dd')[0].textContent).toBe('—');
+    expect(el.querySelectorAll('dd')[2].textContent).toBe('—');
+  });
+
+  it('verrouillée : ni tampon ni Remplacer la photo', async () => {
+    const { el } = await rendre(verrouille);
+    expect(el.querySelector('[data-tampon]')).toBeNull();
+    expect(el.textContent).not.toContain('Remplacer la photo');
+  });
+
   it('couleur en 404 : le N&B reste affiché', async () => {
     const { fixture, http, el } = await rendre(capture);
     http
