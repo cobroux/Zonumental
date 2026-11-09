@@ -2,6 +2,8 @@ import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
+import { signal } from '@angular/core';
+import { Position } from '../../core/position/position';
 import { Carnet } from './carnet';
 
 const m = (
@@ -19,12 +21,21 @@ const m = (
   ville: { codeInsee: ville, nom: ville },
 });
 
-async function rendre(liste: object[] | { status: number }) {
+async function rendre(liste: object[] | { status: number }, coords?: object) {
   TestBed.configureTestingModule({
-    providers: [provideHttpClient(), provideHttpClientTesting(), provideRouter([])],
+    providers: [
+      provideHttpClient(),
+      provideHttpClientTesting(),
+      provideRouter([]),
+      {
+        provide: Position,
+        useValue: { etat: signal(coords ? { statut: 'ok', coords } : { statut: 'attente' }) },
+      },
+    ],
   });
   const http = TestBed.inject(HttpTestingController);
   const f = TestBed.createComponent(Carnet);
+  document.body.append(f.nativeElement);
   f.detectChanges();
   const req = http.expectOne('/api/catalogue/monuments');
   if (Array.isArray(liste)) req.flush(liste);
@@ -82,5 +93,47 @@ describe('Carnet', () => {
     const { el } = await rendre({ status: 0 });
     expect(el.querySelector('[role="alert"]')?.textContent).toContain('Pas de connexion.');
     expect(el.querySelector('[role="alert"] button')?.textContent).toContain('Réessayer');
+  });
+
+  it('ville courante : la plus proche si position connue, sinon Paris', async () => {
+    const liste = [
+      { ...m(1, 'A', null, 'Lyon'), position: { latitude: 45.76, longitude: 4.83 } },
+      { ...m(2, 'B', null, 'Paris'), position: { latitude: 48.85, longitude: 2.35 } },
+    ];
+    const a = await rendre(liste, { latitude: 45.7, longitude: 4.8 });
+    expect(a.el.querySelector('h2')?.textContent).toContain('Lyon');
+  });
+
+  it('légendaire : étoile et double filet ; rare : pas d’étoile ; texte en toutes lettres', async () => {
+    const { el } = await rendre([
+      m(1, 'A', '2026-01-01T00:00:00Z', 'Paris', 'LEGENDAIRE'),
+      m(2, 'B', '2026-01-01T00:00:00Z', 'Paris', 'RARE'),
+    ]);
+    expect(cases(el)[0].querySelector('.etoile')).not.toBeNull();
+    expect(cases(el)[0].textContent).toContain('Légendaire');
+    expect(cases(el)[1].querySelector('.etoile')).toBeNull();
+  });
+
+  it('chargement : cases squelette', () => {
+    TestBed.configureTestingModule({
+      providers: [provideHttpClient(), provideHttpClientTesting(), provideRouter([])],
+    });
+    const f = TestBed.createComponent(Carnet);
+    f.detectChanges();
+    expect(f.nativeElement.querySelectorAll('.squelette li').length).toBeGreaterThan(0);
+  });
+
+  it('a11y : progressbar et focus h1 puis h2', async () => {
+    const { f, el } = await rendre([m(1, 'A', null, 'Lyon'), m(2, 'B', null, 'Paris')]);
+    const p = el.querySelector('[role="progressbar"]')!;
+    expect(p.getAttribute('aria-valuenow')).toBe('0');
+    expect(p.getAttribute('aria-valuemin')).toBe('0');
+    expect(p.getAttribute('aria-valuemax')).toBe('2');
+    expect(document.activeElement).toBe(el.querySelector('h1'));
+    (el.querySelector('button[aria-label="Ville précédente"]') as HTMLButtonElement).click();
+    f.detectChanges();
+    TestBed.tick();
+    await f.whenStable();
+    expect(document.activeElement).toBe(el.querySelector('h2'));
   });
 });

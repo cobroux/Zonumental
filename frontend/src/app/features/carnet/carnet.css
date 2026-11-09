@@ -13,9 +13,16 @@
 .compteur {
   font-family: 'Geist Mono', monospace;
 }
-.compteur progress {
+.barre {
   display: block;
-  inline-size: 100%;
+  block-size: 8px;
+  background: var(--zn-papier-sombre, #d9cfbd);
+  border: var(--zn-trait);
+}
+.barre span {
+  display: block;
+  block-size: 100%;
+  background: var(--zn-action);
 }
 .villes {
   display: flex;
@@ -39,7 +46,7 @@
 }
 .grille {
   display: grid;
-  grid-template-columns: repeat(5, 1fr);
+  grid-template-columns: repeat(5, minmax(0, 1fr));
   gap: var(--zn-esp-2);
   padding: 0;
   list-style: none;
@@ -102,5 +109,31 @@
 @media (forced-colors: active) {
   .grille a {
     border-color: CanvasText;
+  }
+}
+
+.tampon.legendaire .etoile {
+  position: absolute;
+  inset: 2px 2px auto auto;
+  inline-size: 12px;
+  block-size: 12px;
+}
+.grille a {
+  position: relative;
+}
+.squelette li {
+  min-block-size: 72px;
+  border-radius: 12px;
+  background: var(--zn-papier-sombre, #d9cfbd);
+  animation: pulse 1.2s ease-in-out infinite alternate;
+}
+@keyframes pulse {
+  to {
+    opacity: 0.5;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .squelette li {
+    animation: none;
   }
 }

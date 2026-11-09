@@ -1,10 +1,22 @@
 import { httpResource } from '@angular/common/http';
-import { ChangeDetectionStrategy, Component, computed, signal } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  ElementRef,
+  Injector,
+  afterNextRender,
+  computed,
+  inject,
+  signal,
+  viewChild,
+} from '@angular/core';
 import { TitleCasePipe } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { MonumentResume } from '../../core/api/models/monument-resume';
 import { Rarete } from '../../core/api/models/rarete';
 import { TypeMonument } from '../../core/api/models/type-monument';
+import { Position } from '../../core/position/position';
+import { distanceMetres } from '../../core/position/proximite';
 import { ZnMessage } from '../../shared/ui/message';
 
 const RARETES: Record<Rarete, string> = {
@@ -64,11 +76,15 @@ const FORMES: Record<TypeMonument, string> = {
         }
         <p class="compteur">
           {{ captures() }} sur {{ total() }}
-          <progress
-            [value]="captures()"
-            [max]="total()"
+          <span
+            class="barre"
+            role="progressbar"
             aria-label="Progression du carnet"
-          ></progress>
+            aria-valuemin="0"
+            [attr.aria-valuenow]="captures()"
+            [attr.aria-valuemax]="total()"
+            ><span [style.inline-size.%]="(100 * captures()) / total()"></span
+          ></span>
         </p>
         <nav aria-label="Villes" class="villes">
           <button
@@ -79,7 +95,7 @@ const FORMES: Record<TypeMonument, string> = {
           >
             ‹
           </button>
-          <h2 tabindex="-1">{{ pageCourante()?.nom }}</h2>
+          <h2 #ville tabindex="-1">{{ pageCourante()?.nom }}</h2>
           <span>{{ index() + 1 }}/{{ pages().length }}</span>
           <button
             type="button"
@@ -109,6 +125,13 @@ const FORMES: Record<TypeMonument, string> = {
                   x.captureeLe ? numero(x) : x.numero
                 }}</span>
                 @if (x.captureeLe) {
+                  @if (x.rarete === 'LEGENDAIRE') {
+                    <svg class="etoile" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                      <path
+                        d="M12 2l3 7 7 .6-5.3 4.7 1.700 7.200L12 17.800 5.600 21.500l1.700-7.200L2 9.600 9 9z"
+                      />
+                    </svg>
+                  }
                   <span class="nom" aria-hidden="true">{{ x.nom }}</span>
                   <span class="meta" aria-hidden="true"
                     >{{ types[x.type] }} · {{ raretes[x.rarete] | titlecase }}</span
@@ -121,12 +144,21 @@ const FORMES: Record<TypeMonument, string> = {
       }
     } @else {
       <p class="sr" role="status">Chargement du carnet</p>
+      <ul class="grille squelette" aria-hidden="true">
+        @for (i of [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]; track i) {
+          <li></li>
+        }
+      </ul>
     }
   `,
   styleUrls: ['../coquille.css', './carnet.css'],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class Carnet {
+  private readonly injector = inject(Injector);
+  private readonly position = inject(Position);
+  private readonly titre = viewChild<ElementRef<HTMLElement>>('titre');
+  private readonly ville = viewChild<ElementRef<HTMLElement>>('ville');
   protected readonly monuments = httpResource<MonumentResume[]>(() => '/api/catalogue/monuments');
   protected readonly formes = FORMES;
   protected readonly types = TYPES;
@@ -146,14 +178,20 @@ export class Carnet {
     return [...parVille].map(([nom, monuments]) => ({ nom, monuments }));
   });
   protected readonly index = computed(() => {
-    // shortcut: ville la plus proche non gérée (pas de géoloc ici), Paris par défaut ; à brancher avec la localisation.
     const p = this.page();
-    return (
-      p ??
-      Math.max(
-        0,
-        this.pages().findIndex((v) => v.nom === 'Paris'),
-      )
+    if (p !== null) return p;
+    const coords = this.position.etat().coords;
+    const proche = coords
+      ? this.liste().reduce<MonumentResume | undefined>(
+          (m, x) =>
+            !m || distanceMetres(coords, x.position) < distanceMetres(coords, m.position) ? x : m,
+          undefined,
+        )
+      : undefined;
+    const nom = proche?.ville.nom ?? 'Paris';
+    return Math.max(
+      0,
+      this.pages().findIndex((v) => v.nom === nom),
     );
   });
   protected readonly pageCourante = computed(() => this.pages()[this.index()]);
@@ -161,8 +199,13 @@ export class Carnet {
     () => this.pageCourante()?.monuments.filter((x) => x.captureeLe).length ?? 0,
   );
 
+  constructor() {
+    afterNextRender(() => this.titre()?.nativeElement.focus());
+  }
+
   protected aller(sens: number) {
     this.page.set(this.index() + sens);
+    afterNextRender(() => this.ville()?.nativeElement.focus(), { injector: this.injector });
   }
   protected numero(x: MonumentResume) {
     return `N° ${String(x.numero).padStart(3, '0')}`;
