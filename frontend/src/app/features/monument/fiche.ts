@@ -12,6 +12,7 @@ import {
 import { Router } from '@angular/router';
 import { Position } from '../../core/position/position';
 import {
+  POINTS,
   PRECISION_MAX_METRES,
   capVers,
   distanceMetres,
@@ -50,7 +51,6 @@ const TYPES = {
   MUSEE: 'Musée',
   AUTRE: 'Monument',
 };
-const POINTS = ['nord', 'nord-est', 'est', 'sud-est', 'sud', 'sud-ouest', 'ouest', 'nord-ouest'];
 
 /** Fiche monument : verrouillée (indices, N&B) tant que non capturé (RG-042, RG-054). */
 @Component({

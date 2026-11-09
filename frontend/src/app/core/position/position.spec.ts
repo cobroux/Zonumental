@@ -118,4 +118,22 @@ describe('Position', () => {
     t.envoyer(10);
     expect(set).not.toHaveBeenCalled();
   });
+
+  it('relire() lit une position fraîche (maximumAge 0) et met l’état à jour', async () => {
+    const getCurrentPosition = vi.fn((ok: Succes, _ko: Echec, o?: object) => {
+      expect(o).toMatchObject({ enableHighAccuracy: true, maximumAge: 0 });
+      ok({ coords: { latitude: 1, longitude: 2, accuracy: 8 } });
+    });
+    vi.stubGlobal('navigator', { geolocation: { getCurrentPosition } });
+    const service = TestBed.inject(Position);
+    await expect(service.relire()).resolves.toEqual({ latitude: 1, longitude: 2, precision: 8 });
+    expect(service.etat().coords?.precision).toBe(8);
+  });
+
+  it('relire() sans position disponible : null', async () => {
+    vi.stubGlobal('navigator', {
+      geolocation: { getCurrentPosition: (_o: Succes, ko: Echec) => ko({ code: 2 }) },
+    });
+    await expect(TestBed.inject(Position).relire()).resolves.toBeNull();
+  });
 });

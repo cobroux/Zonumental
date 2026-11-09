@@ -38,6 +38,17 @@ export function capVers(
   return (Math.atan2(y, x) / rad + 360) % 360;
 }
 
+export const POINTS = [
+  'nord',
+  'nord-est',
+  'est',
+  'sud-est',
+  'sud',
+  'sud-ouest',
+  'ouest',
+  'nord-ouest',
+];
+
 export function formaterDistance(m: number): string {
   const arrondi = Math.round(m / 10) * 10;
   return arrondi < 1000 ? `${arrondi} m` : `${(m / 1000).toFixed(1).replace('.', ',')} km`;

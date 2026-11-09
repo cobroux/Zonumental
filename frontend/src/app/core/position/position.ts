@@ -48,6 +48,27 @@ export class Position {
     this.demarrer();
   }
 
+  /** Lecture fraîche (jamais de cache), pour « Réessayer » (RG-057) ; null si indisponible. */
+  relire(): Promise<Coords | null> {
+    const geo = navigator.geolocation;
+    if (!geo) return Promise.resolve(null);
+    return new Promise((fin) =>
+      geo.getCurrentPosition(
+        (p) => {
+          const coords = {
+            latitude: p.coords.latitude,
+            longitude: p.coords.longitude,
+            precision: p.coords.accuracy,
+          };
+          this._etat.set({ statut: 'ok', coords });
+          fin(coords);
+        },
+        () => fin(null),
+        { enableHighAccuracy: true, maximumAge: 0, timeout: 15000 },
+      ),
+    );
+  }
+
   private demarrer(): void {
     if (this.suivi !== null) return;
     const geo = navigator.geolocation;

@@ -21,6 +21,7 @@ describe('Camera', () => {
   const arreter = vi.fn();
   const coords = { latitude: 48.1, longitude: 2.2, precision: 12 };
   let etat: ReturnType<typeof signal<object>>;
+  const relire = vi.fn();
   let getUserMedia: ReturnType<typeof vi.fn>;
 
   async function rendre(media: 'ok' | 'refus' = 'ok') {
@@ -40,7 +41,7 @@ describe('Camera', () => {
         provideHttpClientTesting(),
         provideApiConfiguration(''),
         provideRouter([]),
-        { provide: Position, useValue: { etat } },
+        { provide: Position, useValue: { etat, relire } },
       ],
     });
     const fixture = TestBed.createComponent(Camera);
@@ -54,8 +55,12 @@ describe('Camera', () => {
   const declencher = (el: HTMLElement) =>
     el.querySelector<HTMLButtonElement>('button[data-prendre]')!;
 
+  const reessayer = (el: HTMLElement) =>
+    el.querySelector<HTMLButtonElement>('button[data-reessayer]');
+
   beforeEach(() => {
     arreter.mockClear();
+    relire.mockReset().mockResolvedValue(coords);
     HTMLCanvasElement.prototype.getContext = vi.fn(() => ({ drawImage: vi.fn() })) as never;
     HTMLCanvasElement.prototype.toBlob = vi.fn(function (cb: BlobCallback) {
       cb(new Blob(['x'], { type: 'image/jpeg' }));
@@ -111,7 +116,7 @@ describe('Camera', () => {
     http.verify();
   });
 
-  it('erreur serveur : message, bouton réactivé', async () => {
+  it('erreur serveur : message, bouton réactivé ', async () => {
     const { el, fixture, http } = await rendre();
     declencher(el).click();
     await fixture.whenStable();
@@ -119,12 +124,135 @@ describe('Camera', () => {
     await vide();
     fixture.detectChanges();
     expect(el.querySelector('[role=alert]')).not.toBeNull();
-    expect(declencher(el).disabled).toBe(false);
+    expect(reessayer(el)!.disabled).toBe(false);
   });
 
   it('coupe la caméra à la destruction', async () => {
     const { fixture } = await rendre();
     fixture.destroy();
     expect(arreter).toHaveBeenCalled();
+  });
+
+  async function refuser(
+    corps: object,
+    status: number,
+    entetes: Record<string, string> = {},
+    attendu = '/api/captures',
+  ) {
+    const r = await rendre();
+    declencher(r.el).click();
+    await r.fixture.whenStable();
+    r.http.expectOne(attendu).flush(corps, { status, statusText: 'x', headers: entetes });
+    await vide();
+    r.fixture.detectChanges();
+    return r;
+  }
+  const texte = (el: HTMLElement) => el.querySelector('zn-message')?.textContent ?? '';
+
+  it('trop loin : distance et flèche orientée vers le monument, un seul message', async () => {
+    const { el, fixture, http } = await rendre();
+    declencher(el).click();
+    await fixture.whenStable();
+    http
+      .expectOne('/api/captures')
+      .flush({ code: 'trop-loin', distanceMetres: 420 }, { status: 422, statusText: 'x' });
+    await vide();
+    http
+      .expectOne('/api/catalogue/monuments/7')
+      .flush({ position: { latitude: 49.1, longitude: 2.2 } });
+    await vide();
+    fixture.detectChanges();
+    expect(el.querySelectorAll('zn-message').length).toBe(1);
+    expect(texte(el)).toContain('Tu es à 420 m, rapproche-toi !');
+    expect(texte(el)).toContain('nord');
+    expect(el.querySelector<HTMLElement>('[data-fleche]')?.style.transform).toBe('rotate(0deg)');
+    expect(reessayer(el)).not.toBeNull();
+  });
+
+  it('signal faible puis « Réessayer » : position relue, même photo renvoyée', async () => {
+    const { el, fixture, http } = await refuser({ code: 'precision-insuffisante' }, 422);
+    expect(texte(el)).toContain('Signal trop faible, réessaie à découvert');
+    const avant = [...(HTMLCanvasElement.prototype.toBlob as ReturnType<typeof vi.fn>).mock.calls];
+    relire.mockResolvedValue({ latitude: 48.2, longitude: 2.3, precision: 20 });
+    reessayer(el)!.click();
+    await fixture.whenStable();
+    const req = http.expectOne('/api/captures');
+    const corps = req.request.body as FormData;
+    expect(relire).toHaveBeenCalled();
+    expect(corps.get('latitude')).toBe('48.2');
+    expect(corps.get('precisionMetres')).toBe('20');
+    expect(HTMLCanvasElement.prototype.toBlob).toHaveBeenCalledTimes(avant.length);
+    const navigate = vi.spyOn(TestBed.inject(Router), 'navigate').mockResolvedValue(true);
+    req.flush({});
+    await vide();
+    expect(navigate).toHaveBeenCalledWith(['/monument', '7']);
+    expect(fixture.nativeElement.querySelector('zn-message')).toBeNull();
+  });
+
+  it('précision toujours mauvaise : toujours refusé, aucun mode dégradé', async () => {
+    const { el, fixture, http } = await refuser({ code: 'precision-insuffisante' }, 422);
+    reessayer(el)!.click();
+    await fixture.whenStable();
+    http
+      .expectOne('/api/captures')
+      .flush({ code: 'precision-insuffisante' }, { status: 422, statusText: 'x' });
+    await vide();
+    fixture.detectChanges();
+    expect(texte(el)).toContain('Signal trop faible');
+    expect(reessayer(el)).not.toBeNull();
+  });
+
+  it('limite de fréquence : délai avant le prochain essai', async () => {
+    const { el } = await refuser({ code: 'limite-frequence' }, 429, { 'Retry-After': '1500' });
+    expect(texte(el)).toContain('25 min');
+  });
+
+  it('déplacement improbable : message neutre, sans accusation', async () => {
+    const { el } = await refuser({ code: 'deplacement-improbable' }, 429, { 'Retry-After': '60' });
+    expect(texte(el)).not.toMatch(/triche|fraude|faux/i);
+    expect(texte(el)).toContain('1 min');
+  });
+
+  it('image invalide : message explicite, nouvelle photo à prendre', async () => {
+    const { el } = await refuser({ code: 'image-invalide' }, 422);
+    expect(texte(el)).toContain('photo');
+    expect(texte(el)).toContain('5 Mo');
+    expect(reessayer(el)).toBeNull();
+    expect(declencher(el)).not.toBeNull();
+  });
+
+  it('e-mail non vérifié : invitation avec lien vers la vérification', async () => {
+    const { el } = await refuser({ code: 'email-non-verifie' }, 403);
+    expect(texte(el)).toContain('e-mail');
+    expect(el.querySelector('a[href="/inscription/verifie-ton-email"]')).not.toBeNull();
+  });
+
+  it('session expirée (401) : aucun message, l’intercepteur renvoie à la connexion', async () => {
+    const { el } = await refuser({ code: 'non-authentifie' }, 401);
+    expect(el.querySelector('zn-message')).toBeNull();
+  });
+
+  it('hors connexion : « Pas de connexion. », « Réessayer » renvoie la même photo', async () => {
+    const r = await rendre();
+    declencher(r.el).click();
+    await r.fixture.whenStable();
+    r.http.expectOne('/api/captures').error(new ProgressEvent('error'));
+    await vide();
+    r.fixture.detectChanges();
+    expect(texte(r.el)).toContain('Pas de connexion.');
+    reessayer(r.el)!.click();
+    await r.fixture.whenStable();
+    r.http.expectOne('/api/captures');
+  });
+
+  it('position introuvable au réessai : message, pas d’envoi', async () => {
+    const { el, fixture, http } = await refuser({ code: 'trop-loin', distanceMetres: 50 }, 422);
+    http.match('/api/catalogue/monuments/7');
+    relire.mockResolvedValue(null);
+    reessayer(el)!.click();
+    await fixture.whenStable();
+    fixture.detectChanges();
+    expect(texte(el)).toContain('position');
+    http.verify();
   });
 });
