@@ -579,6 +579,24 @@ paths:
               schema: { $ref: '#/components/schemas/MesSucces' }
         '401': { $ref: '#/components/responses/NonAuthentifie' }
 
+  /api/progression/collections:
+    get:
+      tags: [progression]
+      operationId: mesCollections
+      summary: Collections thématiques et progression de l'appelant (RG-R2-05 à 08)
+      description: >
+        Seules les collections dont l'ensemble compte au moins 3 monuments sont renvoyées (RG-R2-07).
+        La condition « au moins 1 capture » est appliquée à l'affichage.
+      responses:
+        '200':
+          description: Collections de l'appelant
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/MaCollection' }
+        '401': { $ref: '#/components/responses/NonAuthentifie' }
+
 components:
   securitySchemes:
     jwt:
@@ -766,6 +784,24 @@ components:
         pseudo: { type: string }
         email: { type: string, format: email }
         emailVerifie: { type: boolean }
+    MaCollection:
+      type: object
+      required: [code, nom, total, captures, complete, monuments]
+      properties:
+        code: { type: string }
+        nom: { type: string }
+        total: { type: integer }
+        captures: { type: integer }
+        complete: { type: boolean }
+        monuments:
+          type: array
+          items:
+            type: object
+            required: [numero, nom, capture]
+            properties:
+              numero: { type: integer }
+              nom: { type: string }
+              capture: { type: boolean }
     MesSucces:
       type: object
       required: [obtenus, enCours]
