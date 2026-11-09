@@ -233,6 +233,17 @@ describe('Fiche', () => {
       expect(navigate).toHaveBeenCalledWith(['/monument', '7', 'capturer']);
     });
 
+    it('« Remplacer la photo » ouvre l’écran caméra en mode remplacement', async () => {
+      const { el } = await rendre({ ...capture, captureeLe: '2026-10-31T23:30:00Z' });
+      const navigate = vi.spyOn(TestBed.inject(Router), 'navigate').mockResolvedValue(true);
+      [...el.querySelectorAll('button')]
+        .find((b) => b.textContent?.includes('Remplacer la photo'))
+        ?.click();
+      expect(navigate).toHaveBeenCalledWith(['/monument', '7', 'capturer'], {
+        state: { remplacer: true },
+      });
+    });
+
     it('sans position : pas de distance', async () => {
       const { el } = await rendre(verrouille);
       expect(el.textContent).not.toContain('Direction');

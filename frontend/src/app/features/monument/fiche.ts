@@ -107,8 +107,7 @@ const TYPES = {
         @if (photo(); as p) {
           <img data-photo [src]="p" alt="Ta photo" />
         }
-        <!-- Flux dépendant de la caméra : r1-capturer-15 -->
-        <button type="button">Remplacer la photo</button>
+        <button type="button" (click)="aller(true)">Remplacer la photo</button>
         @if (m.stats; as s) {
           <dl>
             <dt>Année</dt>
@@ -224,8 +223,11 @@ export class Fiche {
       !!x && x.distance <= x.m.rayonCaptureMetres && p !== undefined && p <= PRECISION_MAX_METRES
     );
   });
-  protected aller(): void {
-    void this.router.navigate(['/monument', this.numero(), 'capturer']);
+  protected aller(remplacer = false): void {
+    void this.router.navigate(
+      ['/monument', this.numero(), 'capturer'],
+      remplacer ? { state: { remplacer: true } } : undefined,
+    );
   }
   protected readonly couleur = urlBlob(() => {
     const m = this.monument.hasValue() ? this.monument.value() : undefined;

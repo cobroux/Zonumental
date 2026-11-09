@@ -285,6 +285,20 @@ describe('Camera', () => {
       expect(navigate).toHaveBeenCalledWith(['/monument', '7'], undefined);
     });
 
+    it('ouverte depuis la fiche (état remplacer) : premier envoi en remplacement, sans animation', async () => {
+      history.replaceState({ remplacer: true }, '');
+      const { el, fixture, http } = await rendre();
+      const navigate = vi.spyOn(TestBed.inject(Router), 'navigate').mockResolvedValue(true);
+      declencher(el).click();
+      await fixture.whenStable();
+      const req = http.expectOne('/api/captures');
+      expect((req.request.body as FormData).get('remplacer')).toBe('true');
+      req.flush({}, { status: 200, statusText: 'OK' });
+      await vide();
+      expect(navigate).toHaveBeenCalledWith(['/monument', '7'], undefined);
+      history.replaceState({}, '');
+    });
+
     it('remplacement trop loin : message #42, « Réessayer » garde le remplacement', async () => {
       const { el, fixture, http } = await refuser({ code: 'deja-capture' }, 409);
       remplacer(el)!.click();
