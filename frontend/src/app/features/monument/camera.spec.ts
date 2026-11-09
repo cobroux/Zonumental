@@ -95,7 +95,7 @@ describe('Camera', () => {
     expect((corps.get('photo') as Blob).type).toBe('image/jpeg');
     req.flush({});
     await vide();
-    expect(navigate).toHaveBeenCalledWith(['/monument', '7']);
+    expect(navigate).toHaveBeenCalledWith(['/monument', '7'], { state: { capture: true } });
     http.verify();
   });
 
@@ -185,7 +185,7 @@ describe('Camera', () => {
     const navigate = vi.spyOn(TestBed.inject(Router), 'navigate').mockResolvedValue(true);
     req.flush({});
     await vide();
-    expect(navigate).toHaveBeenCalledWith(['/monument', '7']);
+    expect(navigate).toHaveBeenCalledWith(['/monument', '7'], { state: { capture: true } });
     expect(fixture.nativeElement.querySelector('zn-message')).toBeNull();
   });
 

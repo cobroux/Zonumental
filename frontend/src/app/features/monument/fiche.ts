@@ -58,6 +58,18 @@ const TYPES = {
   template: `
     @if (monument.hasValue(); as _) {
       @let m = monument.value();
+      @if (animation()) {
+        <div
+          data-animation
+          class="tampon-anim"
+          [class.fixe]="reduit"
+          role="status"
+          (animationend)="!reduit && fin()"
+        >
+          <p class="sceau">Capturé · {{ raretes[m.rarete] }}</p>
+          <button type="button" (click)="fin()">Continuer</button>
+        </div>
+      }
       <h1>{{ m.nom }}</h1>
       <p>N° {{ m.numero }} · {{ types[m.type] }} · {{ raretes[m.rarete] }}</p>
       <p>{{ m.ville.nom }} · {{ siecle(m.siecle) }}</p>
@@ -131,6 +143,41 @@ const TYPES = {
     }
   `,
   styleUrl: '../coquille.css',
+  styles: `
+    .tampon-anim {
+      position: fixed;
+      inset: 0;
+      z-index: 10;
+      display: grid;
+      place-content: center;
+      justify-items: center;
+      gap: var(--zn-esp-4);
+      background: rgb(255 255 255 / 0.92);
+    }
+    .sceau {
+      border: 4px solid currentColor;
+      padding: var(--zn-esp-3) var(--zn-esp-4);
+      font-weight: 700;
+      text-transform: uppercase;
+      transform: rotate(-6deg);
+    }
+    .tampon-anim:not(.fixe) .sceau {
+      animation:
+        pose 0.5s ease-out both,
+        rien 1.2s 0.5s;
+    }
+    @keyframes pose {
+      from {
+        transform: rotate(-6deg) scale(2);
+        opacity: 0;
+      }
+    }
+    @keyframes rien {
+      to {
+        opacity: 1;
+      }
+    }
+  `,
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class Fiche {
@@ -138,6 +185,14 @@ export class Fiche {
   protected readonly monument = httpResource<Monument>(
     () => `/api/catalogue/monuments/${this.numero()}`,
   );
+  protected readonly reduit =
+    window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ?? false;
+  /** Posé par la caméra après une capture réussie ; l'histoire vient déjà avec la fiche capturée (RG-055). */
+  protected readonly animation = signal(history.state?.capture === true);
+  protected fin(): void {
+    this.animation.set(false);
+    history.replaceState({ ...history.state, capture: undefined }, '');
+  }
   private readonly position = inject(Position).etat;
   private readonly router = inject(Router);
   protected readonly siecle = formaterSiecle;
