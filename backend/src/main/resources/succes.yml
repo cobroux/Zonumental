@@ -1,0 +1,14 @@
+# Succès (RG-R2-01). Liste de la règle ; la liste définitive reste à valider par amoa (PROVISOIRE).
+# critere : CAPTURES | VILLES | TYPES | RARETE (valeur: RARE|LEGENDAIRE) | VILLE (valeur: INSEE) | COLLECTIONS
+succes:
+  - { code: PREMIER_TAMPON, critere: CAPTURES, seuil: 1 }
+  - { code: EXPLORATEUR_10, critere: CAPTURES, seuil: 10 }
+  - { code: EXPLORATEUR_25, critere: CAPTURES, seuil: 25 }
+  - { code: EXPLORATEUR_50, critere: CAPTURES, seuil: 50 }
+  - { code: CHASSEUR_RARE, critere: RARETE, valeur: RARE, seuil: 5 }
+  - { code: LEGENDE, critere: RARETE, valeur: LEGENDAIRE, seuil: 1 }
+  - { code: GLOBE_TROTTEUR, critere: VILLES, seuil: 3 }
+  - { code: TOUR_DE_FRANCE, critere: VILLES, seuil: 10 }
+  - { code: ENCYCLOPEDISTE, critere: TYPES, seuil: 5 }
+  - { code: PARISIEN, critere: VILLE, valeur: "75056", seuil: 10 }
+  - { code: COLLECTIONNEUR, critere: COLLECTIONS, seuil: 1 }
