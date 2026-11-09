@@ -153,3 +153,51 @@ zn-message:focus-visible {
   outline: 2px solid var(--zn-action);
   outline-offset: 2px;
 }
+
+ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.tampons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--zn-esp-3);
+}
+
+.sceau {
+  padding: var(--zn-esp-2) var(--zn-esp-3);
+  border: 3px solid var(--zn-action);
+  border-radius: var(--zn-rayon-12);
+  color: var(--zn-action);
+  font-weight: 700;
+  text-transform: uppercase;
+  transform: rotate(-3deg);
+}
+
+progress {
+  grid-column: 1;
+  inline-size: 100%;
+  block-size: 0.5rem;
+  accent-color: var(--zn-action);
+}
+
+.vide {
+  display: flex;
+  align-items: center;
+  gap: var(--zn-esp-2);
+  min-block-size: var(--zn-cible);
+  margin: 0;
+  color: var(--zn-action);
+}
+
+.reessayer {
+  min-block-size: var(--zn-cible);
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-decoration: underline;
+  cursor: pointer;
+}

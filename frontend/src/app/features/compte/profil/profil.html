@@ -12,6 +12,40 @@
     <zn-message type="erreur" tabindex="-1">{{ texte }}</zn-message>
   }
 
+  <section aria-labelledby="titre-succes">
+    <h2 id="titre-succes" class="rubrique">SUCCÈS</h2>
+    @if (succes(); as s) {
+      @if (!s.obtenus.length && !s.enCours.length) {
+        <a class="vide" routerLink="/explorer">Tamponne ton premier monument</a>
+      }
+      @if (s.obtenus.length) {
+        <ul class="tampons">
+          @for (o of s.obtenus; track o.code) {
+            <li class="sceau">{{ o.libelle }}</li>
+          }
+        </ul>
+      }
+      @if (s.enCours.length) {
+        <ul class="carte">
+          @for (e of s.enCours; track e.code) {
+            <li class="ligne">
+              <span class="texte" [id]="'lib-' + e.code">{{ e.libelle }}</span>
+              <progress [attr.aria-labelledby]="'lib-' + e.code" [value]="e.valeur" [max]="e.seuil">
+                {{ e.valeur }} sur {{ e.seuil }}
+              </progress>
+              <span class="aide">{{ e.valeur }} sur {{ e.seuil }}</span>
+            </li>
+          }
+        </ul>
+      }
+    } @else if (succesHorsLigne()) {
+      <p role="alert" class="vide">
+        Pas de connexion.
+        <button type="button" class="reessayer" (click)="chargerSucces()">Réessayer</button>
+      </p>
+    }
+  </section>
+
   <section aria-labelledby="titre-confidentialite">
     <h2 id="titre-confidentialite" class="rubrique">CONFIDENTIALITÉ</h2>
     @if (consentements(); as c) {

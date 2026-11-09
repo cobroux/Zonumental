@@ -17,7 +17,8 @@ describe('Profil', () => {
     await fixture.whenStable();
   };
 
-  async function ouvrir(classement = true, emails = false) {
+  const VIDE = { obtenus: [], enCours: [] };
+  async function ouvrir(classement = true, emails = false, succes: object = VIDE) {
     TestBed.configureTestingModule({
       providers: [
         provideHttpClient(),
@@ -33,6 +34,9 @@ describe('Profil', () => {
       .expectOne('/api/compte/moi')
       .flush({ id: '1', email: 'a@b.fr', emailVerifie: true, pseudo: 'marco' });
     http.expectOne('/api/compte/consentements').flush({ classement, emails });
+    const req = http.expectOne('/api/progression/succes');
+    if (succes instanceof ProgressEvent) req.error(succes);
+    else req.flush(succes);
     await apres();
   }
   const cliquer = async (i: number) => {
@@ -173,6 +177,47 @@ describe('Profil', () => {
       expect(m.getAttribute('role')).toBe('alert');
       expect(document.activeElement).toBe(m);
       expect(noms).toEqual([]);
+    });
+  });
+
+  describe('succès', () => {
+    const section = () => racine().querySelector('section[aria-labelledby="titre-succes"]')!;
+
+    it('obtenus en tampons libellés, en cours avec barre et « n sur seuil » en texte', async () => {
+      await ouvrir(true, false, {
+        obtenus: [{ code: 'A', libelle: 'Premier tampon', obtenuLe: '2026-10-01T10:00:00Z' }],
+        enCours: [{ code: 'B', libelle: 'Dix monuments', valeur: 3, seuil: 10 }],
+      });
+      expect(section().querySelector('h2')?.textContent).toContain('SUCCÈS');
+      expect(section().querySelector('.sceau')?.textContent).toContain('Premier tampon');
+      const p = section().querySelector('progress')!;
+      expect(p.value).toBe(3);
+      expect(p.max).toBe(10);
+      expect(section().textContent).toContain('Dix monuments');
+      expect(section().textContent).toContain('3 sur 10');
+      expect(section().querySelector('a[href="/explorer"]')).toBeNull();
+    });
+
+    it('état vide : invitation vers /explorer', async () => {
+      await ouvrir();
+      const a = section().querySelector('a[href="/explorer"]')!;
+      expect(a.textContent).toContain('Tamponne ton premier monument');
+    });
+
+    it('hors ligne : « Pas de connexion. Réessayer » puis rechargement', async () => {
+      await ouvrir(true, false, new ProgressEvent('error'));
+      expect(section().textContent).toContain('Pas de connexion.');
+      [...section().querySelectorAll('button')]
+        .find((b) => b.textContent?.includes('Réessayer'))!
+        .click();
+      await fixture.whenStable();
+      http.expectOne('/api/progression/succes').flush({
+        obtenus: [{ code: 'A', libelle: 'Premier tampon', obtenuLe: '2026-10-01T10:00:00Z' }],
+        enCours: [],
+      });
+      await apres();
+      expect(section().textContent).toContain('Premier tampon');
+      expect(section().textContent).not.toContain('Pas de connexion');
     });
   });
 });
