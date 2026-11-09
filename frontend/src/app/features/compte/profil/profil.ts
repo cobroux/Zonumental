@@ -13,8 +13,10 @@ import { Api } from '../../../core/api/api';
 import { mesConsentements } from '../../../core/api/fn/compte/mes-consentements';
 import { exporterMesDonnees } from '../../../core/api/fn/compte/exporter-mes-donnees';
 import { modifierConsentements } from '../../../core/api/fn/compte/modifier-consentements';
+import { mesSucces } from '../../../core/api/fn/progression/mes-succes';
 import { monCompte } from '../../../core/api/fn/compte/mon-compte';
 import { ConsentementsFacultatifs } from '../../../core/api/models/consentements-facultatifs';
+import { MesSucces } from '../../../core/api/models/mes-succes';
 import { Session } from '../../../core/session/session';
 import { ZnIcone } from '../../../shared/ui/icone';
 import { ZnMessage } from '../../../shared/ui/message';
@@ -35,12 +37,15 @@ export class Profil {
 
   protected readonly pseudo = signal('');
   protected readonly consentements = signal<ConsentementsFacultatifs | null>(null);
+  protected readonly succes = signal<MesSucces | null>(null);
+  protected readonly succesHorsLigne = signal(false);
   protected readonly erreur = signal<string | null>(null);
   protected readonly occupe = signal(false);
   protected readonly export = signal(false);
 
   constructor() {
     void this.charger();
+    void this.chargerSucces();
   }
 
   protected retour() {
@@ -122,6 +127,16 @@ export class Profil {
       this.consentements.set(consentements);
     } catch {
       this.erreur.set('Ton profil ne se charge pas. Réessaie dans un instant.');
+    }
+  }
+
+  /** Isolé du reste du profil : rien n'est stocké, « Réessayer » relance l'appel (RG-057). */
+  protected async chargerSucces() {
+    this.succesHorsLigne.set(false);
+    try {
+      this.succes.set(await this.api.invoke(mesSucces));
+    } catch {
+      this.succesHorsLigne.set(true);
     }
   }
 
