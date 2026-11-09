@@ -162,10 +162,20 @@ describe('Fiche', () => {
       reduit(false);
       history.replaceState({ capture: true }, '');
       const { fixture, el } = await rendre(capture);
+      vi.spyOn(TestBed.inject(Router), 'navigateByUrl').mockResolvedValue(true);
       el.querySelector<HTMLButtonElement>('[data-animation] button')!.click();
       fixture.detectChanges();
       expect(anim(el)).toBeNull();
       expect(history.state?.capture).toBeUndefined();
+    });
+
+    it('Continuer mène au carnet', async () => {
+      reduit(false);
+      history.replaceState({ capture: true }, '');
+      const { el } = await rendre(capture);
+      const nav = vi.spyOn(TestBed.inject(Router), 'navigateByUrl').mockResolvedValue(true);
+      el.querySelector<HTMLButtonElement>('[data-animation] button')!.click();
+      expect(nav).toHaveBeenCalledWith('/carnet');
     });
 
     it('se termine seule à la fin de l’animation', async () => {

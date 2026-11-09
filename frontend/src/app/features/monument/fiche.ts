@@ -67,7 +67,7 @@ const TYPES = {
           (animationend)="!reduit && fin()"
         >
           <p class="sceau">Capturé · {{ raretes[m.rarete] }}</p>
-          <button type="button" (click)="fin()">Continuer</button>
+          <button type="button" (click)="continuer()">Continuer</button>
         </div>
       }
       <h1>{{ m.nom }}</h1>
@@ -191,6 +191,10 @@ export class Fiche {
   protected fin(): void {
     this.animation.set(false);
     history.replaceState({ ...history.state, capture: undefined }, '');
+  }
+  protected continuer(): void {
+    this.fin();
+    void this.router.navigateByUrl('/carnet'); // le carnet relit les captures à l'entrée
   }
   private readonly position = inject(Position).etat;
   private readonly router = inject(Router);
