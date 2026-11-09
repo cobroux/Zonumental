@@ -2,6 +2,7 @@ package fr.zonumental.compte.export;
 
 import fr.zonumental.commun.ErreurMetier;
 import fr.zonumental.compte.CapturesExportables;
+import fr.zonumental.compte.SuccesExportables;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.time.Clock;
@@ -45,18 +46,25 @@ class Export {
       OffsetDateTime exporteLe,
       Compte compte,
       List<Consentement> consentements,
-      List<Capture> captures) {}
+      List<Capture> captures,
+      List<SuccesExportables.Succes> succes) {}
 
   private final JdbcClient jdbc;
   private final Clock horloge;
   private final CapturesExportables sourceCaptures;
+  private final SuccesExportables sourceSucces;
   private final ObjectMapper json =
       new ObjectMapper().rebuild().enable(SerializationFeature.INDENT_OUTPUT).build();
 
-  Export(JdbcClient jdbc, Clock horloge, CapturesExportables sourceCaptures) {
+  Export(
+      JdbcClient jdbc,
+      Clock horloge,
+      CapturesExportables sourceCaptures,
+      SuccesExportables sourceSucces) {
     this.jdbc = jdbc;
     this.horloge = horloge;
     this.sourceCaptures = sourceCaptures;
+    this.sourceSucces = sourceSucces;
   }
 
   Archive archive(UUID utilisateur) {
@@ -105,7 +113,8 @@ class Export {
     if (captures.stream().anyMatch(c -> !sourceCaptures.photoPresente(utilisateur, c.numero()))) {
       throw new ErreurMetier(HttpStatus.SERVICE_UNAVAILABLE, "export-indisponible");
     }
-    var donnees = new Donnees(maintenant, compte, consentements, captures);
+    var donnees =
+        new Donnees(maintenant, compte, consentements, captures, sourceSucces.succes(utilisateur));
     return new Archive(
         "zonumental-export-" + maintenant.toLocalDate() + ".zip",
         sortie -> ecrire(sortie, utilisateur, donnees));

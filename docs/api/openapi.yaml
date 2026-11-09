@@ -806,7 +806,7 @@ components:
     ExportDonnees:
       description: Contenu de `donnees.json` dans l'archive d'export (non renvoyé directement par l'API).
       type: object
-      required: [exporteLe, compte, consentements, captures]
+      required: [exporteLe, compte, consentements, captures, succes]
       properties:
         exporteLe: { type: string, format: date-time }
         compte:
@@ -841,6 +841,15 @@ components:
               captureeLe: { type: string, format: date-time }
               distanceMetres: { type: integer, description: Distance mesurée, arrondie au mètre }
               photo: { type: string, description: Chemin dans l'archive, examples: ['photos/12.jpg'] }
+        succes:
+          type: array
+          description: Vide sans succès obtenu, du plus ancien au plus récent
+          items:
+            type: object
+            required: [code, obtenuLe]
+            properties:
+              code: { type: string }
+              obtenuLe: { type: string, format: date-time }
 
     # ------------------------------------------------------------ capture
     CaptureReussie:
