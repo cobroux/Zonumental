@@ -46,6 +46,15 @@ const FORMES: Record<TypeMonument, string> = {
   AUTRE: 'M12 2l8 10-8 10-8-10z',
 };
 
+/** Nombre de tampons à partir duquel les filtres apparaissent (RG-045, Q-13). */
+export const SEUIL_FILTRES = 20;
+type Etat = 'tous' | 'tamponnes' | 'a-decouvrir';
+const ETATS: [Etat, string][] = [
+  ['tous', 'Tous'],
+  ['tamponnes', 'Tamponnés'],
+  ['a-decouvrir', 'À découvrir'],
+];
+
 /** Carnet numéroté : une page par ville, silhouettes (RG-054) puis tampons. Rien n'est stocké (RG-057). */
 @Component({
   selector: 'app-carnet',
@@ -106,12 +115,49 @@ const FORMES: Record<TypeMonument, string> = {
             ›
           </button>
         </nav>
+        @if (captures() >= seuil) {
+          <div class="filtres" role="group" aria-label="Filtres">
+            @for (e of etats; track e[0]) {
+              <button type="button" [attr.aria-pressed]="etat() === e[0]" (click)="etat.set(e[0])">
+                <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                  <path d="M12 3a9 9 0 1 0 0 18a9 9 0 1 0 0-18z" />
+                </svg>
+                {{ e[1] }}
+                @if (etat() === e[0]) {
+                  <svg class="coche" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                    <path d="M5 12l5 5 9-10" />
+                  </svg>
+                }
+              </button>
+            }
+            @for (t of typesListe; track t) {
+              <button type="button" [attr.aria-pressed]="type() === t" (click)="basculerType(t)">
+                <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                  <path [attr.d]="formes[t]" />
+                </svg>
+                {{ types[t] | titlecase }}
+                @if (type() === t) {
+                  <svg class="coche" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                    <path d="M5 12l5 5 9-10" />
+                  </svg>
+                }
+              </button>
+            }
+          </div>
+          <p class="resultats" role="status">
+            {{ visibles().length }} {{ visibles().length > 1 ? 'résultats' : 'résultat' }}
+          </p>
+          @if (visibles().length === 0) {
+            <p>Aucun monument ne correspond</p>
+            <button type="button" (click)="effacer()">Effacer les filtres</button>
+          }
+        }
         <p class="sous-compteur">
           {{ capturesVille() }} sur {{ pageCourante()?.monuments?.length }}
         </p>
         <p role="status" class="sr">{{ pageCourante()?.nom }}</p>
         <ul class="grille">
-          @for (x of pageCourante()?.monuments; track x.numero) {
+          @for (x of visibles(); track x.numero) {
             <li>
               <a
                 [routerLink]="['/monument', x.numero]"
@@ -164,6 +210,11 @@ export class Carnet {
   protected readonly types = TYPES;
   protected readonly raretes = RARETES;
   protected readonly page = signal<number | null>(null);
+  protected readonly seuil = SEUIL_FILTRES;
+  protected readonly etats = ETATS;
+  protected readonly typesListe = Object.keys(TYPES) as TypeMonument[];
+  protected readonly etat = signal<Etat>('tous');
+  protected readonly type = signal<TypeMonument | null>(null);
 
   private readonly liste = computed(() =>
     this.monuments.hasValue() ? this.monuments.value() : [],
@@ -199,6 +250,16 @@ export class Carnet {
     () => this.pageCourante()?.monuments.filter((x) => x.captureeLe).length ?? 0,
   );
 
+  protected readonly visibles = computed(() => {
+    const filtres = this.captures() >= SEUIL_FILTRES;
+    return (this.pageCourante()?.monuments ?? []).filter(
+      (x) =>
+        !filtres ||
+        ((this.etat() === 'tous' || !!x.captureeLe === (this.etat() === 'tamponnes')) &&
+          (!this.type() || x.type === this.type())),
+    );
+  });
+
   constructor() {
     afterNextRender(() => this.titre()?.nativeElement.focus());
   }
@@ -206,6 +267,13 @@ export class Carnet {
   protected aller(sens: number) {
     this.page.set(this.index() + sens);
     afterNextRender(() => this.ville()?.nativeElement.focus(), { injector: this.injector });
+  }
+  protected basculerType(t: TypeMonument) {
+    this.type.set(this.type() === t ? null : t);
+  }
+  protected effacer() {
+    this.etat.set('tous');
+    this.type.set(null);
   }
   protected numero(x: MonumentResume) {
     return `N° ${String(x.numero).padStart(3, '0')}`;
