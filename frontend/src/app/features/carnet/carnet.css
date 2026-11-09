@@ -16,7 +16,7 @@
 .barre {
   display: block;
   block-size: 8px;
-  background: var(--zn-papier-sombre, #d9cfbd);
+  background: var(--zn-papier-sombre);
   border: var(--zn-trait);
 }
 .barre span {
@@ -124,7 +124,7 @@
 .squelette li {
   min-block-size: 72px;
   border-radius: 12px;
-  background: var(--zn-papier-sombre, #d9cfbd);
+  background: var(--zn-papier-sombre);
   animation: pulse 1.2s ease-in-out infinite alternate;
 }
 @keyframes pulse {
