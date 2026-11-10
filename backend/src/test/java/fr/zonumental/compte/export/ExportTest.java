@@ -11,6 +11,7 @@ import fr.zonumental.TestcontainersConfiguration;
 import java.io.ByteArrayInputStream;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.UUID;
@@ -89,7 +90,10 @@ class ExportTest {
 
     assertThat(reponse.getContentType()).startsWith("application/zip");
     assertThat(reponse.getHeader("Content-Disposition"))
-        .isEqualTo("attachment; filename=\"zonumental-export-" + LocalDate.now() + ".zip\"");
+        .isEqualTo(
+            "attachment; filename=\"zonumental-export-"
+                + LocalDate.now(ZoneId.of("Europe/Paris")) // même fuseau que l'horloge applicative
+                + ".zip\"");
 
     Map<String, String> entrees = new LinkedHashMap<>();
     try (var zip = new ZipInputStream(new ByteArrayInputStream(reponse.getContentAsByteArray()))) {
