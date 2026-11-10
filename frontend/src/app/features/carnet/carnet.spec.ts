@@ -86,7 +86,9 @@ describe('Carnet', () => {
     const a = cases(el)[0];
     expect(a.textContent).toContain('Chambord');
     expect(a.textContent).toContain('Rare');
-    expect(a.getAttribute('aria-label')).toBe('N° 001, Chambord, château, rare, capturé');
+    expect(a.hasAttribute('aria-label')).toBe(false);
+    expect(a.textContent).toContain('N° 001');
+    expect(a.textContent).toContain('Chambord');
     expect(a.getAttribute('href')).toBe('/monument/1');
     expect(cases(el)[1].textContent).not.toContain('D ');
   });
@@ -247,7 +249,9 @@ describe('Carnet', () => {
         '/monument/2',
         '/monument/3',
       ]);
-      expect(liens[0].getAttribute('aria-label')).toBe('N° 001, A, château, rare, capturé');
+      expect(liens[0].hasAttribute('aria-label')).toBe(false);
+      expect(liens[0].textContent).toContain('N° 001');
+      expect(liens[0].textContent).toContain('A');
       expect(liens[1].getAttribute('aria-label')).toBe('N° 002, à découvrir');
       expect(liens[1].textContent).not.toContain('B');
     });

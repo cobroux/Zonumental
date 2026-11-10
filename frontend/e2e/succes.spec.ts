@@ -55,7 +55,7 @@ test('R2-64 : la collection du carnet montre la progression mise à jour', async
   await bouton.click();
   await expect(bouton).toHaveAttribute('aria-expanded', 'true');
   // Défaut connu hors périmètre (code applicatif) : l'aria-label des tampons du carnet ne reprend pas le texte visible.
-  expect(await violations(page, ['label-content-name-mismatch'])).toEqual([]);
+  expect(await violations(page)).toEqual([]);
 
   await page.locator('#col-GRANDS_SITES').getByRole('link').first().click();
   await expect(page).toHaveURL(/\/monument\/\d+$/);

@@ -163,12 +163,12 @@ const ETATS: [Etat, string][] = [
               <a
                 [routerLink]="['/monument', x.numero]"
                 [class]="x.captureeLe ? 'tampon ' + x.rarete.toLowerCase() : 'vide'"
-                [attr.aria-label]="nomAccessible(x)"
+                [attr.aria-label]="x.captureeLe ? null : nomAccessible(x)"
               >
                 <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
                   <path [attr.d]="formes[x.type]" />
                 </svg>
-                <span class="num" aria-hidden="true">{{ numero(x) }}</span>
+                <span class="num">{{ numero(x) }}</span>
                 @if (x.captureeLe) {
                   @if (x.rarete === 'LEGENDAIRE') {
                     <svg class="etoile" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
@@ -177,8 +177,8 @@ const ETATS: [Etat, string][] = [
                       />
                     </svg>
                   }
-                  <span class="nom" aria-hidden="true">{{ x.nom }}</span>
-                  <span class="meta" aria-hidden="true"
+                  <span class="nom">{{ x.nom }}</span>
+                  <span class="meta"
                     >{{ types[x.type] }} · {{ raretes[x.rarete] | titlecase }}</span
                   >
                 }
@@ -210,14 +210,14 @@ const ETATS: [Etat, string][] = [
                             <a
                               [routerLink]="['/monument', n.numero]"
                               [class]="n.captureeLe ? 'tampon ' + n.rarete.toLowerCase() : 'vide'"
-                              [attr.aria-label]="nomAccessible(n)"
+                              [attr.aria-label]="n.captureeLe ? null : nomAccessible(n)"
                             >
                               <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
                                 <path [attr.d]="formes[n.type]" />
                               </svg>
-                              <span class="num" aria-hidden="true">{{ numero(n) }}</span>
+                              <span class="num">{{ numero(n) }}</span>
                               @if (n.captureeLe) {
-                                <span class="nom" aria-hidden="true">{{ n.nom }}</span>
+                                <span class="nom">{{ n.nom }}</span>
                               }
                             </a>
                           }
@@ -330,10 +330,8 @@ export class Carnet {
   protected numero(x: MonumentResume) {
     return `N° ${String(x.numero).padStart(3, '0')}`;
   }
+  /** Silhouette seulement : un tampon capturé se nomme par son contenu visible (WCAG 2.5.3). */
   protected nomAccessible(x: MonumentResume) {
-    const n = this.numero(x);
-    return x.captureeLe
-      ? `${n}, ${x.nom}, ${TYPES[x.type]}, ${RARETES[x.rarete]}, capturé`
-      : `${n}, à découvrir`;
+    return `${this.numero(x)}, à découvrir`;
   }
 }
