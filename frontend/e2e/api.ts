@@ -42,6 +42,13 @@ const JPEG = Buffer.from(
   'base64',
 );
 
+// Succès R2 : seuils en nombre de tampons (N = 4).
+const SUCCES = [
+  { code: 'PREMIER_TAMPON', libelle: 'Premier tampon', seuil: 1 },
+  { code: 'TROIS_TAMPONS', libelle: 'Trois tampons', seuil: 3 },
+  { code: 'CARNET_COMPLET', libelle: 'Carnet complet', seuil: 4 },
+];
+
 const distance = (a: typeof A, b: typeof A) => {
   const rad = Math.PI / 180;
   const h =
@@ -78,7 +85,7 @@ export async function mockApi(page: Page) {
     ...m,
     captureeLe: etat.captures.has(m.numero) ? CAPTUREE_LE : null,
   });
-  await page.route(/\/api\/(auth|catalogue|captures)\b/, async (route) => {
+  await page.route(/\/api\/(auth|catalogue|captures|progression|compte)\b/, async (route) => {
     const req = route.request();
     const { pathname } = new URL(req.url());
     const json = (body: unknown, status = 200) =>
@@ -104,7 +111,11 @@ export async function mockApi(page: Page) {
         return route.fulfill(
           probleme(422, 'trop-loin', { distanceMetres: Math.ceil(d / 10) * 10 }),
         );
+      const avant = etat.captures.size;
       etat.captures.add(numero);
+      const succesGagnes = SUCCES.filter(
+        (x) => avant < x.seuil && etat.captures.size >= x.seuil,
+      ).map(({ code, libelle }) => ({ code, libelle }));
       return json(
         {
           numero,
@@ -112,10 +123,50 @@ export async function mockApi(page: Page) {
           distanceMetres: Math.round(d),
           photoUrl: `/api/captures/${numero}/photo`,
           histoire: HISTOIRE,
+          succesGagnes,
         },
         201,
       );
     }
+    if (pathname === '/api/progression/succes') {
+      const n = etat.captures.size;
+      return json({
+        obtenus: SUCCES.filter((x) => n >= x.seuil).map((x) => ({
+          code: x.code,
+          libelle: x.libelle,
+          obtenuLe: CAPTUREE_LE,
+        })),
+        enCours: SUCCES.filter((x) => n < x.seuil).map((x) => ({
+          code: x.code,
+          libelle: x.libelle,
+          valeur: n,
+          seuil: x.seuil,
+        })),
+      });
+    }
+    if (pathname === '/api/progression/collections')
+      return json([
+        {
+          code: 'GRANDS_SITES',
+          nom: 'Grands sites',
+          total: MONUMENTS.length,
+          captures: etat.captures.size,
+          complete: etat.captures.size === MONUMENTS.length,
+          monuments: MONUMENTS.map((x) => ({
+            numero: x.numero,
+            nom: x.nom,
+            capture: etat.captures.has(x.numero),
+          })),
+        },
+      ]);
+    if (pathname === '/api/compte/moi')
+      return json({
+        id: '00000000-0000-4000-8000-000000000001',
+        pseudo: 'Explorateur',
+        email: 'explorateur@example.fr',
+        emailVerifie: true,
+      });
+    if (pathname === '/api/compte/consentements') return json({ classement: false, emails: false });
     const photo = /^\/api\/captures\/(\d+)\/photo$/.exec(pathname);
     if (photo) return route.fulfill({ contentType: 'image/jpeg', body: JPEG });
     const fiche = /^\/api\/catalogue\/monuments\/(\d+)$/.exec(pathname);
