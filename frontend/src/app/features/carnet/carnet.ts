@@ -12,6 +12,7 @@ import {
 } from '@angular/core';
 import { TitleCasePipe } from '@angular/common';
 import { RouterLink } from '@angular/router';
+import { MaCollection } from '../../core/api/models/ma-collection';
 import { MonumentResume } from '../../core/api/models/monument-resume';
 import { Rarete } from '../../core/api/models/rarete';
 import { TypeMonument } from '../../core/api/models/type-monument';
@@ -185,6 +186,50 @@ const ETATS: [Etat, string][] = [
             </li>
           }
         </ul>
+        @if (collections().length) {
+          <section class="collections" aria-labelledby="titre-collections">
+            <h2 id="titre-collections">Collections</h2>
+            <ul>
+              @for (c of collections(); track c.code) {
+                <li>
+                  <button
+                    type="button"
+                    [attr.aria-expanded]="ouverte() === c.code"
+                    [attr.aria-controls]="'col-' + c.code"
+                    (click)="ouverte.set(ouverte() === c.code ? null : c.code)"
+                  >
+                    <span>{{ c.nom }}</span>
+                    <span class="progression">{{ c.captures }} / {{ c.total }}</span>
+                  </button>
+                  @if (ouverte() === c.code) {
+                    <ul class="grille" [id]="'col-' + c.code">
+                      @for (r of c.monuments; track r.numero) {
+                        @let n = parNumero().get(r.numero);
+                        <li>
+                          @if (n) {
+                            <a
+                              [routerLink]="['/monument', n.numero]"
+                              [class]="n.captureeLe ? 'tampon ' + n.rarete.toLowerCase() : 'vide'"
+                              [attr.aria-label]="nomAccessible(n)"
+                            >
+                              <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                                <path [attr.d]="formes[n.type]" />
+                              </svg>
+                              <span class="num" aria-hidden="true">{{ numero(n) }}</span>
+                              @if (n.captureeLe) {
+                                <span class="nom" aria-hidden="true">{{ n.nom }}</span>
+                              }
+                            </a>
+                          }
+                        </li>
+                      }
+                    </ul>
+                  }
+                </li>
+              }
+            </ul>
+          </section>
+        }
       }
     } @else {
       <p class="sr" role="status">Chargement du carnet</p>
@@ -204,6 +249,10 @@ export class Carnet {
   private readonly titre = viewChild<ElementRef<HTMLElement>>('titre');
   private readonly ville = viewChild<ElementRef<HTMLElement>>('ville');
   protected readonly monuments = httpResource<MonumentResume[]>(() => '/api/catalogue/monuments');
+  private readonly collectionsApi = httpResource<MaCollection[]>(
+    () => '/api/progression/collections',
+  );
+  protected readonly ouverte = signal<string | null>(null);
   protected readonly formes = FORMES;
   protected readonly types = TYPES;
   protected readonly raretes = RARETES;
@@ -217,6 +266,11 @@ export class Carnet {
   private readonly liste = computed(() =>
     this.monuments.hasValue() ? this.monuments.value() : [],
   );
+  // RG-R2-07 : une collection n'apparaît qu'à partir d'une capture ; erreur = section absente.
+  protected readonly collections = computed(() =>
+    this.collectionsApi.hasValue() ? this.collectionsApi.value().filter((c) => c.captures > 0) : [],
+  );
+  protected readonly parNumero = computed(() => new Map(this.liste().map((x) => [x.numero, x])));
   protected readonly total = computed(() => this.liste().length);
   protected readonly captures = computed(() => this.liste().filter((x) => x.captureeLe).length);
   protected readonly pages = computed(() => {

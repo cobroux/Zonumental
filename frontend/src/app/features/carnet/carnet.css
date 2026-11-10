@@ -180,3 +180,32 @@
     border-color: CanvasText;
   }
 }
+
+.collections ul:not(.grille) {
+  padding: 0;
+  list-style: none;
+}
+.collections > ul > li > button {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  inline-size: 100%;
+  min-block-size: var(--zn-cible);
+  padding-inline: var(--zn-esp-3);
+  border: var(--zn-trait);
+  background: var(--zn-papier-clair);
+  color: var(--zn-texte);
+  font: inherit;
+}
+.collections button:focus-visible {
+  outline: 3px solid var(--zn-focus);
+  outline-offset: 2px;
+}
+.progression {
+  font-family: 'Geist Mono', monospace;
+}
+@media (forced-colors: active) {
+  .collections button {
+    border-color: CanvasText;
+  }
+}

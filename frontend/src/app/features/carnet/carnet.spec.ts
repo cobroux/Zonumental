@@ -21,7 +21,20 @@ const m = (
   ville: { codeInsee: ville, nom: ville },
 });
 
-async function rendre(liste: object[] | { status: number }, coords?: object) {
+const collection = (code: string, nom: string, mons: [number, string, boolean][]) => ({
+  code,
+  nom,
+  total: mons.length,
+  captures: mons.filter((x) => x[2]).length,
+  complete: mons.every((x) => x[2]),
+  monuments: mons.map(([numero, n, capture]) => ({ numero, nom: n, capture })),
+});
+
+async function rendre(
+  liste: object[] | { status: number },
+  coords?: object,
+  collections: object[] | { status: number } = [],
+) {
   TestBed.configureTestingModule({
     providers: [
       provideHttpClient(),
@@ -40,6 +53,9 @@ async function rendre(liste: object[] | { status: number }, coords?: object) {
   const req = http.expectOne('/api/catalogue/monuments');
   if (Array.isArray(liste)) req.flush(liste);
   else req.flush(null, { status: liste.status, statusText: 'x' });
+  const rc = http.expectOne('/api/progression/collections');
+  if (Array.isArray(collections)) rc.flush(collections);
+  else rc.flush(null, { status: collections.status, statusText: 'x' });
   await new Promise((r) => setTimeout(r));
   TestBed.tick();
   f.detectChanges();
@@ -193,6 +209,77 @@ describe('Carnet', () => {
       f.detectChanges();
       expect(cases(el).length).toBe(21);
       expect(chip(el, 'Tous').getAttribute('aria-pressed')).toBe('true');
+    });
+  });
+
+  describe('collections', () => {
+    const paris = collection('PARIS', 'Tout Paris', [
+      [1, 'A', true],
+      [2, 'B', false],
+      [3, 'C', false],
+    ]);
+
+    it('aucune capture dans la collection : section absente', async () => {
+      const { el } = await rendre([m(1, 'A', null)], undefined, [
+        collection('PARIS', 'Tout Paris', [[1, 'A', false]]),
+      ]);
+      expect(el.querySelector('.collections')).toBeNull();
+    });
+
+    it('au moins 1 capture : nom et progression n / total, monuments à l’ouverture', async () => {
+      const { f, el } = await rendre(
+        [m(1, 'A', '2026-01-01T00:00:00Z'), m(2, 'B', null), m(3, 'C', null)],
+        undefined,
+        [paris],
+      );
+      const bouton = el.querySelector('.collections button') as HTMLButtonElement;
+      expect(bouton.textContent).toContain('Tout Paris');
+      expect(bouton.textContent).toContain('1 / 3');
+      expect(bouton.getAttribute('aria-expanded')).toBe('false');
+      expect(el.querySelectorAll('.collections a').length).toBe(0);
+
+      bouton.click();
+      f.detectChanges();
+      const liens = [...el.querySelectorAll<HTMLAnchorElement>('.collections a')];
+      expect(bouton.getAttribute('aria-expanded')).toBe('true');
+      expect(liens.map((a) => a.getAttribute('href'))).toEqual([
+        '/monument/1',
+        '/monument/2',
+        '/monument/3',
+      ]);
+      expect(liens[0].getAttribute('aria-label')).toBe('N° 001, A, château, rare, capturé');
+      expect(liens[1].getAttribute('aria-label')).toBe('N° 002, à découvrir');
+      expect(liens[1].textContent).not.toContain('B');
+    });
+
+    it('collection à 0 capture masquée, l’autre affichée', async () => {
+      const autre = collection('LYON', 'Lyon', [[2, 'B', false]]);
+      const { el } = await rendre([m(1, 'A', '2026-01-01T00:00:00Z'), m(2, 'B', null)], undefined, [
+        collection('PARIS', 'Tout Paris', [[1, 'A', true]]),
+        autre,
+      ]);
+      const boutons = el.querySelectorAll('.collections button');
+      expect(boutons.length).toBe(1);
+      expect(boutons[0].textContent).toContain('Tout Paris');
+    });
+
+    it('erreur collections : section absente, grille ville intacte', async () => {
+      const { el } = await rendre([m(1, 'A', '2026-01-01T00:00:00Z')], undefined, { status: 500 });
+      expect(el.querySelector('.collections')).toBeNull();
+      expect(el.querySelectorAll('ul.grille a').length).toBe(1);
+    });
+
+    it('second appui referme', async () => {
+      const { f, el } = await rendre([m(1, 'A', '2026-01-01T00:00:00Z')], undefined, [
+        collection('PARIS', 'Tout Paris', [[1, 'A', true]]),
+      ]);
+      const bouton = el.querySelector('.collections button') as HTMLButtonElement;
+      bouton.click();
+      f.detectChanges();
+      bouton.click();
+      f.detectChanges();
+      expect(bouton.getAttribute('aria-expanded')).toBe('false');
+      expect(el.querySelectorAll('.collections a').length).toBe(0);
     });
   });
 });
