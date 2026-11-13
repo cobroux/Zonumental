@@ -1,0 +1,178 @@
+/* Écran Collections : spec fidélité §8.1.1. Liste de cartes papier-clair, barre de progression, état « terminée » écrit. */
+:host {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  max-inline-size: 32rem;
+  margin-inline: auto;
+  padding: 0 16px var(--zn-esp-6);
+}
+
+header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  block-size: var(--zn-cible);
+}
+header::after {
+  content: '';
+  inline-size: var(--zn-cible); /* équilibre le retour : rubrique centrée */
+}
+.retour {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  inline-size: var(--zn-cible);
+  block-size: var(--zn-cible);
+  margin-inline-start: -12px;
+  color: var(--zn-texte);
+}
+.retour:focus-visible {
+  outline: 3px solid var(--zn-focus);
+  outline-offset: -3px;
+}
+.rubrique {
+  color: var(--zn-gris-libelle);
+  font: 500 var(--zn-fs-11) / 1 var(--zn-police-mono);
+  letter-spacing: var(--zn-ls-etiquette);
+}
+
+h1 {
+  margin: 0;
+  font: 400 1.75rem / 1.05 var(--zn-police-titre);
+}
+h1:focus-visible {
+  outline: 3px solid var(--zn-focus);
+  outline-offset: 4px;
+}
+.bilan {
+  margin: -6px 0 0;
+  color: var(--zn-gris-45);
+  font: var(--zn-taille-petite) / 1.3 var(--zn-police-ui);
+  font-variant-numeric: tabular-nums;
+}
+
+.liste {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.carte {
+  position: relative;
+  box-sizing: border-box;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: baseline;
+  gap: 2px 12px;
+  min-block-size: 72px;
+  padding: 14px 16px;
+  border: 1px solid var(--zn-voile-10);
+  border-radius: var(--zn-rayon-16);
+  background: var(--zn-papier-clair);
+  color: var(--zn-texte);
+  text-decoration: none;
+}
+.carte:focus-visible {
+  outline: 3px solid var(--zn-focus);
+  outline-offset: 2px;
+}
+.nom {
+  font: 400 var(--zn-fs-19) / 1.15 var(--zn-police-titre);
+}
+.compteur {
+  font: 500 var(--zn-fs-12) / 1 var(--zn-police-mono);
+  font-variant-numeric: tabular-nums;
+}
+.terminee {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  color: var(--zn-sapin);
+  font: 600 var(--zn-taille-petite) / 1.3 var(--zn-police-ui);
+}
+.terminee svg {
+  inline-size: 14px;
+  block-size: 14px;
+  fill: none;
+  stroke: currentcolor;
+  stroke-width: 2.4;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+progress {
+  grid-column: 1 / -1;
+  appearance: none;
+  inline-size: 100%;
+  block-size: 6px;
+  margin-block-start: 8px;
+  border: 0;
+  border-radius: 3px;
+  background: var(--zn-voile-14);
+  overflow: hidden;
+}
+progress::-webkit-progress-bar {
+  background: var(--zn-voile-14);
+}
+progress::-webkit-progress-value {
+  border-radius: 3px;
+  background: var(--zn-encre);
+}
+progress::-moz-progress-bar {
+  border-radius: 3px;
+  background: var(--zn-encre);
+}
+progress.complete::-webkit-progress-value {
+  background: var(--zn-sapin);
+}
+progress.complete::-moz-progress-bar {
+  background: var(--zn-sapin);
+}
+
+/* Chargement : cartes fantômes statiques */
+.fantome {
+  background: var(--zn-papier-sombre);
+  box-shadow: var(--zn-biseau);
+}
+
+/* Aucune collection ouverte */
+.vide {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: 20px 16px;
+  border: 1.5px dashed var(--zn-bordure-controle);
+  border-radius: var(--zn-rayon-16);
+  text-align: center;
+}
+.vide p {
+  margin: 0;
+  color: var(--zn-gris-texte);
+  text-wrap: balance;
+}
+.bouton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-block-size: var(--zn-cible);
+  padding-inline: 20px;
+  color: var(--zn-marine);
+  font-weight: 500;
+}
+.bouton:focus-visible {
+  outline: 3px solid var(--zn-focus);
+  outline-offset: 2px;
+}
+
+@media (forced-colors: active) {
+  .carte,
+  progress {
+    border: 1px solid CanvasText;
+  }
+}

@@ -94,7 +94,7 @@ describe('Carnet', () => {
       expect(el.textContent).toContain('28 cases t’attendent à Paris.');
       expect(el.querySelector('[aria-label="Filtrer par type"]')).toBeNull();
       expect(el.querySelector('nav.pages')).toBeNull();
-      expect(el.querySelector('a[href="/carnet#collections"]')).toBeNull();
+      expect(el.querySelector('a[href="/carnet/collections"]')).toBeNull();
       expect(el.querySelector('zn-tampon')).toBeNull();
     });
 
@@ -382,95 +382,40 @@ describe('Carnet', () => {
     });
   });
 
-  describe('collections', () => {
+  describe('lien Collections', () => {
     const paris = collection('PARIS', 'Tout Paris', [
       [1, 'A', true],
       [2, 'B', false],
       [3, 'C', false],
     ]);
+    const lien = (el: HTMLElement) => el.querySelector('a[href="/carnet/collections"]');
 
-    it('aucune capture dans la collection : section et lien absents', async () => {
+    it('aucune capture dans la collection : lien absent', async () => {
       const { el } = await rendre([m(1, 'A', null)], undefined, [
         collection('PARIS', 'Tout Paris', [[1, 'A', false]]),
       ]);
-      expect(el.querySelector('.collections')).toBeNull();
-      expect(el.querySelector('a[href="/carnet#collections"]')).toBeNull();
+      expect(lien(el)).toBeNull();
     });
 
-    it('lien « Collections · N terminées › » vers la section', async () => {
+    it('« Collections · N terminées › » mène à l’écran Collections, plus d’accordéon', async () => {
       const faites = collection('LYON', 'Lyon', [[2, 'B', true]]);
       const { el } = await rendre([m(1, 'A', pris), m(2, 'B', pris), m(3, 'C', null)], undefined, [
         paris,
         faites,
       ]);
-      const lien = el.querySelector('a[href="/carnet#collections"]')!;
-      expect(lien.textContent).toContain('Collections · 1 terminée');
-      expect(el.querySelector('#collections.collections')).not.toBeNull();
-    });
-
-    it('lien sans « terminées » quand aucune n’est complète', async () => {
-      const { el } = await rendre([m(1, 'A', pris), m(2, 'B', null)], undefined, [paris]);
-      expect(el.querySelector('a[href="/carnet#collections"]')?.textContent?.trim()).toBe(
-        'Collections',
-      );
-    });
-
-    it('au moins 1 capture : nom et progression n / total, monuments à l’ouverture', async () => {
-      const { f, el } = await rendre(
-        [m(1, 'A', pris), m(2, 'B', null), m(3, 'C', null)],
-        undefined,
-        [paris],
-      );
-      const bouton = el.querySelector('.collections button') as HTMLButtonElement;
-      expect(bouton.textContent).toContain('Tout Paris');
-      expect(bouton.textContent).toContain('1 / 3');
-      expect(bouton.getAttribute('aria-expanded')).toBe('false');
-      expect(el.querySelectorAll('.collections a').length).toBe(0);
-
-      bouton.click();
-      f.detectChanges();
-      const liens = [...el.querySelectorAll<HTMLAnchorElement>('.collections a')];
-      expect(bouton.getAttribute('aria-expanded')).toBe('true');
-      expect(el.querySelector('#col-PARIS')).not.toBeNull();
-      expect(liens.map((a) => a.getAttribute('href'))).toEqual([
-        '/monument/1',
-        '/monument/2',
-        '/monument/3',
-      ]);
-      expect(liens[0].hasAttribute('aria-label')).toBe(false);
-      expect(liens[0].textContent).toContain('N°001');
-      expect(liens[1].getAttribute('aria-label')).toBe('N°002, à découvrir');
-      expect(liens[1].textContent).not.toContain('B');
-    });
-
-    it('collection à 0 capture masquée, l’autre affichée', async () => {
-      const autre = collection('LYON', 'Lyon', [[2, 'B', false]]);
-      const { el } = await rendre([m(1, 'A', pris), m(2, 'B', null)], undefined, [
-        collection('PARIS', 'Tout Paris', [[1, 'A', true]]),
-        autre,
-      ]);
-      const boutons = el.querySelectorAll('.collections button');
-      expect(boutons.length).toBe(1);
-      expect(boutons[0].textContent).toContain('Tout Paris');
-    });
-
-    it('erreur collections : section absente, grille ville intacte', async () => {
-      const { el } = await rendre([m(1, 'A', pris)], undefined, { status: 500 });
+      expect(lien(el)!.textContent).toContain('Collections · 1 terminée');
       expect(el.querySelector('.collections')).toBeNull();
-      expect(el.querySelectorAll('ul.grille a').length).toBe(1);
     });
 
-    it('second appui referme', async () => {
-      const { f, el } = await rendre([m(1, 'A', pris)], undefined, [
-        collection('PARIS', 'Tout Paris', [[1, 'A', true]]),
-      ]);
-      const bouton = el.querySelector('.collections button') as HTMLButtonElement;
-      bouton.click();
-      f.detectChanges();
-      bouton.click();
-      f.detectChanges();
-      expect(bouton.getAttribute('aria-expanded')).toBe('false');
-      expect(el.querySelectorAll('.collections a').length).toBe(0);
+    it('sans « terminées » quand aucune n’est complète', async () => {
+      const { el } = await rendre([m(1, 'A', pris), m(2, 'B', null)], undefined, [paris]);
+      expect(lien(el)!.textContent?.trim()).toBe('Collections');
+    });
+
+    it('erreur collections : lien absent, grille ville intacte', async () => {
+      const { el } = await rendre([m(1, 'A', pris)], undefined, { status: 500 });
+      expect(lien(el)).toBeNull();
+      expect(el.querySelectorAll('ul.grille a').length).toBe(1);
     });
   });
 });

@@ -28,7 +28,7 @@ import {
   FORME_PAR_TYPE,
   contenuTampon,
   etiquetteTampon,
-} from './tampon-monument';
+} from '../../shared/ui/tampon-monument';
 
 /** Nombre de tampons à partir duquel les filtres apparaissent (RG-045, Q-13). */
 export const SEUIL_FILTRES = 20;
@@ -144,7 +144,7 @@ const GROUPES: { id: string; libelle: string; types: TypeMonument[] }[] = [
         <div class="rangee">
           <p class="etiquette" aria-live="polite">{{ libellePage() }}</p>
           @if (collections().length) {
-            <a class="lien-collections" routerLink="/carnet" fragment="collections">
+            <a class="lien-collections" routerLink="/carnet/collections">
               {{ libelleCollections() }}
               <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
                 <path d="M9 5l7 7-7 7" />
@@ -201,43 +201,6 @@ const GROUPES: { id: string; libelle: string; types: TypeMonument[] }[] = [
             }
           </zn-planche>
         }
-        @if (collections().length) {
-          <section id="collections" class="collections" aria-labelledby="titre-collections">
-            <h2 id="titre-collections">Collections</h2>
-            <ul>
-              @for (c of collections(); track c.code) {
-                <li>
-                  <button
-                    type="button"
-                    [attr.aria-expanded]="ouverte() === c.code"
-                    [attr.aria-controls]="'col-' + c.code"
-                    (click)="ouverte.set(ouverte() === c.code ? null : c.code)"
-                  >
-                    <span>{{ c.nom }}</span>
-                    <span class="progression">{{ c.captures }} / {{ c.total }}</span>
-                  </button>
-                  @if (ouverte() === c.code) {
-                    <div [id]="'col-' + c.code">
-                      <zn-planche [titre]="c.nom">
-                        @for (r of c.monuments; track r.numero) {
-                          @let n = parNumero().get(r.numero);
-                          @if (n) {
-                            <ng-container
-                              *ngTemplateOutlet="
-                                cellule;
-                                context: { $implicit: n, aere: false, indice: false }
-                              "
-                            />
-                          }
-                        }
-                      </zn-planche>
-                    </div>
-                  }
-                </li>
-              }
-            </ul>
-          </section>
-        }
       }
     } @else {
       <h1 class="zn-sr" tabindex="-1">Mon carnet</h1>
@@ -249,7 +212,7 @@ const GROUPES: { id: string; libelle: string; types: TypeMonument[] }[] = [
       </zn-planche>
     }
   `,
-  styleUrls: ['../coquille.css', './carnet.css'],
+  styleUrls: ['../coquille.css', './planche-cellules.css', './carnet.css'],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class Carnet {
@@ -261,7 +224,6 @@ export class Carnet {
     () => '/api/progression/collections',
   );
   private readonly compte = httpResource<Profil>(() => '/api/compte/moi');
-  protected readonly ouverte = signal<string | null>(null);
   protected readonly seuil = SEUIL_FILTRES;
   protected readonly maxPuces = MAX_PUCES;
   private readonly villeChoisie = signal<string | null>(null);
@@ -274,7 +236,7 @@ export class Carnet {
   protected readonly pseudo = computed(
     () => `@${this.compte.hasValue() ? this.compte.value().pseudo : 'explorateur'}`,
   );
-  // RG-R2-07 : une collection n'apparaît qu'à partir d'une capture ; erreur = section absente.
+  // RG-R2-07 : une collection n'apparaît qu'à partir d'une capture ; erreur = lien absent.
   protected readonly collections = computed(() =>
     this.collectionsApi.hasValue() ? this.collectionsApi.value().filter((c) => c.captures > 0) : [],
   );
@@ -282,7 +244,6 @@ export class Carnet {
     const n = this.collections().filter((c) => c.complete).length;
     return n ? `Collections · ${n} terminée${n > 1 ? 's' : ''}` : 'Collections';
   });
-  protected readonly parNumero = computed(() => new Map(this.liste().map((x) => [x.numero, x])));
   protected readonly total = computed(() => this.liste().length);
   protected readonly captures = computed(() => this.liste().filter((x) => x.captureeLe).length);
   protected readonly legendaires = computed(

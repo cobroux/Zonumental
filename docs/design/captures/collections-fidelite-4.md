@@ -1,0 +1,9 @@
+# Collections et célébration 390 px (fidélité #96) : captures et écarts avec la spec §8
+
+Captures (Chromium 390 x 844 @2x, données simulées : Paris 24 / 28) : `collections-liste-390.png`, `collection-detail-390.png` (page 1 / 3, 12 tampons), `collection-detail-p3-390.png`, `collection-terminee-390.png`, `celebration-390.png`.
+
+1. Liste : en-tête retour + `COLLECTIONS`, h1 Gloock 28, bilan « 1 terminée · 3 en cours », cartes papier-clair rayon 16, nom Gloock 19, compteur Mono `24 / 28`, barre 6 px (sapin + « ✓ Terminée » écrit si complète), ordre en cours (% décroissant) puis terminées : conformes.
+2. Détail : h1, « 24 monuments sur 28 · 86 % », barre, étiquette `PAGE 1 / 3 — TOUT PARIS`, `zn-planche` dense paginée à 12 (6 sous 6 tampons), flèches 44 px, puces ; cases vides avec silhouette de type 40 px sans nom, « N°004, à découvrir » ; sceau sapin 96 px à −8° quand terminée : conformes.
+3. Célébration : feuille basse O5 (poignée, surtitre bordeaux `N°001 · COMMUN`, h1 Gloock 34, boutons 54 / 44 px, fond `papier.webp`), tampon en papier posé au-dessus sur le voile, bloc « Succès débloqués » (3 lignes max, « + N autres succès ») : conformes. Le texte reste sur la fiche en dessous (voile 72 %, comme O5 sur la photo).
+4. Écarts : cartes « Bientôt » (Tout Lyon) absentes (l'API ne renvoie aucune collection hors ensemble ≥ 3 monuments) ; pose animée du sceau « à la première visite après achèvement » non faite (aucune donnée serveur ni stockage local autorisé) ; routes `/carnet/collections[/:code]` au lieu de `/collections` (consigne de la story).
+5. Non couvert : feuille B (succès « non vus », « Voir mes succès » → `/succes`) : ni endpoint « vu » ni page `/succes` n'existent ; critères écrits seulement pour les succès dont le seuil est connu côté client (les autres affichent le nom seul).

@@ -1,0 +1,119 @@
+/* Détail d'une collection : spec fidélité §8.1.2. Cellules et pagination : planche-cellules.css. */
+:host {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 0 16px var(--zn-esp-6);
+}
+
+header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  block-size: var(--zn-cible);
+}
+header::after {
+  content: '';
+  inline-size: var(--zn-cible);
+}
+.retour {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  inline-size: var(--zn-cible);
+  block-size: var(--zn-cible);
+  margin-inline-start: -12px;
+  color: var(--zn-texte);
+}
+.retour:focus-visible,
+.lien:focus-visible {
+  outline: 3px solid var(--zn-focus);
+  outline-offset: -3px;
+}
+.rubrique {
+  color: var(--zn-gris-libelle);
+  font: 500 var(--zn-fs-11) / 1 var(--zn-police-mono);
+  letter-spacing: var(--zn-ls-etiquette);
+}
+
+h1 {
+  margin: 0;
+  font: 400 1.75rem / 1.05 var(--zn-police-titre);
+  text-wrap: balance;
+}
+h1:focus-visible {
+  outline: 3px solid var(--zn-focus);
+  outline-offset: 4px;
+}
+.bilan {
+  margin: -6px 0 0;
+  color: var(--zn-gris-45);
+  font: var(--zn-taille-petite) / 1.3 var(--zn-police-ui);
+  font-variant-numeric: tabular-nums;
+}
+.lien {
+  display: flex;
+  align-items: center;
+  min-block-size: var(--zn-cible);
+  color: var(--zn-marine);
+  font-weight: 500;
+}
+
+progress {
+  appearance: none;
+  inline-size: 100%;
+  block-size: 6px;
+  border: 0;
+  border-radius: 3px;
+  background: var(--zn-voile-14);
+  overflow: hidden;
+}
+progress::-webkit-progress-bar {
+  background: var(--zn-voile-14);
+}
+progress::-webkit-progress-value {
+  border-radius: 3px;
+  background: var(--zn-encre);
+}
+progress::-moz-progress-bar {
+  border-radius: 3px;
+  background: var(--zn-encre);
+}
+progress.complete::-webkit-progress-value {
+  background: var(--zn-sapin);
+}
+progress.complete::-moz-progress-bar {
+  background: var(--zn-sapin);
+}
+
+/* Sceau de collection complète : 96 px, rotation -8°, encre sapin */
+zn-tampon.complete-tampon {
+  inline-size: 96px;
+  align-self: center;
+  transform: rotate(-8deg);
+}
+
+/* Silhouette du type (gris à 3:1), au-dessus du numéro */
+.silhouette {
+  inline-size: 40px;
+  block-size: 40px;
+  fill: var(--zn-gris-bordure);
+}
+
+.fantome::before {
+  content: '';
+  inline-size: calc(100% - 16px);
+  block-size: calc(100% - 16px);
+  border-radius: var(--zn-rayon-8);
+  background: var(--zn-papier-sombre);
+  box-shadow: var(--zn-biseau);
+}
+
+@media (forced-colors: active) {
+  progress {
+    border: 1px solid CanvasText;
+  }
+  .silhouette {
+    fill: CanvasText;
+  }
+}

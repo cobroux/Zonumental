@@ -1,7 +1,7 @@
-import { MonumentResume } from '../../core/api/models/monument-resume';
-import { TypeMonument } from '../../core/api/models/type-monument';
 import {
   ENCRE_PAR_RARETE,
+  MonumentResume,
+  TypeMonument,
   FORME_PAR_TYPE,
   contenuTampon,
   etiquetteTampon,

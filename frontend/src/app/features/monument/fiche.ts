@@ -2,7 +2,10 @@ import { httpResource } from '@angular/common/http';
 import {
   ChangeDetectionStrategy,
   Component,
+  ElementRef,
+  Injector,
   Signal,
+  afterNextRender,
   computed,
   effect,
   inject,
@@ -19,6 +22,7 @@ import {
   formaterDistance,
 } from '../../core/position/proximite';
 import { Monument } from '../../core/api/models/monument';
+import { Celebration } from './celebration';
 import { formaterSiecle } from './siecle';
 
 /** Blob authentifié (intercepteur Bearer) -> URL objet, révoquée au changement et à la destruction (ADR 0021). */
@@ -55,29 +59,14 @@ const TYPES = {
 /** Fiche monument : verrouillée (indices, N&B) tant que non capturé (RG-042, RG-054). */
 @Component({
   selector: 'app-fiche',
+  imports: [Celebration],
   template: `
     @if (monument.hasValue(); as _) {
       @let m = monument.value();
       @if (animation()) {
-        <div
-          data-animation
-          class="tampon-anim"
-          [class.fixe]="reduit"
-          role="status"
-          (animationend)="!reduit && fin()"
-        >
-          <p class="sceau">Capturé · {{ raretes[m.rarete] }}</p>
-          <button type="button" (click)="fin()">Continuer</button>
-        </div>
-      } @else if (succes()[rang()]; as s) {
-        <div data-succes class="tampon-anim" [class.fixe]="reduit" role="status">
-          <p class="sceau">Succès · {{ s.libelle }}</p>
-          <button type="button" (click)="suivant()">
-            {{ rang() < succes().length - 1 ? 'Suivant' : 'Terminer' }}
-          </button>
-        </div>
+        <app-celebration [monument]="m" [succes]="succes()" (fermer)="fin()" />
       }
-      <h1>{{ m.nom }}</h1>
+      <h1 tabindex="-1">{{ m.nom }}</h1>
       <p>N° {{ m.numero }} · {{ types[m.type] }} · {{ raretes[m.rarete] }}</p>
       <p>{{ m.ville.nom }} · {{ siecle(m.siecle) }}</p>
       @if (!m.captureeLe) {
@@ -149,41 +138,6 @@ const TYPES = {
     }
   `,
   styleUrl: '../coquille.css',
-  styles: `
-    .tampon-anim {
-      position: fixed;
-      inset: 0;
-      z-index: 10;
-      display: grid;
-      place-content: center;
-      justify-items: center;
-      gap: var(--zn-esp-4);
-      background: rgb(255 255 255 / 0.92);
-    }
-    .sceau {
-      border: 4px solid currentColor;
-      padding: var(--zn-esp-3) var(--zn-esp-4);
-      font-weight: 700;
-      text-transform: uppercase;
-      transform: rotate(-6deg);
-    }
-    .tampon-anim:not(.fixe) .sceau {
-      animation:
-        pose 0.5s ease-out both,
-        rien 1.2s 0.5s;
-    }
-    @keyframes pose {
-      from {
-        transform: rotate(-6deg) scale(2);
-        opacity: 0;
-      }
-    }
-    @keyframes rien {
-      to {
-        opacity: 1;
-      }
-    }
-  `,
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class Fiche {
@@ -191,28 +145,25 @@ export class Fiche {
   protected readonly monument = httpResource<Monument>(
     () => `/api/catalogue/monuments/${this.numero()}`,
   );
-  protected readonly reduit =
-    window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ?? false;
   /** Posé par la caméra après une capture réussie ; l'histoire vient déjà avec la fiche capturée (RG-055). */
   protected readonly animation = signal(history.state?.capture === true);
-  protected fin(): void {
-    this.animation.set(false);
-    history.replaceState({ ...history.state, capture: undefined }, '');
-  }
-  /** Succès gagnés par la capture, un écran chacun après le tampon. */
+  /** Succès gagnés par la capture, dans la feuille de célébration (spec fidélité §8.2). */
   protected readonly succes = signal<{ code: string; libelle: string }[]>(
     history.state?.succes ?? [],
   );
-  protected readonly rang = signal(0);
-  protected suivant(): void {
-    if (this.rang() < this.succes().length - 1) this.rang.update((r) => r + 1);
-    else {
-      this.succes.set([]);
-      history.replaceState({ ...history.state, succes: undefined }, '');
-    }
+  /** « Continuer » : ferme la feuille et ramène le focus sur le titre de la fiche. */
+  protected fin(): void {
+    this.animation.set(false);
+    this.succes.set([]);
+    history.replaceState({ ...history.state, capture: undefined, succes: undefined }, '');
+    afterNextRender(() => this.hote.querySelector<HTMLElement>('h1')?.focus(), {
+      injector: this.injector,
+    });
   }
   private readonly position = inject(Position).etat;
   private readonly router = inject(Router);
+  private readonly injector = inject(Injector);
+  private readonly hote = inject<ElementRef<HTMLElement>>(ElementRef).nativeElement;
   protected readonly siecle = formaterSiecle;
   protected readonly date = formaterDate;
   protected readonly raretes = RARETES;
