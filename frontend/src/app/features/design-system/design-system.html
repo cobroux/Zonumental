@@ -250,4 +250,46 @@
       <a routerLink="/design-system" fragment="liens">Défis</a>
     </nav>
   </section>
+
+  <section id="tampons" aria-labelledby="tampons-titre">
+    <p class="rubrique zn-mono">09</p>
+    <h2 id="tampons-titre">Tampons, planche et bandeau</h2>
+    <p>
+      Quatre formes, trois encres, une encre irrégulière. La rareté est écrite en toutes lettres,
+      pas seulement colorée.
+    </p>
+    <zn-bandeau
+      [soustitre]="true"
+      pseudo="@lea"
+      [tampons]="41"
+      [legendaires]="6"
+      [villes]="4"
+      [totalVilles]="10"
+    />
+    <zn-planche titre="Paris, page 1 sur 1">
+      @for (t of tampons; track t.numero) {
+        <li>
+          <zn-tampon
+            class="pose"
+            [style]="t.pose"
+            [forme]="t.forme"
+            [encre]="t.encre"
+            [contenu]="t.contenu"
+            [etiquette]="t.etiquette"
+          />
+        </li>
+      }
+    </zn-planche>
+    <div class="medailles">
+      <zn-medaille nom="Explorateur" texte="10" encre="commun" [rotation]="-4" />
+      <zn-medaille
+        nom="Chasseur de rares"
+        encre="rare"
+        [rotation]="3"
+        glyphe="M12 3l2.6 5.6 6 .7-4.5 4.1 1.2 6L12 16.4 6.7 19.4l1.2-6L3.4 9.3l6-.7z"
+      />
+      <zn-medaille nom="Globe-trotteur" etat="en-cours" [valeur]="2" [seuil]="3" />
+      <zn-medaille nom="Noctambule" etat="a-decouvrir" />
+    </div>
+  </section>
 </div>

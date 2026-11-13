@@ -279,3 +279,15 @@ section::before {
   flex-wrap: wrap;
   gap: var(--zn-esp-3);
 }
+
+.pose {
+  inline-size: 82%;
+  transform: translate(var(--dx), var(--dy)) rotate(var(--rot));
+}
+
+.medailles {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--zn-esp-4);
+  margin-block-start: var(--zn-esp-4);
+}

@@ -1,6 +1,6 @@
 # ADR 0022 — Front : tampons SVG partagés, filtre d'encre unique et placement déterministe
 
-- **Statut :** proposé
+- **Statut :** accepté
 - **Date :** 2026-11-11
 - **Complète :** ADR 0016 (composants), ADR 0017 (filtres SVG, §3 et §5)
 
@@ -16,7 +16,7 @@ Les maquettes v4 à v6 (CarnetV4, ProfilV6, NavBar, O5-GardeTampon) font foi (AD
 4. **Papier** : on garde `papier.webp` (ADR 0017 §1). Le `paperC` de la maquette n'est pas repris.
 5. **`mix-blend-mode: multiply` une seule fois, sur le calque des tampons de la planche**, jamais tampon par tampon (un mélange par tampon crée un groupe isolé de plus à composer à chaque défilement).
 6. **Placement déterministe** : une fonction pure `placement(numero) → { rotation, dx, dy }` (hachage entier du numéro, rotation bornée à ±8°, décalage borné dans sa cellule). La planche reste une grille CSS : le tampon est décalé par `transform` à l'intérieur de sa cellule. Pas de coordonnées absolues en pixels, pas de chevauchement, ordre DOM = ordre des numéros (ordre de lecture et de tabulation conservé), même rendu à chaque visite.
-7. **Forme par type de monument**, table fixe dans `zn-tampon` ; la rareté est portée par l'encre **et** par le trait (simple, double filet, double filet + étoile) et le texte écrit (ADR 0016, `carnet-r1.md` §3).
+7. **Forme par type de monument** (4 formes : cercle, rectangle, octogone, ovale), table fixe dans `zn-tampon`. Trait unique pour tous les tampons (filet épais + filet fin), comme la maquette : ni double filet, ni étoile, ni encre ocre. La rareté est portée par l'encre (commun marine, rare bordeaux, légendaire sapin) **et** par le mot écrit en toutes lettres (spec `docs/design/fidelite-maquettes-v4-v6.md` §3.2).
 8. **Images pré-rendues (ADR 0017 §5) : repli seulement**, déclenché si la mesure sur l'appareil de référence dépasse le budget (tâche > 50 ms au défilement). Le texte en arc dépend du monument : une image par type × rareté ne porterait que le cadre, le texte resterait en SVG sans filtre.
 
 ## Alternatives écartées

@@ -1,0 +1,43 @@
+:host {
+  display: block;
+  inline-size: 62px;
+  block-size: 62px;
+  color: var(--zn-tampon-commun);
+}
+
+:host([data-encre='rare']) {
+  color: var(--zn-tampon-rare);
+}
+
+:host([data-encre='legendaire']) {
+  color: var(--zn-tampon-legendaire);
+}
+
+svg {
+  display: block;
+  inline-size: 100%;
+  block-size: 100%;
+  overflow: visible;
+}
+
+text {
+  font: 400 11px var(--zn-police-titre);
+}
+
+.rond {
+  display: grid;
+  place-items: center;
+  inline-size: 100%;
+  block-size: 100%;
+  border-radius: 50%;
+  box-shadow: var(--zn-biseau);
+  color: var(--zn-gris-libelle);
+  font: 500 var(--zn-fs-10) / 1 var(--zn-police-mono);
+  font-variant-numeric: tabular-nums;
+}
+
+@media (forced-colors: active) {
+  .rond {
+    border: 1px solid CanvasText;
+  }
+}

@@ -169,3 +169,25 @@ test('colonne mobile centrée en bureau : contenu et navigation partagent --zn-c
     assert.match(css, /margin-inline:\s*auto/, f);
   }
 });
+
+test('filtre d encre unique #zn-encre dans index.html, coupé en forced-colors', () => {
+  const index = lire('src/index.html');
+  assert.equal(index.match(/id="zn-encre"/g)?.length, 1);
+  assert.match(index, /feTurbulence[^>]*seed="4"/);
+  assert.match(index, /<feDisplacementMap/);
+  const base = lire('src/app/shared/styles/base.css');
+  assert.match(base, /\.zn-encre\s*{\s*filter:\s*url\('#zn-encre'\)/);
+  assert.match(
+    base,
+    /@media \(forced-colors: active\)\s*{\s*\.zn-encre\s*{\s*filter:\s*none;[\s\S]*zn-tampon,\s*zn-medaille\s*{\s*color:\s*CanvasText/,
+  );
+});
+
+test('tampon et planche : filtre via la classe, multiply une seule fois, forced-colors', () => {
+  const planche = lire('src/app/shared/ui/planche.css');
+  assert.equal(planche.match(/mix-blend-mode:\s*multiply/g)?.length, 1);
+  assert.match(planche, /@media \(forced-colors: active\)[\s\S]*mix-blend-mode:\s*normal/);
+  for (const f of ['tampon', 'medaille', 'bandeau', 'planche']) {
+    assert.doesNotMatch(lire(`src/app/shared/ui/${f}.css`), /filter:|backdrop-filter/, f);
+  }
+});

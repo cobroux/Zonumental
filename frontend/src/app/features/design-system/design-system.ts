@@ -2,12 +2,17 @@ import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/cor
 import { RouterLink } from '@angular/router';
 import { Sante } from '../../core/sante';
 import { ZnChamp, ZnSaisie } from '../../shared/ui/champ';
+import { ZnBandeau } from '../../shared/ui/bandeau';
+import { ZnMedaille } from '../../shared/ui/medaille';
 import { ZnMessage } from '../../shared/ui/message';
+import { placement } from '../../shared/ui/placement';
+import { ZnPlanche } from '../../shared/ui/planche';
+import { ContenuTampon, Encre, Forme, ZnTampon } from '../../shared/ui/tampon';
 
 /** Page de démonstration du design system : chaque composant dans tous ses états. */
 @Component({
   selector: 'app-design-system',
-  imports: [RouterLink, ZnChamp, ZnSaisie, ZnMessage],
+  imports: [RouterLink, ZnBandeau, ZnChamp, ZnMedaille, ZnMessage, ZnPlanche, ZnSaisie, ZnTampon],
   templateUrl: './design-system.html',
   styleUrl: './design-system.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -35,6 +40,7 @@ export class DesignSystem {
     { id: 'raretes', numero: '06', titre: 'Raretés' },
     { id: 'messages', numero: '07', titre: 'Messages' },
     { id: 'liens', numero: '08', titre: 'Liens et navigation' },
+    { id: 'tampons', numero: '09', titre: 'Tampons, planche et bandeau' },
   ];
 
   protected readonly couleurs = [
@@ -53,4 +59,23 @@ export class DesignSystem {
     { nom: 'Gris 6B', token: '--zn-gris-6b' },
     { nom: 'Nuit', token: '--zn-nuit' },
   ];
+
+  protected readonly tampons = (
+    [
+      [1, 'cercle', 'legendaire', 'PARIS · TOUR A. · N°001 ·', 'LÉGENDAIRE', '12·10·26'],
+      [2, 'rectangle', 'commun', 'PONT B.', 'PARIS', 'N°002 · COMMUN'],
+      [3, 'octogone', 'rare', 'ÉGLISE C.', 'N°003', 'RARE'],
+      [4, 'ovale', 'commun', 'LYON', 'MUSÉE D.', 'N°004 · COMMUN'],
+    ] as [number, Forme, Encre, string, string, string][]
+  ).map(([numero, forme, encre, haut, centre, bas]) => {
+    const { rotation, dx, dy } = placement(numero);
+    return {
+      numero,
+      forme,
+      encre,
+      contenu: { haut, centre, bas } satisfies ContenuTampon,
+      etiquette: `${haut} ${centre} ${bas}`,
+      pose: `--rot: ${rotation}deg; --dx: ${dx}%; --dy: ${dy}%`,
+    };
+  });
 }

@@ -1,0 +1,38 @@
+:host {
+  display: block;
+  color: var(--zn-tampon-commun);
+}
+
+:host([data-encre='rare']) {
+  color: var(--zn-tampon-rare);
+}
+
+:host([data-encre='legendaire']) {
+  color: var(--zn-tampon-legendaire);
+}
+
+svg {
+  display: block;
+  inline-size: 100%;
+  block-size: auto;
+  overflow: visible;
+}
+
+text {
+  fill: currentColor;
+  stroke: none;
+  text-anchor: middle;
+}
+
+/* le texte en arc suit le chemin depuis son début */
+.arc {
+  text-anchor: start;
+}
+
+.mono {
+  font-family: var(--zn-police-mono);
+}
+
+.titre {
+  font-family: var(--zn-police-titre);
+}

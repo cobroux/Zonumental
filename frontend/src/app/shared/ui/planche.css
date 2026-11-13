@@ -1,0 +1,55 @@
+:host {
+  display: block;
+}
+
+section {
+  position: relative;
+  isolation: isolate;
+  max-inline-size: 32rem;
+  margin-inline: auto;
+  padding: 12px;
+  background: var(--zn-papier-clair) url('/guilloche-planche.svg') center / cover no-repeat;
+  border: 1px solid var(--zn-voile-10);
+  border-radius: var(--zn-rayon-6);
+  box-shadow: var(--zn-ombre-planche);
+}
+
+.calque {
+  mix-blend-mode: multiply;
+}
+
+.grille {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(104px, 1fr));
+  gap: 4px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.grille.aere {
+  grid-template-columns: repeat(auto-fill, minmax(124px, 1fr));
+}
+
+/* cellules projetées : leur contenu vient de la fonctionnalité */
+:host ::ng-deep .grille > li {
+  position: relative;
+  display: grid;
+  place-items: center;
+  aspect-ratio: 1 / 1.04;
+}
+
+:host ::ng-deep .grille.aere > li {
+  aspect-ratio: 1.3 / 1;
+}
+
+@media (forced-colors: active) {
+  section {
+    background: Canvas;
+    border-color: CanvasText;
+  }
+
+  .calque {
+    mix-blend-mode: normal;
+  }
+}
