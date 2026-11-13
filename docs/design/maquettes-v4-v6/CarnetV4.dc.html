@@ -1,0 +1,182 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<title>Carnet v4</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Gloock&amp;family=Geist:wght@400;500;600&amp;family=Geist+Mono:wght@400;500&amp;display=swap" rel="stylesheet">
+<style>body{margin:0}</style>
+</helmet>
+<div style="position: relative; width: 390px; height: 844px; box-sizing: border-box; overflow: hidden; background: #F4F1EA; color: #1A1C20; font-family: 'Geist', system-ui, sans-serif">
+  <svg aria-hidden="true" style="position: absolute; width: 0; height: 0">
+    <filter id="inkC" x="-6%" y="-6%" width="112%" height="112%">
+      <feTurbulence type="fractalNoise" baseFrequency="1.1" numOctaves="2" seed="4" result="n"></feTurbulence>
+      <feColorMatrix in="n" type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 -3 2.15" result="holes"></feColorMatrix>
+      <feComposite in="SourceGraphic" in2="holes" operator="in" result="inked"></feComposite>
+      <feDisplacementMap in="inked" in2="n" scale="1.3" xChannelSelector="R" yChannelSelector="G"></feDisplacementMap>
+    </filter>
+    <filter id="paperC"><feTurbulence type="fractalNoise" baseFrequency="0.85" numOctaves="3" stitchTiles="stitch"></feTurbulence><feColorMatrix values="0 0 0 0 0.42  0 0 0 0 0.36  0 0 0 0 0.27  0 0 0 0.10 0"></feColorMatrix></filter>
+  </svg>
+  <svg aria-hidden="true" style="position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none"><rect width="100%" height="100%" filter="url(#paperC)"></rect></svg>
+
+  <div style="position: relative; display: flex; flex-direction: column; gap: 12px; padding: 18px 16px 0">
+    <header style="position: relative; height: 108px; border-radius: 18px; background: #1F3A5F; color: #F4F1EA; overflow: hidden">
+      <svg aria-hidden="true" viewBox="0 0 358 108" style="position: absolute; inset: 0; width: 100%; height: 100%">
+        <sc-for list="{{guil}}" as="g" hint-placeholder-count="30"><ellipse cx="300" cy="54" rx="190" ry="40" fill="none" stroke="#F4F1EA" stroke-opacity="0.07" stroke-width="0.6" transform="rotate({{g.a}} 300 54)"></ellipse></sc-for>
+      </svg>
+      <svg aria-hidden="true" viewBox="0 0 120 120" width="62" height="62" style="position: absolute; top: 14px; right: 14px; color: #D9B26A; opacity: 0.85">
+        <g fill="none" stroke="currentColor"><circle cx="60" cy="60" r="56" stroke-width="2"></circle><circle cx="60" cy="60" r="46" stroke-width="1"></circle><text x="60" y="74" text-anchor="middle" fill="currentColor" stroke="none" font-family="Gloock, serif" font-size="40">Z</text></g>
+      </svg>
+      <div style="position: absolute; left: 18px; top: 14px; display: flex; flex-direction: column; gap: 3px">
+        <span style="font-family: 'Geist Mono', monospace; font-size: 10px; letter-spacing: 0.16em; color: #C8D2DF">CARNET D'EXPLORATEUR · N°1</span>
+        <span style="font-family: 'Gloock', serif; font-size: 24px; line-height: 1">@[pseudo]</span>
+      </div>
+      <div style="position: absolute; left: 18px; right: 90px; bottom: 14px; display: flex; gap: 18px; align-items: baseline">
+        <sc-for list="{{stats}}" as="s" hint-placeholder-count="3">
+          <span style="display: flex; align-items: baseline; gap: 5px"><strong style="font-family: 'Gloock', serif; font-weight: 400; font-size: 22px; color: {{s.c}}">{{s.v}}</strong><span style="font-size: 12px; color: #C8D2DF">{{s.l}}</span></span>
+        </sc-for>
+      </div>
+    </header>
+
+    <nav aria-label="Villes" style="display: flex; gap: 20px; border-bottom: 1px solid rgba(26,28,32,0.12); margin: 0 -16px; padding: 0 16px; overflow: hidden">
+      <sc-for list="{{cities}}" as="c" hint-placeholder-count="4">
+        <button aria-current="{{c.current}}" style="flex: none; height: 44px; border: 0; background: none; padding: 0; display: flex; align-items: baseline; gap: 6px; border-bottom: {{c.underline}}; margin-bottom: -1px; font: inherit; cursor: pointer">
+          <span style="font-family: 'Gloock', serif; font-size: 19px; color: {{c.color}}">{{c.name}}</span>
+          <span style="font-family: 'Geist Mono', monospace; font-size: 11px; color: #5B5F66">{{c.count}}</span>
+        </button>
+      </sc-for>
+    </nav>
+
+    <sc-if value="{{showChips}}" hint-placeholder-val="{{ false }}">
+      <div style="display: flex; gap: 8px; overflow: hidden; margin: 0 -16px; padding: 0 16px">
+        <sc-for list="{{chips}}" as="f" hint-placeholder-count="5">
+          <button aria-pressed="{{f.on}}" style="flex: none; height: 34px; padding: 0 13px; border-radius: 999px; border: 1px solid {{f.border}}; background: {{f.bg}}; color: {{f.fg}}; font: inherit; font-size: 13px; font-weight: 500; cursor: pointer">{{f.label}}</button>
+        </sc-for>
+      </div>
+    </sc-if>
+
+    <div style="display: flex; justify-content: space-between; align-items: center; height: 24px">
+      <span style="font-family: 'Geist Mono', monospace; font-size: 11px; letter-spacing: 0.14em; color: #5B5F66">{{pageLabel}}</span>
+      <sc-if value="{{showCollections}}" hint-placeholder-val="{{ true }}">
+        <a href="#" style="display: flex; align-items: center; gap: 4px; font-size: 13px; font-weight: 500; color: #1F3A5F; text-decoration: none">{{collectionsLabel}}<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#1F3A5F" stroke-width="2" aria-hidden="true"><path d="M9 5l7 7-7 7"></path></svg></a>
+      </sc-if>
+    </div>
+
+    <div style="position: relative; height: {{pageH}}; border-radius: 6px; background: #FBF9F4; border: 1px solid rgba(26,28,32,0.08); box-shadow: 0 14px 24px -18px rgba(26,28,32,0.35); overflow: hidden">
+      <svg aria-hidden="true" viewBox="0 0 358 470" preserveAspectRatio="none" style="position: absolute; inset: 0; width: 100%; height: 100%">
+        <sc-for list="{{guilPage}}" as="g" hint-placeholder-count="30"><ellipse cx="179" cy="235" rx="170" ry="46" fill="none" stroke="#2F5D4A" stroke-opacity="0.07" stroke-width="0.6" transform="rotate({{g.a}} 179 235)"></ellipse></sc-for>
+      </svg>
+
+      <sc-for list="{{slots}}" as="o" hint-placeholder-count="3">
+        <div style="position: absolute; left: {{o.x}}px; top: {{o.y}}px; width: {{o.w}}px; height: {{o.h}}px; box-sizing: border-box; border-radius: 8px; box-shadow: inset 1px 1px 0 rgba(26,28,32,0.12), inset -1px -1px 0 #FFFFFF; border: {{o.border}}; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; text-align: center; padding: 6px">
+          <span style="font-family: 'Geist Mono', monospace; font-size: 11px; letter-spacing: 0.1em; color: {{o.numColor}}">{{o.num}}</span>
+          <span style="font-size: 12px; color: #5B5F66; line-height: 1.25">{{o.hint}}</span>
+        </div>
+      </sc-for>
+
+      <sc-for list="{{stamps}}" as="s" hint-placeholder-count="4">
+        <div style="position: absolute; left: {{s.x}}px; top: {{s.y}}px; width: {{s.w}}px; color: {{s.ink}}; transform: rotate({{s.r}}deg); mix-blend-mode: multiply">
+          <sc-if value="{{s.isCircle}}" hint-placeholder-val="{{ true }}">
+            <svg viewBox="0 0 120 120" width="100%" role="img" aria-label="{{s.label}}"><g filter="url(#inkC)" fill="none" stroke="currentColor"><circle cx="60" cy="60" r="56" stroke-width="3"></circle><circle cx="60" cy="60" r="50" stroke-width="1"></circle><circle cx="60" cy="60" r="32" stroke-width="1.2"></circle><path id="p{{s.id}}" d="M60 60 m-41 0 a41 41 0 1 1 82 0 a41 41 0 1 1 -82 0" stroke="none"></path><text fill="currentColor" stroke="none" font-family="Geist Mono, monospace" font-size="9.2" letter-spacing="2"><textPath href="#p{{s.id}}">{{s.t1}}</textPath></text><text x="60" y="60" text-anchor="middle" fill="currentColor" stroke="none" font-family="Gloock, serif" font-size="{{s.fs}}">{{s.t2}}</text><text x="60" y="75" text-anchor="middle" fill="currentColor" stroke="none" font-family="Geist Mono, monospace" font-size="7.6">{{s.t3}}</text></g></svg>
+          </sc-if>
+          <sc-if value="{{s.isRect}}" hint-placeholder-val="{{ false }}">
+            <svg viewBox="0 0 150 96" width="100%" role="img" aria-label="{{s.label}}"><g filter="url(#inkC)" fill="none" stroke="currentColor"><rect x="3" y="3" width="144" height="90" rx="6" stroke-width="3"></rect><rect x="9" y="9" width="132" height="78" rx="3" stroke-width="1"></rect><text x="75" y="27" text-anchor="middle" fill="currentColor" stroke="none" font-family="Geist Mono, monospace" font-size="8.5" letter-spacing="2.2">{{s.t1}}</text><text x="75" y="56" text-anchor="middle" fill="currentColor" stroke="none" font-family="Gloock, serif" font-size="{{s.fs}}">{{s.t2}}</text><line x1="20" y1="65" x2="130" y2="65" stroke-width="1"></line><text x="75" y="79" text-anchor="middle" fill="currentColor" stroke="none" font-family="Geist Mono, monospace" font-size="8.2">{{s.t3}}</text></g></svg>
+          </sc-if>
+          <sc-if value="{{s.isOct}}" hint-placeholder-val="{{ false }}">
+            <svg viewBox="0 0 120 120" width="100%" role="img" aria-label="{{s.label}}"><g filter="url(#inkC)" fill="none" stroke="currentColor"><polygon points="36,3 84,3 117,36 117,84 84,117 36,117 3,84 3,36" stroke-width="3"></polygon><polygon points="39,10 81,10 110,39 110,81 81,110 39,110 10,81 10,39" stroke-width="1"></polygon><text x="60" y="38" text-anchor="middle" fill="currentColor" stroke="none" font-family="Geist Mono, monospace" font-size="8.5" letter-spacing="1.8">{{s.t1}}</text><text x="60" y="66" text-anchor="middle" fill="currentColor" stroke="none" font-family="Gloock, serif" font-size="{{s.fs}}">{{s.t2}}</text><text x="60" y="88" text-anchor="middle" fill="currentColor" stroke="none" font-family="Geist Mono, monospace" font-size="7.6">{{s.t3}}</text></g></svg>
+          </sc-if>
+          <sc-if value="{{s.isOval}}" hint-placeholder-val="{{ false }}">
+            <svg viewBox="0 0 140 100" width="100%" role="img" aria-label="{{s.label}}"><g filter="url(#inkC)" fill="none" stroke="currentColor"><ellipse cx="70" cy="50" rx="66" ry="46" stroke-width="3"></ellipse><ellipse cx="70" cy="50" rx="59" ry="39" stroke-width="1"></ellipse><text x="70" y="34" text-anchor="middle" fill="currentColor" stroke="none" font-family="Geist Mono, monospace" font-size="8" letter-spacing="2">{{s.t1}}</text><text x="70" y="58" text-anchor="middle" fill="currentColor" stroke="none" font-family="Gloock, serif" font-size="{{s.fs}}">{{s.t2}}</text><text x="70" y="74" text-anchor="middle" fill="currentColor" stroke="none" font-family="Geist Mono, monospace" font-size="7.5">{{s.t3}}</text></g></svg>
+          </sc-if>
+        </div>
+      </sc-for>
+
+      <sc-if value="{{showFoot}}" hint-placeholder-val="{{ false }}">
+        <p style="position: absolute; left: 20px; right: 20px; bottom: 16px; margin: 0; text-align: center; font-size: 13px; line-height: 1.4; color: #5B5F66">{{foot}}</p>
+      </sc-if>
+      <sc-if value="{{showDots}}" hint-placeholder-val="{{ true }}">
+        <div style="position: absolute; left: 0; right: 0; bottom: 12px; display: flex; justify-content: center; gap: 6px" aria-hidden="true">
+          <span style="width: 18px; height: 6px; border-radius: 3px; background: #1A1C20"></span>
+          <span style="width: 6px; height: 6px; border-radius: 3px; background: rgba(26,28,32,0.2)"></span>
+          <span style="width: 6px; height: 6px; border-radius: 3px; background: rgba(26,28,32,0.2)"></span>
+          <span style="width: 6px; height: 6px; border-radius: 3px; background: rgba(26,28,32,0.2)"></span>
+        </div>
+      </sc-if>
+    </div>
+  </div>
+
+  <div style="position: absolute; left: 0; right: 0; bottom: 0; height: 116px">
+    <dc-import name="NavBar" active="carnet" capture="{{navCapture}}" dist="{{navDist}}" hint-size="390px,116px"></dc-import>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"etat":{"editor":"enum","options":["j0","j3","j60"],"default":"j60"},"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const etat = this.props.etat ?? 'j60';
+    const M = '#1F3A5F', B = '#8C2F39', V = '#2F5D4A';
+    const st = (shape, id, x, y, w, r, ink, t1, t2, t3, fs, label) => ({ id, x, y, w, r, ink, t1, t2, t3, fs, label, isCircle: shape === 'c', isRect: shape === 'r', isOct: shape === 'o', isOval: shape === 'e' });
+    const sl = (x, y, w, h, num, hint, accent) => ({ x, y, w, h, num, hint, border: accent ? '1.5px dashed #8C2F39' : '0', numColor: accent ? '#8C2F39' : '#5B5F66' });
+    const city = (list, active) => list.map(([name, count], i) => ({ name, count, current: i === active ? 'page' : 'false', color: i === active ? '#1A1C20' : '#6B6F75', underline: i === active ? '2px solid #1A1C20' : '2px solid transparent' }));
+    const D = {
+      j0: {
+        stats: [{ v: '0', l: 'tampon · ton carnet commence ici', c: '#F4F1EA' }],
+        cities: city([['Paris', '0/28'], ['Lyon', '0/10'], ['Marseille', '0/10'], ['Bordeaux', '0/10']], 0),
+        showChips: false, showCollections: false, pageLabel: 'PAGE 1 — PARIS', pageH: '500px',
+        stamps: [],
+        slots: [
+          sl(14, 16, 160, 120, 'N°001', 'Ton premier tampon · 2,1 km', true), sl(184, 16, 160, 120, 'N°002', '3,4 km', false),
+          sl(14, 150, 160, 120, 'N°003', '1,6 km', false), sl(184, 150, 160, 120, 'N°004', '1,9 km', false),
+          sl(14, 284, 160, 120, 'N°005', '1,2 km', false), sl(184, 284, 160, 120, 'N°006', '2,4 km', false)
+        ],
+        showFoot: true, foot: 'Chaque monument visité remplit une case. 28 cases t’attendent à Paris.', showDots: false
+      },
+      j3: {
+        stats: [{ v: '3', l: 'tampons', c: '#F4F1EA' }, { v: '1', l: 'légendaire', c: '#D9B26A' }],
+        cities: city([['Paris', '3/28'], ['Lyon', '0/10'], ['Marseille', '0/10'], ['Bordeaux', '0/10']], 0),
+        showChips: false, showCollections: true, collectionsLabel: 'Collections', pageLabel: 'PAGE 1 — PARIS', pageH: '500px',
+        stamps: [
+          st('c', 'a', 14, 18, 118, -9, M, 'PARIS · TOUR EIFFEL · N°001 ·', 'LÉGENDAIRE', '19·10·26', 11, 'Tour Eiffel, légendaire, 19 octobre'),
+          st('r', 'b', 172, 30, 160, 4, B, 'ARC DE TRIOMPHE', 'PARIS', 'N°002 · RARE · 19·10·26', 27, 'Arc de Triomphe, rare, 19 octobre'),
+          st('o', 'c', 30, 160, 118, 7, V, 'NOTRE-DAME', 'N°003', 'LÉGENDAIRE · 20·10', 15, 'Notre-Dame, légendaire, 20 octobre')
+        ],
+        slots: [sl(190, 176, 136, 84, 'N°004', 'Le plus proche · 1,9 km', true), sl(24, 312, 136, 84, 'N°005', '1,2 km', false), sl(196, 304, 136, 84, 'N°006', '2,4 km', false)],
+        showFoot: false, showDots: true
+      },
+      j60: {
+        stats: [{ v: '41', l: 'tampons', c: '#F4F1EA' }, { v: '6', l: 'légendaires', c: '#D9B26A' }, { v: '4', l: '/10 villes', c: '#F4F1EA' }],
+        cities: city([['Paris', '24/28'], ['Lyon', '9/10'], ['Marseille', '5/10'], ['Bordeaux', '3/10']], 0),
+        showChips: true, chips: ['Tous', 'Tours', 'Religieux', 'Arcs & ponts', 'Musées'].map((label, i) => ({ label, on: i === 0 ? 'true' : 'false', bg: i === 0 ? '#1A1C20' : 'transparent', fg: i === 0 ? '#FBF9F4' : '#1A1C20', border: i === 0 ? '#1A1C20' : 'rgba(26,28,32,0.2)' })),
+        showCollections: true, collectionsLabel: 'Collections · 3 terminées', pageLabel: 'PAGE 1 / 4 — RIVE DROITE', pageH: '456px',
+        stamps: [
+          st('c', 'a', 8, 12, 112, -9, M, 'PARIS · TOUR EIFFEL · N°001 ·', 'LÉGENDAIRE', '19·10·26', 11, 'Tour Eiffel, légendaire'),
+          st('r', 'b', 124, 22, 134, 4, B, 'ARC DE TRIOMPHE', 'PARIS', 'N°002 · RARE', 27, 'Arc de Triomphe, rare'),
+          st('c', 'c', 262, 14, 88, 8, V, 'PANTHÉON · N°006 · PARIS ·', 'N°006', '18·10·26', 14, 'Panthéon, commun'),
+          st('o', 'd', 14, 136, 112, 7, V, 'NOTRE-DAME', 'N°003', 'LÉGENDAIRE', 15, 'Notre-Dame, légendaire'),
+          st('e', 'e', 132, 146, 128, -6, M, 'MONTMARTRE · RARE', 'Sacré-Cœur', 'N°004 · 15·10·26', 17, 'Sacré-Cœur, rare'),
+          st('e', 'f', 8, 270, 126, -8, B, 'PARIS 9ᵉ', 'Opéra Garnier', 'N°008 · 19·10·26', 16, 'Opéra Garnier, commun'),
+          st('r', 'g', 140, 280, 106, 5, M, 'PONT NEUF', 'PARIS', 'N°011 · 30·10', 24, 'Pont Neuf, commun'),
+          st('r', 'h', 250, 266, 102, -3, B, 'CONCIERGERIE', 'PARIS', 'N°009 · RARE', 22, 'Conciergerie, rare'),
+          st('o', 'i', 40, 366, 80, -5, B, 'STE-CHAPELLE', 'N°012', 'RARE', 15, 'Sainte-Chapelle, rare')
+        ],
+        slots: [sl(268, 162, 80, 60, 'N°005', '1,2 km', false), sl(150, 388, 86, 50, 'N°013', '3,1 km', false)],
+        showFoot: false, showDots: true
+      }
+    };
+    const NAV = { j0: ['loin', ''], j3: ['proche', '1,9 km'], j60: ['proche', '1,2 km'] };
+    return {
+      ...D[etat],
+      navCapture: NAV[etat][0], navDist: NAV[etat][1],
+      guil: Array.from({ length: 30 }, (_, i) => ({ a: i * 6 })),
+      guilPage: Array.from({ length: 30 }, (_, i) => ({ a: i * 6 }))
+    };
+  }
+}
+</script>
+</body>
+</html>
