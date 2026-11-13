@@ -18,7 +18,7 @@ import { ChangeDetectionStrategy, Component, computed, input } from '@angular/co
     @if (soustitre()) {
       <h2><span class="zn-sr">Carnet de </span>{{ pseudo() }}</h2>
     } @else {
-      <h1><span class="zn-sr">Carnet de </span>{{ pseudo() }}</h1>
+      <h1 tabindex="-1"><span class="zn-sr">Carnet de </span>{{ pseudo() }}</h1>
     }
     <ul class="stats">
       <li>

@@ -1,179 +1,105 @@
-.guide {
-  padding-inline-start: var(--zn-esp-6);
-}
-.carte {
-  display: inline-grid;
-  place-items: center;
-  min-block-size: 54px;
-  padding-inline: var(--zn-esp-6);
-  border-radius: 14px;
-  background: var(--zn-action);
-  color: var(--zn-fond);
-}
-.compteur {
-  font-family: 'Geist Mono', monospace;
-}
-.barre {
-  display: block;
-  block-size: 8px;
-  background: var(--zn-papier-sombre);
-  border: var(--zn-trait);
-}
-.barre span {
-  display: block;
-  block-size: 100%;
-  background: var(--zn-action);
-}
-.villes {
-  display: flex;
-  align-items: center;
-  gap: var(--zn-esp-2);
-}
-.villes h2 {
-  flex: 1;
-  margin: 0;
-}
-.villes button {
-  min-inline-size: var(--zn-cible);
-  min-block-size: var(--zn-cible);
-}
-.sr {
-  position: absolute;
-  inline-size: 1px;
-  block-size: 1px;
-  overflow: hidden;
-  clip-path: inset(50%);
-}
-.grille {
-  display: grid;
-  grid-template-columns: repeat(5, minmax(0, 1fr));
-  gap: var(--zn-esp-2);
-  padding: 0;
-  list-style: none;
-}
-.grille a {
+/* Carnet fidèle à CarnetV4 : spec docs/design/fidelite-maquettes-v4-v6.md §4 et §5. */
+:host {
   display: flex;
   flex-direction: column;
-  align-items: center;
-  min-block-size: 72px;
-  min-inline-size: var(--zn-cible);
-  padding: var(--zn-esp-1);
-  border: var(--zn-trait);
-  font:
-    9px/1.2 'Geist Mono',
-    monospace;
-  color: var(--zn-texte);
-  text-decoration: none;
-  overflow: hidden;
-}
-.grille a:focus-visible {
-  outline: 3px solid var(--zn-focus);
-  outline-offset: 2px;
-}
-.grille svg {
-  inline-size: 24px;
-  block-size: 24px;
-}
-.vide {
-  border-style: dashed;
-  color: var(--zn-gris-libelle);
-}
-.vide svg {
-  fill: var(--zn-papier-clair);
-  stroke: var(--zn-gris-bordure);
-}
-.tampon svg {
-  fill: currentcolor;
-}
-.tampon {
-  color: var(--zn-marine);
-  border-radius: 12px;
-}
-.tampon.rare {
-  color: var(--zn-bordeaux);
-  border-style: double;
-  border-width: 4px;
-}
-.tampon.legendaire {
-  color: var(--zn-ocre-texte);
-  border-style: double;
-  border-width: 4px;
-  outline: 1px solid currentcolor;
-}
-.nom {
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-}
-@media (forced-colors: active) {
-  .grille a {
-    border-color: CanvasText;
-  }
+  gap: 12px;
+  padding-block-start: 18px;
 }
 
-.tampon.legendaire .etoile {
-  position: absolute;
-  inset: 2px 2px auto auto;
-  inline-size: 12px;
-  block-size: 12px;
-}
-.grille a {
+.entete {
   position: relative;
 }
-.squelette li {
-  min-block-size: 72px;
-  border-radius: 12px;
-  background: var(--zn-papier-sombre);
-  animation: pulse 1.2s ease-in-out infinite alternate;
+
+/* Accès au profil conservé (décision n° 6) : zone de toucher posée sur le sceau Z décoratif. */
+.entete .profil {
+  inset: 14px 14px auto auto;
+  inline-size: 62px;
+  block-size: 62px;
+  border: 0;
 }
-@keyframes pulse {
-  to {
-    opacity: 0.5;
-  }
-}
-@media (prefers-reduced-motion: reduce) {
-  .squelette li {
-    animation: none;
-  }
+.entete .profil:focus-visible {
+  outline-color: var(--zn-papier);
 }
 
+/* Onglets de villes */
+.villes ul {
+  display: flex;
+  gap: 20px;
+  margin: 0 -16px;
+  padding: 0 16px;
+  list-style: none;
+  box-shadow: inset 0 -1px 0 var(--zn-voile-10);
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.villes button {
+  display: flex;
+  flex: none;
+  align-items: baseline;
+  gap: 6px;
+  block-size: var(--zn-cible);
+  padding: 0;
+  border: 0;
+  border-block-end: 2px solid transparent;
+  background: none;
+  color: var(--zn-gris-libelle);
+  font: inherit;
+  cursor: pointer;
+}
+.villes button[aria-current='page'] {
+  border-block-end-color: var(--zn-encre);
+  color: var(--zn-encre);
+}
+.villes button:focus-visible {
+  outline: 3px solid var(--zn-focus);
+  outline-offset: -3px;
+}
+.ville {
+  font: 400 var(--zn-fs-19) / 1 var(--zn-police-titre);
+}
+.compte {
+  color: var(--zn-gris-libelle);
+  font: 400 var(--zn-fs-11) / 1 var(--zn-police-mono);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Chips en pilules */
 .filtres {
   display: flex;
-  gap: var(--zn-esp-2);
+  gap: 8px;
+  align-items: center;
+  block-size: var(--zn-cible);
+  margin-inline: -16px;
+  padding-inline: 16px;
   overflow-x: auto;
-  padding-block: var(--zn-esp-1);
+  scrollbar-width: none;
 }
 .filtres button {
-  display: inline-flex;
+  position: relative;
   flex: none;
-  align-items: center;
-  gap: var(--zn-esp-1);
-  min-block-size: var(--zn-cible);
-  padding-inline: var(--zn-esp-3);
-  border: var(--zn-trait);
+  block-size: 34px;
+  padding-inline: 13px;
+  border: 1px solid var(--zn-bordure-champ);
   border-radius: var(--zn-rayon-pastille);
-  background: var(--zn-papier-clair);
-  color: var(--zn-texte);
-  font: inherit;
+  background: transparent;
+  color: var(--zn-encre);
+  font: 500 var(--zn-taille-petite) var(--zn-police-ui);
+  cursor: pointer;
+}
+/* zone de toucher de 44 px sans changer la mise en page */
+.filtres button::before {
+  content: '';
+  position: absolute;
+  inset: -5px 0;
 }
 .filtres button[aria-pressed='true'] {
+  border-color: var(--zn-encre);
   background: var(--zn-encre);
-  color: var(--zn-papier);
+  color: var(--zn-papier-clair);
 }
 .filtres button:focus-visible {
   outline: 3px solid var(--zn-focus);
   outline-offset: 2px;
-}
-.filtres svg {
-  inline-size: 20px;
-  block-size: 20px;
-  fill: currentcolor;
-}
-.filtres .coche {
-  fill: none;
-  stroke: currentcolor;
-  stroke-width: 3;
 }
 @media (forced-colors: active) {
   .filtres button {
@@ -181,7 +107,199 @@
   }
 }
 
-.collections ul:not(.grille) {
+/* Libellé de page et lien Collections */
+.rangee {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  min-block-size: 24px;
+}
+.etiquette {
+  margin: 0;
+  color: var(--zn-gris-libelle);
+  font: 500 var(--zn-fs-11) / 1.2 var(--zn-police-mono);
+  letter-spacing: var(--zn-ls-etiquette);
+  text-transform: uppercase;
+}
+.lien-collections {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-block: -10px;
+  padding-block: 10px;
+  color: var(--zn-marine);
+  font: 500 var(--zn-taille-petite) var(--zn-police-ui);
+  font-variant-numeric: tabular-nums;
+}
+.lien-collections svg {
+  inline-size: 14px;
+  block-size: 14px;
+  fill: none;
+  stroke: currentcolor;
+  stroke-width: 2;
+}
+.lien-collections:focus-visible {
+  outline: 3px solid var(--zn-focus);
+  outline-offset: 2px;
+}
+
+/* Cellules de la planche */
+a.tampon,
+a.vide {
+  color: inherit;
+  text-decoration: none;
+}
+a.tampon:focus-visible,
+a.vide:focus-visible {
+  outline: 3px solid var(--zn-focus);
+  outline-offset: 2px;
+}
+a.tampon {
+  display: grid;
+  place-items: center;
+  inline-size: 100%;
+  block-size: 100%;
+}
+
+/* Part de la cellule occupée par le tampon : dense, puis aérée (spec §4.2) */
+zn-tampon {
+  inline-size: 82%;
+}
+zn-tampon[data-forme='rectangle'] {
+  inline-size: 86%;
+}
+zn-tampon[data-forme='ovale'] {
+  inline-size: 84%;
+}
+zn-tampon.aere {
+  inline-size: 68%;
+}
+zn-tampon.aere[data-forme='rectangle'] {
+  inline-size: 88%;
+}
+zn-tampon.aere[data-forme='ovale'] {
+  inline-size: 76%;
+}
+/* un seul transform, sur le conteneur du tampon : le contour de focus reste droit */
+.pose {
+  transform: translate(var(--dx), var(--dy)) rotate(var(--rot));
+  transition: transform var(--zn-duree-appui) var(--zn-courbe);
+}
+a.tampon:active .pose {
+  transform: translate(var(--dx), var(--dy)) rotate(var(--rot)) scale(0.97);
+}
+
+/* Emplacement : case vide en creux, jamais le nom du monument */
+a.vide {
+  position: absolute;
+  inset: 6px;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  padding: 6px;
+  border-radius: var(--zn-rayon-8);
+  box-shadow: var(--zn-biseau);
+  color: var(--zn-gris-libelle);
+  text-align: center;
+}
+a.vide.aere {
+  inset: 8px;
+}
+.num {
+  font: 400 var(--zn-fs-11) / 1 var(--zn-police-mono);
+  letter-spacing: var(--zn-ls-numero);
+}
+.indice {
+  font-size: var(--zn-fs-12);
+  line-height: 1.25;
+  text-wrap: balance;
+  font-variant-numeric: tabular-nums;
+}
+a.vide.suivante {
+  border: 1.5px dashed var(--zn-bordeaux);
+}
+a.vide.suivante .num {
+  color: var(--zn-bordeaux);
+}
+@media (forced-colors: active) {
+  a.vide {
+    border: 1px solid CanvasText;
+  }
+}
+
+/* Chargement : cases fantômes statiques */
+.fantome::before {
+  content: '';
+  inline-size: calc(100% - 16px);
+  block-size: calc(100% - 16px);
+  border-radius: var(--zn-rayon-8);
+  background: var(--zn-papier-sombre);
+  box-shadow: var(--zn-biseau);
+}
+
+/* Pied de planche : pagination ou phrase d'accroche */
+.pages {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  block-size: var(--zn-cible);
+  margin-block-start: 4px;
+}
+.pages button {
+  display: grid;
+  place-items: center;
+  inline-size: var(--zn-cible);
+  block-size: var(--zn-cible);
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--zn-encre);
+  cursor: pointer;
+}
+.pages button[aria-disabled='true'] {
+  opacity: 0.35;
+  cursor: default;
+}
+.pages button:focus-visible {
+  outline: 3px solid var(--zn-focus);
+  outline-offset: -3px;
+}
+.pages svg {
+  inline-size: 20px;
+  block-size: 20px;
+  fill: none;
+  stroke: currentcolor;
+  stroke-width: 1.9;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.puces {
+  display: flex;
+  gap: 6px;
+}
+.puces span {
+  inline-size: 6px;
+  block-size: 6px;
+  border-radius: 3px;
+  background: var(--zn-voile-22);
+}
+.puces .courante {
+  inline-size: 18px;
+  background: var(--zn-encre);
+}
+.accroche {
+  margin: 12px 20px 4px;
+  color: var(--zn-gris-libelle);
+  font: var(--zn-taille-petite) / 1.4 var(--zn-police-ui);
+  text-align: center;
+  text-wrap: pretty;
+}
+
+/* Collections (accordéon, en attendant l'écran de #96) */
+.collections > ul {
   padding: 0;
   list-style: none;
 }
@@ -202,7 +320,7 @@
   outline-offset: 2px;
 }
 .progression {
-  font-family: 'Geist Mono', monospace;
+  font-family: var(--zn-police-mono);
 }
 @media (forced-colors: active) {
   .collections button {

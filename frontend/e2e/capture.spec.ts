@@ -26,7 +26,7 @@ test.describe('à 100 m de A', () => {
     expect(api.envois).toEqual([1]);
 
     await page.goto('/carnet');
-    await expect(page.getByText('1 sur 4')).toBeVisible();
+    await expect(page.locator('zn-bandeau')).toContainText('1 tampon');
     await expect(page.locator('a.tampon')).toHaveCount(1);
     await expect(page.locator('a.vide')).toHaveCount(1);
   });
@@ -82,6 +82,6 @@ test.describe('à 420 m de A', () => {
     await expect(page.getByText('Tu es à 420 m, rapproche-toi !')).toBeVisible();
     expect(api.captures.size).toBe(0);
     await page.goto('/carnet');
-    await expect(page.getByText('0 sur 4')).toBeVisible();
+    await expect(page.locator('zn-bandeau')).toContainText('0 tampon');
   });
 });

@@ -3,7 +3,8 @@ import { ChangeDetectionStrategy, Component, input } from '@angular/core';
 
 /**
  * Planche de papier : grille de cellules `<li>` projetées. Le `multiply` est posé une seule fois,
- * sur le calque de la grille, jamais par tampon (ADR 0022 §5).
+ * sur le calque de la grille, jamais par tampon (ADR 0022 §5). Le pied (pagination, phrase
+ * d'accroche) se projette avec l'attribut `pied`, hors du calque.
  */
 @Component({
   selector: 'zn-planche',
@@ -15,6 +16,7 @@ import { ChangeDetectionStrategy, Component, input } from '@angular/core';
           <ng-content />
         </ul>
       </div>
+      <ng-content select="[pied]" />
     </section>
   `,
   styleUrl: './planche.css',
