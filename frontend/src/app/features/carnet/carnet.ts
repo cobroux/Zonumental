@@ -6,188 +6,203 @@ import {
   Injector,
   afterNextRender,
   computed,
+  effect,
   inject,
   signal,
-  viewChild,
 } from '@angular/core';
-import { TitleCasePipe } from '@angular/common';
+import { NgTemplateOutlet } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { MaCollection } from '../../core/api/models/ma-collection';
 import { MonumentResume } from '../../core/api/models/monument-resume';
-import { Rarete } from '../../core/api/models/rarete';
+import { Profil } from '../../core/api/models/profil';
 import { TypeMonument } from '../../core/api/models/type-monument';
 import { Position } from '../../core/position/position';
-import { distanceMetres } from '../../core/position/proximite';
+import { distanceMetres, formaterDistance } from '../../core/position/proximite';
+import { ZnBandeau } from '../../shared/ui/bandeau';
 import { ZnMessage } from '../../shared/ui/message';
-
-const RARETES: Record<Rarete, string> = {
-  COMMUN: 'commun',
-  RARE: 'rare',
-  LEGENDAIRE: 'légendaire',
-};
-const TYPES: Record<TypeMonument, string> = {
-  CHATEAU: 'château',
-  RELIGIEUX: 'religieux',
-  PONT: 'pont',
-  PHARE: 'phare',
-  PALAIS: 'palais',
-  TOUR: 'tour',
-  MUSEE: 'musée',
-  AUTRE: 'autre',
-};
-// Silhouettes génériques par type (viewBox 24), validées en attendant le dessin définitif (CDC §12).
-const FORMES: Record<TypeMonument, string> = {
-  CHATEAU: 'M3 21V8h4v3h3V8h4v3h3V8h4v13z',
-  RELIGIEUX: 'M4 21V12l5-3v12zM9 21V9l3-6 3 6v12zM15 21V9l5 3v9z',
-  PONT: 'M2 9h20v3H2zM4 12v9h3v-4a2 2 0 0 1 4 0v4h2v-4a2 2 0 0 1 4 0v4h3v-9',
-  PHARE: 'M10 3h4v3h-4zM9 6h6l2 15H7z',
-  PALAIS: 'M2 21V11h20v10zM2 11l10-7 10 7',
-  TOUR: 'M10 2h4l1 19H9z',
-  MUSEE: 'M2 9l10-6 10 6zM4 11h3v8H4zM10.500 11h3v8h-3zM17 11h3v8h-3zM2 20h20v2H2z',
-  AUTRE: 'M12 2l8 10-8 10-8-10z',
-};
+import { placement } from '../../shared/ui/placement';
+import { ZnPlanche } from '../../shared/ui/planche';
+import { ZnTampon } from '../../shared/ui/tampon';
+import {
+  ENCRE_PAR_RARETE,
+  FORME_PAR_TYPE,
+  contenuTampon,
+  etiquetteTampon,
+} from './tampon-monument';
 
 /** Nombre de tampons à partir duquel les filtres apparaissent (RG-045, Q-13). */
 export const SEUIL_FILTRES = 20;
-type Etat = 'tous' | 'tamponnes' | 'a-decouvrir';
-const ETATS: [Etat, string][] = [
-  ['tous', 'Tous'],
-  ['tamponnes', 'Tamponnés'],
-  ['a-decouvrir', 'À découvrir'],
+/** Densité progressive (cahier §6) : planche aérée sous ce nombre de tampons. */
+const SEUIL_DENSE = 6;
+const PAGE_AEREE = 6;
+const PAGE_DENSE = 12;
+const MAX_PUCES = 7;
+
+const ETATS = [
+  { id: 'tous', libelle: 'Tous' },
+  { id: 'tamponnes', libelle: 'Tamponnés' },
+  { id: 'a-decouvrir', libelle: 'À découvrir' },
+];
+const GROUPES: { id: string; libelle: string; types: TypeMonument[] }[] = [
+  { id: 'tours', libelle: 'Tours', types: ['TOUR', 'PHARE'] },
+  { id: 'religieux', libelle: 'Religieux', types: ['RELIGIEUX'] },
+  { id: 'arcs-ponts', libelle: 'Arcs & ponts', types: ['PONT', 'AUTRE'] },
+  { id: 'chateaux-palais', libelle: 'Châteaux & palais', types: ['CHATEAU', 'PALAIS'] },
+  { id: 'musees', libelle: 'Musées', types: ['MUSEE'] },
 ];
 
-/** Carnet numéroté : une page par ville, silhouettes (RG-054) puis tampons. Rien n'est stocké (RG-057). */
+/** Carnet numéroté : une planche par ville, des tampons libres puis des cases vides (RG-054). Rien n'est stocké (RG-057). */
 @Component({
   selector: 'app-carnet',
-  imports: [RouterLink, TitleCasePipe, ZnMessage],
+  imports: [NgTemplateOutlet, RouterLink, ZnBandeau, ZnMessage, ZnPlanche, ZnTampon],
   template: `
-    <a class="profil" routerLink="/profil" aria-label="Mon profil">
-      <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-        <path d="M12 4a3.5 3.5 0 1 1 0 7a3.5 3.5 0 1 1 0-7zM5 20c0-3.9 3.1-6 7-6s7 2.1 7 6" />
-      </svg>
-    </a>
-    <h1 #titre tabindex="-1">Mon carnet</h1>
+    <ng-template #cellule let-x let-aere="aere" let-indice="indice">
+      <li>
+        @if (x.captureeLe) {
+          <a class="tampon" [routerLink]="['/monument', x.numero]">
+            <zn-tampon
+              class="pose"
+              [class.aere]="aere"
+              [style]="pose(x.numero)"
+              [forme]="forme(x)"
+              [encre]="encre(x)"
+              [contenu]="contenu(x)"
+              [etiquette]="etiquette(x)"
+            />
+          </a>
+        } @else {
+          @let info = indice ? indiceDe(x) : '';
+          <a
+            class="vide"
+            [class.aere]="aere"
+            [class.suivante]="indice && x.numero === suivant()"
+            [routerLink]="['/monument', x.numero]"
+            [attr.aria-label]="nomAccessible(x, info)"
+          >
+            <span class="num">{{ numero(x) }}</span>
+            @if (info) {
+              <span class="indice"> {{ info }}</span>
+            }
+          </a>
+        }
+      </li>
+    </ng-template>
+
     @if (monuments.error()) {
+      <h1 class="zn-sr" tabindex="-1">Mon carnet</h1>
       <zn-message type="erreur">
         Pas de connexion.
         <button type="button" (click)="monuments.reload()">Réessayer</button>
       </zn-message>
     } @else if (monuments.hasValue()) {
+      <div class="entete">
+        <zn-bandeau
+          [pseudo]="pseudo()"
+          [tampons]="captures()"
+          [legendaires]="legendaires()"
+          [villes]="villesAvecTampon()"
+          [totalVilles]="pages().length"
+        />
+        <a class="profil" routerLink="/profil" aria-label="Mon profil"></a>
+      </div>
       @if (total() === 0) {
         <p>Aucun monument dans cette ville pour l’instant</p>
       } @else {
-        @if (captures() === 0) {
-          <ol class="guide">
-            <li>Rapproche-toi d’un monument</li>
-            <li>Prends-le en photo</li>
-            <li>Reçois ton tampon</li>
-          </ol>
-          <a class="carte" routerLink="/tamponner">Voir la carte</a>
-        }
-        <p class="compteur">
-          {{ captures() }} sur {{ total() }}
-          <span
-            class="barre"
-            role="progressbar"
-            aria-label="Progression du carnet"
-            aria-valuemin="0"
-            [attr.aria-valuenow]="captures()"
-            [attr.aria-valuemax]="total()"
-            ><span [style.inline-size.%]="(100 * captures()) / total()"></span
-          ></span>
-        </p>
         <nav aria-label="Villes" class="villes">
-          <button
-            type="button"
-            aria-label="Ville précédente"
-            [disabled]="index() === 0"
-            (click)="aller(-1)"
-          >
-            ‹
-          </button>
-          <h2 #ville tabindex="-1">{{ pageCourante()?.nom }}</h2>
-          <span>{{ index() + 1 }}/{{ pages().length }}</span>
-          <button
-            type="button"
-            aria-label="Ville suivante"
-            [disabled]="index() === pages().length - 1"
-            (click)="aller(1)"
-          >
-            ›
-          </button>
+          <ul>
+            @for (p of pages(); track p.nom) {
+              <li>
+                <button
+                  type="button"
+                  [attr.aria-current]="p.nom === pageCourante()?.nom ? 'page' : null"
+                  (click)="choisirVille(p.nom)"
+                >
+                  <span class="ville">{{ p.nom }}</span>
+                  <span class="compte"> {{ p.captures }}/{{ p.monuments.length }}</span>
+                  <span class="zn-sr"> tampons</span>
+                </button>
+              </li>
+            }
+          </ul>
         </nav>
         @if (captures() >= seuil) {
-          <div class="filtres" role="group" aria-label="Filtres">
-            @for (e of etats; track e[0]) {
-              <button type="button" [attr.aria-pressed]="etat() === e[0]" (click)="etat.set(e[0])">
-                <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-                  <path d="M12 3a9 9 0 1 0 0 18a9 9 0 1 0 0-18z" />
-                </svg>
-                {{ e[1] }}
-                @if (etat() === e[0]) {
-                  <svg class="coche" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-                    <path d="M5 12l5 5 9-10" />
-                  </svg>
-                }
-              </button>
-            }
-            @for (t of typesListe; track t) {
-              <button type="button" [attr.aria-pressed]="type() === t" (click)="basculerType(t)">
-                <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-                  <path [attr.d]="formes[t]" />
-                </svg>
-                {{ types[t] | titlecase }}
-                @if (type() === t) {
-                  <svg class="coche" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-                    <path d="M5 12l5 5 9-10" />
-                  </svg>
-                }
+          <div class="filtres" role="group" aria-label="Filtrer par type">
+            @for (c of chips(); track c.id) {
+              <button
+                type="button"
+                [attr.aria-pressed]="filtre() === c.id"
+                (click)="basculer(c.id)"
+              >
+                {{ c.libelle }}
               </button>
             }
           </div>
-          <p class="resultats" role="status">
-            {{ visibles().length }} {{ visibles().length > 1 ? 'résultats' : 'résultat' }}
+          <p class="resultats zn-sr" role="status">
+            {{ visibles().length }} {{ visibles().length > 1 ? 'monuments' : 'monument' }}
           </p>
-          @if (visibles().length === 0) {
-            <p>Aucun monument ne correspond</p>
-            <button type="button" (click)="effacer()">Effacer les filtres</button>
-          }
         }
-        <p class="sous-compteur">
-          {{ capturesVille() }} sur {{ pageCourante()?.monuments?.length }}
-        </p>
-        <p role="status" class="sr">{{ pageCourante()?.nom }}</p>
-        <ul class="grille">
-          @for (x of visibles(); track x.numero) {
-            <li>
-              <a
-                [routerLink]="['/monument', x.numero]"
-                [class]="x.captureeLe ? 'tampon ' + x.rarete.toLowerCase() : 'vide'"
-                [attr.aria-label]="x.captureeLe ? null : nomAccessible(x)"
-              >
-                <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-                  <path [attr.d]="formes[x.type]" />
-                </svg>
-                <span class="num">{{ numero(x) }}</span>
-                @if (x.captureeLe) {
-                  @if (x.rarete === 'LEGENDAIRE') {
-                    <svg class="etoile" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-                      <path
-                        d="M12 2l3 7 7 .6-5.3 4.7 1.700 7.200L12 17.800 5.600 21.500l1.700-7.200L2 9.600 9 9z"
-                      />
-                    </svg>
-                  }
-                  <span class="nom">{{ x.nom }}</span>
-                  <span class="meta"
-                    >{{ types[x.type] }} · {{ raretes[x.rarete] | titlecase }}</span
-                  >
-                }
-              </a>
-            </li>
+        <div class="rangee">
+          <p class="etiquette" aria-live="polite">{{ libellePage() }}</p>
+          @if (collections().length) {
+            <a class="lien-collections" routerLink="/carnet" fragment="collections">
+              {{ libelleCollections() }}
+              <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                <path d="M9 5l7 7-7 7" />
+              </svg>
+            </a>
           }
-        </ul>
+        </div>
+        @if (visibles().length === 0) {
+          <p>Aucun monument ne correspond</p>
+          <button type="button" (click)="effacer()">Effacer les filtres</button>
+        } @else {
+          <zn-planche [titre]="titrePlanche()" [aere]="aere()">
+            @for (x of cellules(); track x.numero) {
+              <ng-container
+                *ngTemplateOutlet="cellule; context: { $implicit: x, aere: aere(), indice: true }"
+              />
+            }
+            @if (captures() === 0) {
+              <p pied class="accroche">
+                Chaque monument visité remplit une case.
+                {{ pageCourante()?.monuments?.length }} cases t’attendent à
+                {{ pageCourante()?.nom }}.
+              </p>
+            } @else if (nbPages() > 1) {
+              <nav pied class="pages" [attr.aria-label]="'Pages de ' + pageCourante()?.nom">
+                <button
+                  type="button"
+                  aria-label="Page précédente"
+                  [attr.aria-disabled]="pageAffichee() === 1 ? 'true' : null"
+                  (click)="aller(-1)"
+                >
+                  <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                    <path d="M15 5l-7 7 7 7" />
+                  </svg>
+                </button>
+                @if (nbPages() <= maxPuces) {
+                  <span class="puces" aria-hidden="true">
+                    @for (n of numerosPages(); track n) {
+                      <span [class.courante]="n === pageAffichee()"></span>
+                    }
+                  </span>
+                }
+                <button
+                  type="button"
+                  aria-label="Page suivante"
+                  [attr.aria-disabled]="pageAffichee() === nbPages() ? 'true' : null"
+                  (click)="aller(1)"
+                >
+                  <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                    <path d="M9 5l7 7-7 7" />
+                  </svg>
+                </button>
+              </nav>
+            }
+          </zn-planche>
+        }
         @if (collections().length) {
-          <section class="collections" aria-labelledby="titre-collections">
+          <section id="collections" class="collections" aria-labelledby="titre-collections">
             <h2 id="titre-collections">Collections</h2>
             <ul>
               @for (c of collections(); track c.code) {
@@ -202,28 +217,21 @@ const ETATS: [Etat, string][] = [
                     <span class="progression">{{ c.captures }} / {{ c.total }}</span>
                   </button>
                   @if (ouverte() === c.code) {
-                    <ul class="grille" [id]="'col-' + c.code">
-                      @for (r of c.monuments; track r.numero) {
-                        @let n = parNumero().get(r.numero);
-                        <li>
+                    <div [id]="'col-' + c.code">
+                      <zn-planche [titre]="c.nom">
+                        @for (r of c.monuments; track r.numero) {
+                          @let n = parNumero().get(r.numero);
                           @if (n) {
-                            <a
-                              [routerLink]="['/monument', n.numero]"
-                              [class]="n.captureeLe ? 'tampon ' + n.rarete.toLowerCase() : 'vide'"
-                              [attr.aria-label]="n.captureeLe ? null : nomAccessible(n)"
-                            >
-                              <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-                                <path [attr.d]="formes[n.type]" />
-                              </svg>
-                              <span class="num">{{ numero(n) }}</span>
-                              @if (n.captureeLe) {
-                                <span class="nom">{{ n.nom }}</span>
-                              }
-                            </a>
+                            <ng-container
+                              *ngTemplateOutlet="
+                                cellule;
+                                context: { $implicit: n, aere: false, indice: false }
+                              "
+                            />
                           }
-                        </li>
-                      }
-                    </ul>
+                        }
+                      </zn-planche>
+                    </div>
                   }
                 </li>
               }
@@ -232,12 +240,13 @@ const ETATS: [Etat, string][] = [
         }
       }
     } @else {
-      <p class="sr" role="status">Chargement du carnet</p>
-      <ul class="grille squelette" aria-hidden="true">
-        @for (i of [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]; track i) {
-          <li></li>
+      <h1 class="zn-sr" tabindex="-1">Mon carnet</h1>
+      <p class="zn-sr" role="status">Chargement du carnet</p>
+      <zn-planche class="squelette" titre="Chargement du carnet" [aere]="true">
+        @for (i of [1, 2, 3, 4, 5, 6]; track i) {
+          <li class="fantome"></li>
         }
-      </ul>
+      </zn-planche>
     }
   `,
   styleUrls: ['../coquille.css', './carnet.css'],
@@ -245,93 +254,187 @@ const ETATS: [Etat, string][] = [
 })
 export class Carnet {
   private readonly injector = inject(Injector);
+  private readonly hote = inject<ElementRef<HTMLElement>>(ElementRef);
   private readonly position = inject(Position);
-  private readonly titre = viewChild<ElementRef<HTMLElement>>('titre');
-  private readonly ville = viewChild<ElementRef<HTMLElement>>('ville');
   protected readonly monuments = httpResource<MonumentResume[]>(() => '/api/catalogue/monuments');
   private readonly collectionsApi = httpResource<MaCollection[]>(
     () => '/api/progression/collections',
   );
+  private readonly compte = httpResource<Profil>(() => '/api/compte/moi');
   protected readonly ouverte = signal<string | null>(null);
-  protected readonly formes = FORMES;
-  protected readonly types = TYPES;
-  protected readonly raretes = RARETES;
-  protected readonly page = signal<number | null>(null);
   protected readonly seuil = SEUIL_FILTRES;
-  protected readonly etats = ETATS;
-  protected readonly typesListe = Object.keys(TYPES) as TypeMonument[];
-  protected readonly etat = signal<Etat>('tous');
-  protected readonly type = signal<TypeMonument | null>(null);
+  protected readonly maxPuces = MAX_PUCES;
+  private readonly villeChoisie = signal<string | null>(null);
+  private readonly numPage = signal(1);
+  protected readonly filtre = signal('tous');
 
   private readonly liste = computed(() =>
     this.monuments.hasValue() ? this.monuments.value() : [],
+  );
+  protected readonly pseudo = computed(
+    () => `@${this.compte.hasValue() ? this.compte.value().pseudo : 'explorateur'}`,
   );
   // RG-R2-07 : une collection n'apparaît qu'à partir d'une capture ; erreur = section absente.
   protected readonly collections = computed(() =>
     this.collectionsApi.hasValue() ? this.collectionsApi.value().filter((c) => c.captures > 0) : [],
   );
+  protected readonly libelleCollections = computed(() => {
+    const n = this.collections().filter((c) => c.complete).length;
+    return n ? `Collections · ${n} terminée${n > 1 ? 's' : ''}` : 'Collections';
+  });
   protected readonly parNumero = computed(() => new Map(this.liste().map((x) => [x.numero, x])));
   protected readonly total = computed(() => this.liste().length);
   protected readonly captures = computed(() => this.liste().filter((x) => x.captureeLe).length);
+  protected readonly legendaires = computed(
+    () => this.liste().filter((x) => x.captureeLe && x.rarete === 'LEGENDAIRE').length,
+  );
+  protected readonly villesAvecTampon = computed(
+    () =>
+      new Set(
+        this.liste()
+          .filter((x) => x.captureeLe)
+          .map((x) => x.ville.nom),
+      ).size,
+  );
+  /** Onglets : plus de monuments d'abord, puis par nom. */
   protected readonly pages = computed(() => {
     const parVille = new Map<string, MonumentResume[]>();
     for (const x of [...this.liste()].sort((a, b) => a.numero - b.numero)) {
       parVille.set(x.ville.nom, [...(parVille.get(x.ville.nom) ?? []), x]);
     }
-    return [...parVille].map(([nom, monuments]) => ({ nom, monuments }));
+    return [...parVille]
+      .map(([nom, monuments]) => ({
+        nom,
+        monuments,
+        captures: monuments.filter((x) => x.captureeLe).length,
+      }))
+      .sort((a, b) => b.monuments.length - a.monuments.length || a.nom.localeCompare(b.nom, 'fr'));
   });
-  protected readonly index = computed(() => {
-    const p = this.page();
-    if (p !== null) return p;
+  // Distance à chaque monument non capturé : calcul sur l'appareil (RG-036), rien sans position.
+  private readonly distances = computed(() => {
     const coords = this.position.etat().coords;
-    const proche = coords
-      ? this.liste().reduce<MonumentResume | undefined>(
-          (m, x) =>
-            !m || distanceMetres(coords, x.position) < distanceMetres(coords, m.position) ? x : m,
-          undefined,
-        )
-      : undefined;
-    const nom = proche?.ville.nom ?? 'Paris';
-    return Math.max(
-      0,
-      this.pages().findIndex((v) => v.nom === nom),
-    );
+    const d = new Map<number, number>();
+    if (coords)
+      for (const x of this.liste())
+        if (!x.captureeLe && x.position) d.set(x.numero, distanceMetres(coords, x.position));
+    return d;
   });
-  protected readonly pageCourante = computed(() => this.pages()[this.index()]);
-  protected readonly capturesVille = computed(
-    () => this.pageCourante()?.monuments.filter((x) => x.captureeLe).length ?? 0,
-  );
+  /** Le monument à tamponner en premier : le plus proche des non capturés. */
+  protected readonly suivant = computed(() => {
+    let meilleur: [number, number] | undefined;
+    for (const e of this.distances()) if (!meilleur || e[1] < meilleur[1]) meilleur = e;
+    return meilleur?.[0];
+  });
+  protected readonly pageCourante = computed(() => {
+    const nom = this.villeChoisie() ?? this.villeLaPlusProche();
+    return this.pages().find((p) => p.nom === nom) ?? this.pages()[0];
+  });
+  // Ville ouverte par défaut : celle du monument le plus proche, sinon Paris.
+  private readonly villeLaPlusProche = computed(() => {
+    const coords = this.position.etat().coords;
+    if (!coords) return 'Paris';
+    let meilleur: { nom: string; d: number } | undefined;
+    for (const x of this.liste()) {
+      const d = x.position ? distanceMetres(coords, x.position) : Infinity;
+      if (!meilleur || d < meilleur.d) meilleur = { nom: x.ville.nom, d };
+    }
+    return meilleur?.nom ?? 'Paris';
+  });
 
+  protected readonly chips = computed(() => {
+    const ville = this.pageCourante()?.monuments ?? [];
+    return [...ETATS, ...GROUPES.filter((g) => ville.some((x) => g.types.includes(x.type)))];
+  });
   protected readonly visibles = computed(() => {
-    const filtres = this.captures() >= SEUIL_FILTRES;
+    const f = this.filtre();
+    const groupe = GROUPES.find((g) => g.id === f);
+    const actif = this.captures() >= SEUIL_FILTRES;
     return (this.pageCourante()?.monuments ?? []).filter(
       (x) =>
-        !filtres ||
-        ((this.etat() === 'tous' || !!x.captureeLe === (this.etat() === 'tamponnes')) &&
-          (!this.type() || x.type === this.type())),
+        !actif ||
+        f === 'tous' ||
+        (groupe ? groupe.types.includes(x.type) : !!x.captureeLe === (f === 'tamponnes')),
     );
   });
+  protected readonly aere = computed(() => this.captures() < SEUIL_DENSE);
+  private readonly taillePage = computed(() => (this.aere() ? PAGE_AEREE : PAGE_DENSE));
+  protected readonly nbPages = computed(() =>
+    Math.max(1, Math.ceil(this.visibles().length / this.taillePage())),
+  );
+  protected readonly pageAffichee = computed(() => Math.min(this.numPage(), this.nbPages()));
+  protected readonly numerosPages = computed(() =>
+    Array.from({ length: this.nbPages() }, (_, i) => i + 1),
+  );
+  protected readonly cellules = computed(() => {
+    const debut = (this.pageAffichee() - 1) * this.taillePage();
+    return this.visibles().slice(debut, debut + this.taillePage());
+  });
+  // Au jour 0 : une seule page, sans pagination.
+  private readonly paginee = computed(() => this.captures() > 0 && this.nbPages() > 1);
+  protected readonly libellePage = computed(
+    () =>
+      `Page ${this.pageAffichee()}${this.paginee() ? ` / ${this.nbPages()}` : ''} — ${this.pageCourante()?.nom}`,
+  );
+  protected readonly titrePlanche = computed(
+    () => `${this.pageCourante()?.nom}, page ${this.pageAffichee()} sur ${this.nbPages()}`,
+  );
 
   constructor() {
-    afterNextRender(() => this.titre()?.nativeElement.focus());
+    afterNextRender(() => this.focusTitre());
+    // Le h1 du bandeau remplace celui du chargement : on y ramène le focus.
+    effect(() => {
+      if (this.monuments.hasValue())
+        afterNextRender(() => this.focusTitre(), { injector: this.injector });
+    });
   }
 
-  protected aller(sens: number) {
-    this.page.set(this.index() + sens);
-    afterNextRender(() => this.ville()?.nativeElement.focus(), { injector: this.injector });
+  private focusTitre() {
+    this.hote.nativeElement.querySelector('h1')?.focus();
   }
-  protected basculerType(t: TypeMonument) {
-    this.type.set(this.type() === t ? null : t);
+  protected choisirVille(nom: string) {
+    this.villeChoisie.set(nom);
+    this.filtre.set('tous');
+    this.numPage.set(1);
+  }
+  protected basculer(id: string) {
+    this.filtre.set(this.filtre() === id ? 'tous' : id);
+    this.numPage.set(1);
   }
   protected effacer() {
-    this.etat.set('tous');
-    this.type.set(null);
+    this.basculer('tous');
+  }
+  protected aller(sens: number) {
+    this.numPage.set(Math.min(this.nbPages(), Math.max(1, this.pageAffichee() + sens)));
   }
   protected numero(x: MonumentResume) {
-    return `N° ${String(x.numero).padStart(3, '0')}`;
+    return `N°${String(x.numero).padStart(3, '0')}`;
   }
-  /** Silhouette seulement : un tampon capturé se nomme par son contenu visible (WCAG 2.5.3). */
-  protected nomAccessible(x: MonumentResume) {
-    return `${this.numero(x)}, à découvrir`;
+  protected forme(x: MonumentResume) {
+    return FORME_PAR_TYPE[x.type];
+  }
+  protected encre(x: MonumentResume) {
+    return ENCRE_PAR_RARETE[x.rarete];
+  }
+  protected contenu(x: MonumentResume) {
+    return contenuTampon(x);
+  }
+  protected etiquette(x: MonumentResume) {
+    return etiquetteTampon(x);
+  }
+  protected pose(numero: number) {
+    const { rotation, dx, dy } = placement(numero);
+    return `--rot: ${rotation}deg; --dx: ${dx}%; --dy: ${dy}%`;
+  }
+  /** Distance, ou « Le plus proche · » / « Ton premier tampon · » pour le prochain monument. */
+  protected indiceDe(x: MonumentResume) {
+    const d = this.distances().get(x.numero);
+    if (d === undefined) return '';
+    const distance = formaterDistance(d);
+    if (x.numero !== this.suivant()) return distance;
+    return `${this.captures() === 0 ? 'Ton premier tampon' : 'Le plus proche'} · ${distance}`;
+  }
+  /** Contient le texte visible dans l'ordre (WCAG 2.5.3) ; jamais le nom du monument (RG-054). */
+  protected nomAccessible(x: MonumentResume, indice: string) {
+    return `${this.numero(x)}${indice ? ` ${indice}` : ''}, à découvrir`;
   }
 }

@@ -80,10 +80,12 @@
   --zn-fs-11: 0.6875rem;
   --zn-fs-12: 0.75rem;
   --zn-fs-15: 0.9375rem;
+  --zn-fs-19: 1.1875rem;
   --zn-fs-22: 1.375rem;
   --zn-fs-24: 1.5rem;
   --zn-ls-eyebrow: 0.16em;
   --zn-ls-etiquette: 0.14em;
+  --zn-ls-numero: 0.1em; /* « N°004 » dans une case */
 
   /* Formes (maquettes v4 à v6) */
   --zn-rayon-6: 6px; /* planche */

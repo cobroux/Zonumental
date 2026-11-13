@@ -54,7 +54,6 @@ test('R2-64 : la collection du carnet montre la progression mise à jour', async
   await expect(bouton).toContainText('3 / 4');
   await bouton.click();
   await expect(bouton).toHaveAttribute('aria-expanded', 'true');
-  // Défaut connu hors périmètre (code applicatif) : l'aria-label des tampons du carnet ne reprend pas le texte visible.
   expect(await violations(page)).toEqual([]);
 
   await page.locator('#col-GRANDS_SITES').getByRole('link').first().click();

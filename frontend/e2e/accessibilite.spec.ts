@@ -18,7 +18,7 @@ test('Explorer', async ({ page }) => {
 test('Carnet', async ({ page }) => {
   await mockApi(page);
   await page.goto('/carnet');
-  await expect(page.getByText('0 sur 4')).toBeVisible();
+  await expect(page.getByText('ton carnet commence ici')).toBeVisible();
   expect(await violations(page)).toEqual([]);
 });
 
