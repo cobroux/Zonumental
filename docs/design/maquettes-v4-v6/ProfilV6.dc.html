@@ -1,0 +1,130 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<title>Profil</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Gloock&amp;family=Geist:wght@400;500;600&amp;family=Geist+Mono:wght@400;500&amp;display=swap" rel="stylesheet">
+<style>body{margin:0}</style>
+</helmet>
+<div style="position: relative; width: 390px; height: 844px; box-sizing: border-box; overflow: hidden; background: #F4F1EA; color: #1A1C20; font-family: 'Geist', system-ui, sans-serif; -webkit-font-smoothing: antialiased; padding: 14px 16px 20px; display: flex; flex-direction: column; gap: 16px">
+  <svg aria-hidden="true" style="position: absolute; width: 0; height: 0">
+    <filter id="paperP"><feTurbulence type="fractalNoise" baseFrequency="0.85" numOctaves="3" stitchTiles="stitch"></feTurbulence><feColorMatrix values="0 0 0 0 0.42  0 0 0 0 0.36  0 0 0 0 0.27  0 0 0 0.10 0"></feColorMatrix></filter>
+    <filter id="inkP" x="-10%" y="-10%" width="120%" height="120%"><feTurbulence type="fractalNoise" baseFrequency="1.1" numOctaves="2" seed="7" result="n"></feTurbulence><feColorMatrix in="n" type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 -3 2.15" result="holes"></feColorMatrix><feComposite in="SourceGraphic" in2="holes" operator="in"></feComposite></filter>
+  </svg>
+  <svg aria-hidden="true" style="position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none"><rect width="100%" height="100%" filter="url(#paperP)"></rect></svg>
+
+  <header style="position: relative; display: flex; align-items: center; justify-content: space-between; height: 44px">
+    <a href="AccueilV4.dc.html" aria-label="Retour" style="width: 44px; height: 44px; margin-left: -10px; display: flex; align-items: center; justify-content: center"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#1A1C20" stroke-width="1.9" aria-hidden="true"><path d="M15 5l-7 7 7 7"></path></svg></a>
+    <span style="font-family: 'Geist Mono', monospace; font-size: 11px; letter-spacing: 0.16em; color: #5B5F66">PROFIL</span>
+    <span style="width: 34px"></span>
+  </header>
+
+  <section style="position: relative; display: flex; align-items: center; gap: 16px">
+    <span style="position: relative; flex: none; width: 76px; height: 76px">
+      <svg viewBox="0 0 76 76" width="76" height="76" aria-hidden="true">
+        <circle cx="38" cy="38" r="35" fill="none" stroke="rgba(26,28,32,0.12)" stroke-width="3"></circle>
+        <circle cx="38" cy="38" r="35" fill="none" stroke="#8C2F39" stroke-width="3" stroke-linecap="round" stroke-dasharray="154 220" transform="rotate(-90 38 38)"></circle>
+        <circle cx="38" cy="38" r="28" fill="#8C2F39"></circle>
+        <text x="38" y="46" text-anchor="middle" fill="#FBF9F4" font-family="Gloock, serif" font-size="24">E</text>
+      </svg>
+    </span>
+    <span style="display: flex; flex-direction: column; gap: 4px; min-width: 0">
+      <strong style="font-family: 'Gloock', serif; font-weight: 400; font-size: 28px; line-height: 1">@[pseudo]</strong>
+      <span style="font-size: 13px; color: #45494F; font-variant-numeric: tabular-nums">Niveau 14 · 41 tampons · 4 villes</span>
+      <span style="font-size: 12px; color: #5B5F66">Explorateur depuis le 12 octobre 2026</span>
+    </span>
+  </section>
+
+  <section style="position: relative; display: flex; flex-direction: column; gap: 10px">
+    <div style="display: flex; align-items: baseline; justify-content: space-between">
+      <h2 style="margin: 0; font-family: 'Gloock', serif; font-weight: 400; font-size: 22px">Succès</h2>
+      <a href="#" style="font-size: 13px; font-weight: 500; color: #1F3A5F; text-decoration: none; font-variant-numeric: tabular-nums">12 / 40 ›</a>
+    </div>
+    <div style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px">
+      <sc-for list="{{badges}}" as="b" hint-placeholder-count="4">
+        <div style="display: flex; flex-direction: column; align-items: center; gap: 6px; text-align: center">
+          <sc-if value="{{b.got}}" hint-placeholder-val="{{ true }}">
+            <svg viewBox="0 0 64 64" width="62" height="62" role="img" aria-label="{{b.aria}}" style="color: {{b.ink}}; transform: rotate({{b.r}}deg)">
+              <g filter="url(#inkP)" fill="none" stroke="currentColor"><circle cx="32" cy="32" r="29" stroke-width="2.4"></circle><circle cx="32" cy="32" r="24" stroke-width="1"></circle><path d="{{b.glyph}}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" transform="translate(20 20)"></path></g>
+            </svg>
+          </sc-if>
+          <sc-if value="{{b.locked}}" hint-placeholder-val="{{ false }}">
+            <span role="img" aria-label="{{b.aria}}" style="width: 62px; height: 62px; border-radius: 50%; box-shadow: inset 1px 1px 0 rgba(26,28,32,0.14), inset -1px -1px 0 #FFFFFF; display: flex; align-items: center; justify-content: center; font-family: 'Geist Mono', monospace; font-size: 10px; color: #6B6F75; font-variant-numeric: tabular-nums">{{b.progress}}</span>
+          </sc-if>
+          <span style="font-size: 12px; line-height: 1.2; font-weight: 500">{{b.name}}</span>
+        </div>
+      </sc-for>
+    </div>
+  </section>
+
+  <section style="position: relative; display: flex; flex-direction: column; gap: 8px">
+    <h2 style="margin: 0; font-family: 'Geist Mono', monospace; font-weight: 500; font-size: 11px; letter-spacing: 0.14em; color: #5B5F66">CONFIDENTIALITÉ</h2>
+    <div style="border-radius: 16px; background: #FBF9F4; border: 1px solid rgba(26,28,32,0.08)">
+      <sc-for list="{{switches}}" as="s" hint-placeholder-count="2">
+        <div style="display: flex; align-items: center; gap: 12px; min-height: 56px; padding: 6px 14px; box-sizing: border-box; border-top: {{s.sep}}">
+          <span style="flex: 1; display: flex; flex-direction: column; gap: 2px"><span id="{{s.id}}" style="font-size: 15px; font-weight: 500">{{s.label}}</span><span style="font-size: 12px; color: #5B5F66">{{s.sub}}</span></span>
+          <button role="switch" onClick="{{s.toggle}}" aria-checked="{{s.on}}" aria-labelledby="{{s.id}}" style="flex: none; position: relative; width: 48px; height: 30px; border-radius: 15px; border: 0; background: {{s.track}}; cursor: pointer; padding: 0">
+            <span style="position: absolute; top: 3px; left: {{s.knob}}; width: 24px; height: 24px; border-radius: 50%; background: #FFFFFF; box-shadow: 0 1px 3px rgba(26,28,32,0.3)"></span>
+          </button>
+        </div>
+      </sc-for>
+      <a href="#" style="display: flex; align-items: center; gap: 12px; min-height: 56px; padding: 6px 14px; box-sizing: border-box; border-top: 1px solid rgba(26,28,32,0.06); text-decoration: none; color: #1A1C20">
+        <span style="flex: 1; display: flex; flex-direction: column; gap: 2px"><span style="font-size: 15px; font-weight: 500">Localisation</span><span style="font-size: 12px; color: #5B5F66">Seulement appli ouverte · jamais enregistrée</span></span>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#1A1C20" stroke-width="1.8" aria-hidden="true"><path d="M9 5l7 7-7 7"></path></svg>
+      </a>
+    </div>
+  </section>
+
+  <section style="position: relative; display: flex; flex-direction: column; gap: 8px">
+    <h2 style="margin: 0; font-family: 'Geist Mono', monospace; font-weight: 500; font-size: 11px; letter-spacing: 0.14em; color: #5B5F66">MES DONNÉES</h2>
+    <div style="border-radius: 16px; background: #FBF9F4; border: 1px solid rgba(26,28,32,0.08)">
+      <a href="#" style="display: flex; align-items: center; gap: 12px; min-height: 56px; padding: 6px 14px; box-sizing: border-box; text-decoration: none; color: #1A1C20">
+        <span style="flex: 1; display: flex; flex-direction: column; gap: 2px"><span style="font-size: 15px; font-weight: 500">Exporter mes données</span><span style="font-size: 12px; color: #5B5F66">Carnet, photos et réglages, envoyés par e-mail</span></span>
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#1A1C20" stroke-width="1.8" aria-hidden="true"><path d="M12 4v11M7 10l5 5 5-5M5 20h14"></path></svg>
+      </a>
+      <a href="#" style="display: flex; align-items: center; gap: 12px; min-height: 56px; padding: 6px 14px; box-sizing: border-box; border-top: 1px solid rgba(26,28,32,0.06); text-decoration: none; color: #8C2F39">
+        <span style="flex: 1; display: flex; flex-direction: column; gap: 2px"><span style="font-size: 15px; font-weight: 600">Supprimer mon compte</span><span style="font-size: 12px; color: #5B5F66">Tout est effacé définitivement sous 30 jours</span></span>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#8C2F39" stroke-width="1.8" aria-hidden="true"><path d="M9 5l7 7-7 7"></path></svg>
+      </a>
+    </div>
+  </section>
+
+  <footer style="position: relative; margin-top: auto; display: flex; flex-direction: column; align-items: center; gap: 8px">
+    <nav aria-label="Informations légales" style="display: flex; gap: 14px; font-size: 13px">
+      <a href="#" style="color: #45494F">CGU</a><a href="#" style="color: #45494F">Confidentialité</a><a href="#" style="color: #45494F">Mentions légales</a>
+    </nav>
+    <button style="height: 44px; padding: 0 16px; border: 0; background: none; font: inherit; font-size: 15px; font-weight: 500; color: #1A1C20; cursor: pointer">Se déconnecter</button>
+  </footer>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  constructor(props) { super(props); this.state = { rank: true, mails: false }; }
+  renderVals() {
+    const sw = (id, label, sub, key, i) => {
+      const on = this.state[key];
+      return { id, label, sub, on: on ? 'true' : 'false', track: on ? '#2F5D4A' : 'rgba(26,28,32,0.22)', knob: on ? '21px' : '3px', sep: i ? '1px solid rgba(26,28,32,0.06)' : '0', toggle: () => this.setState({ [key]: !on }) };
+    };
+    return {
+      badges: [
+        { got: true, locked: false, name: 'Dame de fer', aria: 'Succès obtenu : Dame de fer', ink: '#B07A2A', r: -6, glyph: 'M12 1.5 13.6 8l3.4 6 2 8.5h-4.4c-1-2.6-4.2-2.6-5.2 0H5l2-8.5 3.4-6z' },
+        { got: true, locked: false, name: 'Île de la Cité', aria: 'Succès obtenu : Île de la Cité', ink: '#2F5D4A', r: 5, glyph: 'M2 15c4-4 8 2 12-1s6-3 8-1M7 9h10v4H7zM12 4v5' },
+        { got: false, locked: true, name: 'Les trois dômes', aria: 'Succès en cours : Les trois dômes, 2 sur 3', progress: '2 / 3' },
+        { got: false, locked: true, name: 'Noctambule', aria: 'Succès à découvrir : Noctambule', progress: '?' }
+      ],
+      switches: [
+        sw('sw-rank', 'Apparaître dans les classements', 'Sous ton pseudo, jamais ton nom', 'rank', 0),
+        sw('sw-mail', 'E-mails des nouveaux défis', 'Un par semaine au maximum', 'mails', 1)
+      ]
+    };
+  }
+}
+</script>
+</body>
+</html>

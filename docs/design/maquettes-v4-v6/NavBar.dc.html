@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<title>Barre de navigation</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Gloock&amp;family=Geist:wght@400;500;600&amp;family=Geist+Mono:wght@400;500&amp;display=swap" rel="stylesheet">
+<style>body{margin:0}</style>
+</helmet>
+<div style="position: relative; width: 390px; height: 116px; font-family: 'Geist', system-ui, sans-serif; color: #1A1C20">
+  <nav aria-label="Navigation principale" style="position: absolute; left: 0; right: 0; bottom: 0; height: 90px; box-sizing: border-box; padding: 6px 6px 22px; background: rgba(244,241,234,0.94); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); border-top: 1px solid rgba(26,28,32,0.10); box-shadow: 0 -10px 24px -18px rgba(26,28,32,0.35); display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); align-items: stretch">
+    <sc-for list="{{tabs}}" as="t" hint-placeholder-count="5">
+      <sc-if value="{{t.isTab}}" hint-placeholder-val="{{ true }}">
+        <a href="{{t.href}}" aria-current="{{t.current}}" style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; min-height: 56px; text-decoration: none; color: {{t.color}}; font-size: 11px; font-weight: {{t.weight}}; letter-spacing: 0.01em">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="{{t.color}}" stroke-width="{{t.stroke}}" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="{{t.fill}}" fill="{{t.fillColor}}" stroke="none"></path><path d="{{t.icon}}"></path></svg>
+          <span>{{t.label}}</span>
+          <span style="width: 4px; height: 4px; border-radius: 50%; background: {{t.dot}}" aria-hidden="true"></span>
+        </a>
+      </sc-if>
+      <sc-if value="{{t.isCenter}}" hint-placeholder-val="{{ false }}">
+        <div style="position: relative" aria-hidden="false">
+          <a href="V2-Capture.dc.html" aria-label="{{c.aria}}" style="position: absolute; left: 50%; top: -34px; width: 68px; margin-left: -34px; display: flex; flex-direction: column; align-items: center; gap: 4px; text-decoration: none">
+            <span style="width: 64px; height: 64px; border-radius: 50%; background: {{c.bg}}; box-shadow: 0 0 0 4px #F4F1EA, 0 0 0 {{c.haloW}} {{c.halo}}, 0 12px 20px -10px rgba(26,28,32,0.55), inset 0 -3px 0 rgba(0,0,0,0.18); display: flex; align-items: center; justify-content: center">
+              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#FBF9F4" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 2.6a2.5 2.5 0 1 1 0 5a2.5 2.5 0 1 1 0-5zM10.5 7.6h3v3.6h-3zM5.5 11.2h13a1 1 0 0 1 1 1v3.3a1 1 0 0 1-1 1h-13a1 1 0 0 1-1-1v-3.3a1 1 0 0 1 1-1z"></path></svg>
+            </span>
+            <span style="font-size: 11px; font-weight: 600; color: {{c.labelColor}}; font-variant-numeric: tabular-nums; white-space: nowrap">{{c.label}}</span>
+          </a>
+        </div>
+      </sc-if>
+    </sc-for>
+  </nav>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"active":{"editor":"enum","options":["accueil","carnet","carte","defis"],"default":"accueil"},"capture":{"editor":"enum","options":["loin","proche","zone"],"default":"zone"},"dist":{"editor":"text","default":"420 m"},"$preview":{"width":390,"height":116}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const active = this.props.active ?? 'accueil';
+    const capture = this.props.capture ?? 'zone';
+    const dist = this.props.dist ?? '420 m';
+    // Jeu d'icônes Zonumental : grille 24, trait 1.6–2, extrémités rondes ; F = aplat d'encre de l'état actif
+    // Règle du conseil : un seul détail intérieur par icône, silhouettes distinctes (rond, livret, carte, médaille)
+    const I = {
+      accueil: 'M12 3.25a8.75 8.75 0 1 1 0 17.5a8.75 8.75 0 1 1 0-17.5zM15.3 8.7l-1.9 4.7-4.7 1.9 1.9-4.7z',
+      carnet: 'M7 3.25h10a1.75 1.75 0 0 1 1.75 1.75v14a1.75 1.75 0 0 1-1.75 1.75H7A1.75 1.75 0 0 1 5.25 19V5A1.75 1.75 0 0 1 7 3.25zM8.75 3.25v17.5M13.5 9.25a2.5 2.5 0 1 1 0 5a2.5 2.5 0 1 1 0-5z',
+      carte: 'M3.75 6.5 9 4.5l6 2 5.25-2v13l-5.25 2-6-2-5.25 2zM9 4.5v13M15 6.5v13M12 7.6c-1.45 0-2.55 1.05-2.55 2.45 0 1.75 2.55 3.95 2.55 3.95s2.55-2.2 2.55-3.95c0-1.4-1.1-2.45-2.55-2.45z',
+      defis: 'M8.25 3.25l3 6.5M15.75 3.25l-3 6.5M12 9.75a5.5 5.5 0 1 1 0 11a5.5 5.5 0 1 1 0-11z'
+    };
+    const F = {
+      accueil: 'M15.3 8.7l-1.9 4.7-4.7 1.9 1.9-4.7z',
+      carnet: 'M7 3.25h10a1.75 1.75 0 0 1 1.75 1.75v14a1.75 1.75 0 0 1-1.75 1.75H7A1.75 1.75 0 0 1 5.25 19V5A1.75 1.75 0 0 1 7 3.25z',
+      carte: 'M12 7.6c-1.45 0-2.55 1.05-2.55 2.45 0 1.75 2.55 3.95 2.55 3.95s2.55-2.2 2.55-3.95c0-1.4-1.1-2.45-2.55-2.45z',
+      defis: 'M12 9.75a5.5 5.5 0 1 1 0 11a5.5 5.5 0 1 1 0-11z'
+    };
+    const href = { accueil: 'AccueilV4.dc.html', carnet: 'CarnetV4.dc.html', carte: '#', defis: 'DefisV4.dc.html' };
+    const tab = (id, label) => {
+      const on = id === active;
+      return { isTab: true, isCenter: false, label, icon: I[id], fill: F[id], fillColor: on ? 'rgba(140,47,57,0.22)' : 'transparent', href: href[id], current: on ? 'page' : 'false', color: on ? '#1A1C20' : '#6B6F75', weight: on ? 600 : 500, stroke: on ? 2 : 1.6, dot: on ? '#8C2F39' : 'transparent' };
+    };
+    const C = {
+      loin: { bg: '#45494F', halo: 'transparent', haloW: '0px', label: '> 2 km', labelColor: '#5B5F66', aria: 'Tamponner : aucun monument à proximité' },
+      proche: { bg: '#8C2F39', halo: 'transparent', haloW: '0px', label: dist, labelColor: '#8C2F39', aria: 'Tamponner : monument le plus proche à ' + dist },
+      zone: { bg: '#8C2F39', halo: '#4CC38A', haloW: '7px', label: 'Tamponner', labelColor: '#2F5D4A', aria: 'Tamponner : tu es dans la zone' }
+    };
+    return {
+      c: C[capture],
+      tabs: [tab('accueil', 'Explorer'), tab('carnet', 'Carnet'), { isTab: false, isCenter: true }, tab('carte', 'Carte'), tab('defis', 'Défis')]
+    };
+  }
+}
+</script>
+</body>
+</html>
