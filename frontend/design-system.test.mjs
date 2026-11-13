@@ -160,3 +160,12 @@ test('pas de dégradé ni de typographie Material dans les styles', () => {
     assert.doesNotMatch(lire(f), /gradient\(|Roboto/i, f);
   }
 });
+
+test('colonne mobile centrée en bureau : contenu et navigation partagent --zn-colonne', () => {
+  assert.match(tokensCss, /--zn-colonne:\s*430px/);
+  for (const f of ['src/app/app.css', 'src/app/shared/ui/navigation.css']) {
+    const css = lire(f);
+    assert.match(css, /inline-size:\s*(min\(100%,\s*)?var\(--zn-colonne\)/, f);
+    assert.match(css, /margin-inline:\s*auto/, f);
+  }
+});
