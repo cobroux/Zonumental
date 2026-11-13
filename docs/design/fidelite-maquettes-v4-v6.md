@@ -506,7 +506,7 @@ Entrées du composant : `etat: 'loin' | 'proche' | 'zone' | 'deja'`, `distanceM?
 | `loin` (aucun monument non capturé à moins de 2 km, ou position inconnue) | `--zn-gris-45` | transparent / 0 | `> 2 km` / `--zn-gris-libelle` | « Tamponner, > 2 km : aucun monument à proximité » |
 | `proche` (< 2 km, hors zone) | `--zn-bordeaux` | transparent / 0 | `420 m` ou `1,2 km` / `--zn-bordeaux` | « Tamponner, monument le plus proche à 420 m » |
 | `zone` (dans la zone de capture) | `--zn-bordeaux` | `--zn-halo-zone` / 7px | `Tamponner` / `--zn-sapin` | « Tamponner : tu es dans la zone » |
-| `deja` (RG-056 : tout ce qui est proche est déjà capturé) | `--zn-gris-45` | transparent / 0 | `Déjà tamponné ici` (2 lignes autorisées, `max-width:96px; white-space:normal; text-align:center`) / `--zn-gris-libelle` | « Tamponner : déjà tamponné ici » |
+| `deja` (RG-056 : tout ce qui est proche est déjà capturé) | `--zn-gris-45` | transparent / 0 | `Déjà tamponné` (une ligne, `white-space:nowrap` ; « ici » reste dans le nom accessible) / `--zn-gris-libelle` | « Tamponner : déjà tamponné ici » |
 
 Distance : < 1 000 m → `420 m` (arrondi à 10 m) ; ≥ 1 000 m → `1,2 km` (virgule). Pas d'`aria-live` (la position change trop souvent, ADR 0016).
 - Halo : 3 px verts visibles au-delà de l'anneau papier de 4 px. Il ne porte aucune information seul (le mot « Tamponner » et le sapin du libellé la portent ; 1,96:1 sur papier).
@@ -731,7 +731,7 @@ Deux cas, un seul patron visuel (validation-succes-r2 constat 10 : jamais d'empi
 | Tampon dans la planche (lien) | `TOUR EIFFEL`, `N°001`, `LÉGENDAIRE` (selon la forme) | « Tour Eiffel, N°001, Paris, légendaire, tamponné le 19 octobre 2026 » : commence par le nom complet (le texte visible tronqué en est un préfixe), contient `N°001` **sans espace** et la rareté |
 | Case vide (lien) | `N°004`, `1,9 km` | « N°004, à découvrir, 1,9 km » (jamais le nom, RG-054) |
 | Onglet de ville | `Paris 24/28` | contenu visible + `sr-only` « tampons » |
-| Bouton Tamponner | `> 2 km` / `420 m` / `Tamponner` / `Déjà tamponné ici` | §6.3 (chaque nom contient son libellé) |
+| Bouton Tamponner | `> 2 km` / `420 m` / `Tamponner` / `Déjà tamponné` | §6.3 (chaque nom contient son libellé) |
 | Lien Collections | `Collections · 3 terminées` | identique au visible |
 | Lien Succès | `4 / 11 ›` | « Succès, 4 / 11 » via `sr-only` de tête (le visible reste contenu) |
 | Interrupteur | libellé de ligne | `<label>` englobant : nom = libellé visible |

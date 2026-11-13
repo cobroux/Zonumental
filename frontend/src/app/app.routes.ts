@@ -42,6 +42,14 @@ const explorer: Routes = [
     loadChildren: () => import('./features/carnet/carnet.routes').then((m) => m.CARNET_ROUTES),
   },
   {
+    path: 'carte',
+    loadChildren: () => import('./features/bientot/bientot.routes').then((m) => m.CARTE_ROUTES),
+  },
+  {
+    path: 'defis',
+    loadChildren: () => import('./features/bientot/bientot.routes').then((m) => m.DEFIS_ROUTES),
+  },
+  {
     path: 'monument',
     loadChildren: () =>
       import('./features/monument/monument.routes').then((m) => m.MONUMENT_ROUTES),

@@ -43,9 +43,12 @@ describe('proches', () => {
 });
 
 describe('etatBouton', () => {
-  it.each(['attente', 'refus', 'indisponible'] as const)('%s -> sans-position', (statut) => {
-    expect(etatBouton([], { statut }).etat).toBe('sans-position');
-  });
+  it.each(['attente', 'refus', 'indisponible'] as const)(
+    '%s -> loin (position inconnue)',
+    (statut) => {
+      expect(etatBouton([], { statut })).toEqual({ etat: 'loin', texte: '> 2 km' });
+    },
+  );
 
   it('aucun monument proche -> loin', () => {
     expect(etatBouton([], ok())).toEqual({ etat: 'loin', texte: '> 2 km' });
@@ -53,7 +56,7 @@ describe('etatBouton', () => {
 
   it('tous capturés -> deja', () => {
     const p = proches([monument(1, 48.0005, '2026-01-01T00:00:00Z')], ici());
-    expect(etatBouton(p, ok())).toEqual({ etat: 'deja', texte: 'Déjà tamponné ici' });
+    expect(etatBouton(p, ok())).toEqual({ etat: 'deja', texte: 'Déjà tamponné' });
   });
 
   it('hors rayon -> proche avec distance du plus proche non capturé', () => {
