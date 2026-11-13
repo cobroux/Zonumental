@@ -6,38 +6,72 @@
     <span class="rubrique">PROFIL</span>
   </header>
 
-  <h1>{{ pseudo() }}</h1>
+  <section class="identite">
+    <svg class="avatar" viewBox="0 0 76 76" width="76" height="76" aria-hidden="true">
+      <circle class="piste" cx="38" cy="38" r="35" fill="none" stroke-width="3" />
+      @if (anneau()) {
+        <circle
+          class="progres"
+          cx="38"
+          cy="38"
+          r="35"
+          fill="none"
+          stroke-width="3"
+          stroke-linecap="round"
+          pathLength="220"
+          [attr.stroke-dasharray]="anneau() + ' 220'"
+          transform="rotate(-90 38 38)"
+        />
+      }
+      <circle class="disque" cx="38" cy="38" r="28" />
+      <text class="initiale" x="38" y="46" text-anchor="middle">{{ initiale() }}</text>
+    </svg>
+    <div class="texte-identite">
+      <h1><span class="sr">Profil de </span>@{{ pseudo() }}</h1>
+      @if (stats(); as st) {
+        <span class="meta"
+          >Niveau {{ niveau() }} · {{ st.tampons }} tampon{{ st.tampons > 1 ? 's' : '' }} ·
+          {{ st.villes }} ville{{ st.villes > 1 ? 's' : '' }}</span
+        >
+        <span class="sr"
+          >encore {{ encore() }} tampon{{ encore() > 1 ? 's' : '' }} pour le niveau
+          {{ niveau() + 1 }}</span
+        >
+      }
+    </div>
+  </section>
 
   @if (erreur(); as texte) {
     <zn-message type="erreur" tabindex="-1">{{ texte }}</zn-message>
   }
 
   <section aria-labelledby="titre-succes">
-    <h2 id="titre-succes" class="rubrique">SUCCÈS</h2>
-    @if (succes(); as s) {
-      @if (!s.obtenus.length && !s.enCours.length) {
-        <a class="vide" routerLink="/explorer">Tamponne ton premier monument</a>
+    <div class="tete-succes">
+      <h2 id="titre-succes">Succès</h2>
+      @if (succes()) {
+        <span class="compteur"
+          >{{ obtenus() }} / {{ total() }}<span aria-hidden="true"> ›</span></span
+        >
       }
-      @if (s.obtenus.length) {
-        <ul class="tampons">
-          @for (o of s.obtenus; track o.code) {
-            <li class="sceau">{{ o.libelle }}</li>
-          }
-        </ul>
-      }
-      @if (s.enCours.length) {
-        <ul class="carte">
-          @for (e of s.enCours; track e.code) {
-            <li class="ligne">
-              <span class="texte" [id]="'lib-' + e.code">{{ e.libelle }}</span>
-              <progress [attr.aria-labelledby]="'lib-' + e.code" [value]="e.valeur" [max]="e.seuil">
-                {{ e.valeur }} sur {{ e.seuil }}
-              </progress>
-              <span class="aide">{{ e.valeur }} sur {{ e.seuil }}</span>
-            </li>
-          }
-        </ul>
-      }
+    </div>
+    @if (succes()) {
+      <ul class="grille">
+        @for (m of medailles(); track m.code) {
+          <li>
+            <zn-medaille
+              [nom]="m.nom"
+              [etat]="m.etat"
+              [encre]="m.encre"
+              [glyphe]="m.glyphe"
+              [texte]="m.texte"
+              [rotation]="m.rotation"
+              [valeur]="m.valeur"
+              [seuil]="m.seuil"
+            />
+            <span class="nom">{{ m.nom }}</span>
+          </li>
+        }
+      </ul>
     } @else if (succesHorsLigne()) {
       <p role="alert" class="vide">
         Pas de connexion.
@@ -84,6 +118,10 @@
           />
           <span id="aide-emails" class="aide">Un par semaine au maximum</span>
         </div>
+        <div class="ligne">
+          <span class="texte">Localisation</span>
+          <span class="aide">Seulement appli ouverte · jamais enregistrée</span>
+        </div>
       </div>
     }
   </section>
@@ -98,11 +136,35 @@
         (click)="exporter()"
       >
         <span class="texte">Exporter mes données</span>
-        <span class="aide">Compte et réglages, dans un fichier .zip</span>
+        <span class="aide">Compte, carnet et réglages, dans un fichier .zip</span>
+        <svg
+          class="pictos"
+          width="18"
+          height="18"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="1.8"
+          aria-hidden="true"
+        >
+          <path d="M12 4v11M7 10l5 5 5-5M5 20h14" />
+        </svg>
       </button>
       <a class="ligne lien danger" routerLink="/profil/suppression">
         <span class="texte">Supprimer mon compte</span>
         <span class="aide">Tout est effacé définitivement sous 30 jours</span>
+        <svg
+          class="pictos"
+          width="16"
+          height="16"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="1.8"
+          aria-hidden="true"
+        >
+          <path d="M9 5l7 7-7 7" />
+        </svg>
       </a>
     </div>
   </section>

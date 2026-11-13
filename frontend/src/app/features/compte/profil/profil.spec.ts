@@ -18,7 +18,17 @@ describe('Profil', () => {
   };
 
   const VIDE = { obtenus: [], enCours: [] };
-  async function ouvrir(classement = true, emails = false, succes: object = VIDE) {
+  const monument = (numero: number, ville: string, pris: boolean) => ({
+    numero,
+    ville: { nom: ville },
+    captureeLe: pris ? '2026-10-01T10:00:00Z' : null,
+  });
+  async function ouvrir(
+    classement = true,
+    emails = false,
+    succes: object = VIDE,
+    monuments: object[] = [],
+  ) {
     TestBed.configureTestingModule({
       providers: [
         provideHttpClient(),
@@ -34,6 +44,7 @@ describe('Profil', () => {
       .expectOne('/api/compte/moi')
       .flush({ id: '1', email: 'a@b.fr', emailVerifie: true, pseudo: 'marco' });
     http.expectOne('/api/compte/consentements').flush({ classement, emails });
+    http.expectOne('/api/catalogue/monuments').flush(monuments);
     const req = http.expectOne('/api/progression/succes');
     if (succes instanceof ProgressEvent) req.error(succes);
     else req.flush(succes);
@@ -95,7 +106,7 @@ describe('Profil', () => {
     await ouvrir();
     const a = (h: string) => racine().querySelector(`a[href="${h}"]`);
     expect(a('/profil/export')).toBeNull();
-    expect(racine().textContent).toContain('Compte et réglages, dans un fichier .zip');
+    expect(racine().textContent).toContain('Compte, carnet et réglages, dans un fichier .zip');
     expect(a('/profil/suppression')?.textContent).toContain('Supprimer mon compte');
     const nav = racine().querySelector('nav[aria-label="Informations légales"]')!;
     for (const h of ['/cgu', '/confidentialite', '/mentions-legales'])
@@ -180,28 +191,66 @@ describe('Profil', () => {
     });
   });
 
+  describe('identité', () => {
+    it('avatar à initiale, niveau, tampons et villes, anneau au reste de 3', async () => {
+      await ouvrir(true, false, VIDE, [
+        monument(1, 'Paris', true),
+        monument(2, 'Paris', true),
+        monument(3, 'Lyon', true),
+        monument(4, 'Lyon', true),
+        monument(5, 'Nice', false),
+      ]);
+      expect(racine().querySelector('h1')?.textContent).toContain('@marco');
+      expect(racine().querySelector('.initiale')?.textContent).toBe('M');
+      expect(racine().querySelector('.meta')?.textContent).toMatch(
+        /Niveau 2 · 4 tampons · 2 villes/,
+      );
+      expect(racine().textContent).toContain('encore 2 tampons pour le niveau 3');
+      expect(racine().querySelector('.progres')?.getAttribute('stroke-dasharray')).toMatch(
+        /^73\.3\d* 220$/,
+      );
+      expect(racine().textContent).not.toContain('Explorateur depuis');
+    });
+
+    it('niveau 1 sans tampon : pas d’anneau de progression', async () => {
+      await ouvrir();
+      expect(racine().querySelector('.meta')?.textContent).toContain(
+        'Niveau 1 · 0 tampon · 0 ville',
+      );
+      expect(racine().querySelector('.progres')).toBeNull();
+    });
+  });
+
   describe('succès', () => {
     const section = () => racine().querySelector('section[aria-labelledby="titre-succes"]')!;
 
-    it('obtenus en tampons libellés, en cours avec barre et « n sur seuil » en texte', async () => {
+    const medaille = (nom: RegExp) =>
+      [...section().querySelectorAll('[role="img"]')].find((e) =>
+        nom.test(e.getAttribute('aria-label') ?? ''),
+      );
+
+    it('grille de 4 médailles : obtenue encrée, en cours « n / seuil », « ? », compteur', async () => {
       await ouvrir(true, false, {
-        obtenus: [{ code: 'A', libelle: 'Premier tampon', obtenuLe: '2026-10-01T10:00:00Z' }],
-        enCours: [{ code: 'B', libelle: 'Dix monuments', valeur: 3, seuil: 10 }],
+        obtenus: [
+          { code: 'PREMIER_TAMPON', libelle: 'Premier tampon', obtenuLe: '2026-10-01T10:00:00Z' },
+        ],
+        enCours: [
+          { code: 'EXPLORATEUR_10', libelle: 'Explorateur (10 tampons)', valeur: 3, seuil: 10 },
+        ],
       });
-      expect(section().querySelector('h2')?.textContent).toContain('SUCCÈS');
-      expect(section().querySelector('.sceau')?.textContent).toContain('Premier tampon');
-      const p = section().querySelector('progress')!;
-      expect(p.value).toBe(3);
-      expect(p.max).toBe(10);
-      expect(section().textContent).toContain('Dix monuments');
-      expect(section().textContent).toContain('3 sur 10');
-      expect(section().querySelector('a[href="/explorer"]')).toBeNull();
+      expect(section().querySelectorAll('.grille li')).toHaveLength(4);
+      expect(medaille(/^Succès obtenu : Premier tampon$/)?.classList).toContain('zn-encre');
+      const cours = medaille(/^Succès en cours : Explorateur \(10 tampons\), 3 sur 10$/)!;
+      expect(cours.textContent).toContain('3 / 10');
+      expect(section().querySelectorAll('[aria-label^="Succès à découvrir"]')).toHaveLength(2);
+      expect(section().querySelector('.compteur')?.textContent).toContain('1 / 11');
+      expect(section().querySelector('progress')).toBeNull();
     });
 
-    it('état vide : invitation vers /explorer', async () => {
+    it('aucun succès : 4 « à découvrir », jamais vide, 0 / 11', async () => {
       await ouvrir();
-      const a = section().querySelector('a[href="/explorer"]')!;
-      expect(a.textContent).toContain('Tamponne ton premier monument');
+      expect(section().querySelectorAll('[aria-label^="Succès à découvrir"]')).toHaveLength(4);
+      expect(section().querySelector('.compteur')?.textContent).toContain('0 / 11');
     });
 
     it('hors ligne : « Pas de connexion. Réessayer » puis rechargement', async () => {
@@ -212,7 +261,9 @@ describe('Profil', () => {
         .click();
       await fixture.whenStable();
       http.expectOne('/api/progression/succes').flush({
-        obtenus: [{ code: 'A', libelle: 'Premier tampon', obtenuLe: '2026-10-01T10:00:00Z' }],
+        obtenus: [
+          { code: 'PREMIER_TAMPON', libelle: 'Premier tampon', obtenuLe: '2026-10-01T10:00:00Z' },
+        ],
         enCours: [],
       });
       await apres();

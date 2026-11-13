@@ -74,12 +74,7 @@ describe('Barre de navigation (r1-capturer-8)', () => {
     return trouvees;
   }
 
-  it('seules /explorer, /carnet, /tamponner et /profil portent la barre', async () => {
-    expect((await avecBarre(routes)).sort()).toEqual([
-      '/carnet',
-      '/explorer',
-      '/profil',
-      '/tamponner',
-    ]);
+  it('seules /explorer, /carnet et /tamponner portent la barre (pas le profil : ProfilV6)', async () => {
+    expect((await avecBarre(routes)).sort()).toEqual(['/carnet', '/explorer', '/tamponner']);
   });
 });

@@ -51,7 +51,6 @@ export const COMPTE_ROUTES: Routes = [
   {
     path: 'profil',
     title: 'Mon profil',
-    data: { navigation: true },
     canActivate: [gardeConnecte],
     loadComponent: () => import('./profil/profil').then((m) => m.Profil),
   },
