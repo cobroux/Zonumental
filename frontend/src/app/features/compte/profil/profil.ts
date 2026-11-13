@@ -5,6 +5,7 @@ import {
   ElementRef,
   Injector,
   afterNextRender,
+  computed,
   inject,
   signal,
 } from '@angular/core';
@@ -13,17 +14,20 @@ import { Api } from '../../../core/api/api';
 import { mesConsentements } from '../../../core/api/fn/compte/mes-consentements';
 import { exporterMesDonnees } from '../../../core/api/fn/compte/exporter-mes-donnees';
 import { modifierConsentements } from '../../../core/api/fn/compte/modifier-consentements';
+import { listerMonuments } from '../../../core/api/fn/catalogue/lister-monuments';
 import { mesSucces } from '../../../core/api/fn/progression/mes-succes';
 import { monCompte } from '../../../core/api/fn/compte/mon-compte';
 import { ConsentementsFacultatifs } from '../../../core/api/models/consentements-facultatifs';
 import { MesSucces } from '../../../core/api/models/mes-succes';
 import { Session } from '../../../core/session/session';
 import { ZnIcone } from '../../../shared/ui/icone';
+import { ZnMedaille } from '../../../shared/ui/medaille';
 import { ZnMessage } from '../../../shared/ui/message';
+import { medailles, niveau, TOTAL_SUCCES } from './medailles';
 
 @Component({
   selector: 'app-profil',
-  imports: [RouterLink, ZnIcone, ZnMessage],
+  imports: [RouterLink, ZnIcone, ZnMedaille, ZnMessage],
   templateUrl: './profil.html',
   styleUrl: './profil.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -39,6 +43,21 @@ export class Profil {
   protected readonly consentements = signal<ConsentementsFacultatifs | null>(null);
   protected readonly succes = signal<MesSucces | null>(null);
   protected readonly succesHorsLigne = signal(false);
+  /** Tampons et villes viennent du catalogue (captureeLe) ; absent = ligne de stats omise. */
+  protected readonly stats = signal<{ tampons: number; villes: number } | null>(null);
+  protected readonly niveau = computed(() => niveau(this.stats()?.tampons ?? 0));
+  protected readonly encore = computed(() => 3 - ((this.stats()?.tampons ?? 0) % 3));
+  /** Part du niveau en cours (0, 1/3, 2/3), tracé sur 220 (pathLength). */
+  protected readonly anneau = computed(() => (((this.stats()?.tampons ?? 0) % 3) / 3) * 220);
+  protected readonly initiale = computed(() => this.pseudo().charAt(0).toLocaleUpperCase('fr-FR'));
+  protected readonly medailles = computed(() => {
+    const s = this.succes();
+    return s ? medailles(s) : [];
+  });
+  protected readonly obtenus = computed(() => this.succes()?.obtenus.length ?? 0);
+  protected readonly total = computed(() =>
+    Math.max(TOTAL_SUCCES, this.obtenus() + (this.succes()?.enCours.length ?? 0)),
+  );
   protected readonly erreur = signal<string | null>(null);
   protected readonly occupe = signal(false);
   protected readonly export = signal(false);
@@ -46,6 +65,7 @@ export class Profil {
   constructor() {
     void this.charger();
     void this.chargerSucces();
+    void this.chargerStats();
   }
 
   protected retour() {
@@ -137,6 +157,15 @@ export class Profil {
       this.succes.set(await this.api.invoke(mesSucces));
     } catch {
       this.succesHorsLigne.set(true);
+    }
+  }
+
+  private async chargerStats() {
+    try {
+      const pris = (await this.api.invoke(listerMonuments)).filter((m) => m.captureeLe);
+      this.stats.set({ tampons: pris.length, villes: new Set(pris.map((m) => m.ville.nom)).size });
+    } catch {
+      // Hors ligne : on n'invente aucun chiffre, la ligne de stats reste absente.
     }
   }
 

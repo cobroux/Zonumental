@@ -34,8 +34,7 @@ test('R2-64 : le succès franchi apparaît à la célébration puis au profil', 
 
   await page.goto('/profil');
   await expect(page.getByRole('heading', { name: 'Explorateur' })).toBeVisible();
-  await expect(page.getByRole('listitem').filter({ hasText: /^Trois tampons$/ })).toBeVisible();
-  await expect(page.getByText('3 sur 4').first()).toBeVisible();
+  await expect(page.getByRole('img', { name: 'Succès obtenu : Trois tampons' })).toBeVisible();
   expect(await violations(page)).toEqual([]);
 });
 
