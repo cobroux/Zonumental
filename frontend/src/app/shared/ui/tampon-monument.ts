@@ -1,7 +1,17 @@
-import { MonumentResume } from '../../core/api/models/monument-resume';
-import { Rarete } from '../../core/api/models/rarete';
-import { TypeMonument } from '../../core/api/models/type-monument';
-import { ContenuTampon, Encre, Forme } from '../../shared/ui/tampon';
+import { ContenuTampon, Encre, Forme } from './tampon';
+
+// shared ne dépend pas de core (ADR 0012) : types structurels, compatibles avec le client généré.
+export type TypeMonument =
+  'CHATEAU' | 'RELIGIEUX' | 'PONT' | 'PHARE' | 'PALAIS' | 'TOUR' | 'MUSEE' | 'AUTRE';
+export type Rarete = 'COMMUN' | 'RARE' | 'LEGENDAIRE';
+export interface MonumentResume {
+  numero: number;
+  nom: string;
+  type: TypeMonument;
+  rarete: Rarete;
+  ville: { nom: string };
+  captureeLe?: string | null;
+}
 
 /** Spec fidélité §3.2, décision n° 4. */
 export const FORME_PAR_TYPE: Record<TypeMonument, Forme> = {
@@ -63,7 +73,7 @@ export function contenuTampon(m: MonumentResume): ContenuTampon {
     cercle: {
       haut: `${ville} · ${tronquer(nom, Math.max(4, maxHaut - ville.length - n.length - 8))} · ${n} ·`,
       centre: rarete,
-      bas: jjmmaa(m.captureeLe),
+      bas: jjmmaa(m.captureeLe ?? null),
     },
     rectangle: { haut: nom, centre: ville, bas: `${n} · ${rarete}` },
     octogone: { haut: nom, centre: n, bas: rarete },

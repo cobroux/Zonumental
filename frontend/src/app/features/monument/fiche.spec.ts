@@ -34,6 +34,8 @@ const verrouille = {
 const capture = {
   ...base,
   captureeLe: '2026-11-01T10:00:00Z',
+  type: 'TOUR',
+  rarete: 'RARE',
   image: image('/api/catalogue/monuments/7/image'),
   stats: { annee: 1889, style: 'Métallique', hauteurMetres: 330 },
   histoire: { texte: 'Construite pour 1889.', sourceUrl: 'https://h.example', licence: 'CC BY-SA' },
@@ -141,100 +143,94 @@ describe('Fiche', () => {
     expect(URL.revokeObjectURL).toHaveBeenCalledWith('blob:x');
   });
 
-  describe('animation du tampon (après capture)', () => {
-    const reduit = (v: boolean) => (window.matchMedia = vi.fn(() => ({ matches: v })) as never);
-    const anim = (el: HTMLElement) => el.querySelector<HTMLElement>('[data-animation]');
-    afterEach(() => {
-      history.replaceState(null, '');
-      vi.useRealTimers();
-    });
+  describe('célébration du tampon (après capture)', () => {
+    const feuille = (el: HTMLElement) => el.querySelector<HTMLElement>('app-celebration dialog');
+    const continuer = (el: HTMLElement) =>
+      [...el.querySelectorAll<HTMLButtonElement>('app-celebration button')].find(
+        (b) => b.textContent?.trim() === 'Continuer',
+      )!;
+    const duo = [
+      { code: 'PREMIER_TAMPON', libelle: 'Premier tampon' },
+      { code: 'EXPLORATEUR_10', libelle: 'Dix tampons' },
+    ];
+    afterEach(() => history.replaceState(null, ''));
 
-    it('rareté en toutes lettres, histoire déjà lisible, ni succès ni XP', async () => {
-      reduit(false);
+    it('feuille modale : titre h1 pris en nom, rareté en lettres, histoire déjà lisible', async () => {
       history.replaceState({ capture: true }, '');
       const { el } = await rendre({ ...capture, rarete: 'LEGENDAIRE' });
-      expect(anim(el)?.textContent).toContain('Légendaire');
-      expect(anim(el)?.textContent).not.toMatch(/succès|XP/i);
+      const d = feuille(el)!;
+      const h1 = d.querySelector('h1')!;
+      expect(d.getAttribute('aria-labelledby')).toBe(h1.id);
+      expect(h1.textContent).toContain('Tampon posé');
+      expect(d.querySelector('.surtitre')?.textContent).toBe('N°007 · LÉGENDAIRE');
+      expect(d.textContent).not.toMatch(/XP/);
+      expect(d.querySelector('app-celebration .succes, .succes')).toBeNull();
       expect(el.textContent).toContain('Construite pour 1889.');
     });
 
-    it('un appui sur Continuer passe l’animation', async () => {
-      reduit(false);
+    it('focus initial sur le titre de la feuille', async () => {
       history.replaceState({ capture: true }, '');
-      const { fixture, el } = await rendre(capture);
-      el.querySelector<HTMLButtonElement>('[data-animation] button')!.click();
-      fixture.detectChanges();
-      expect(anim(el)).toBeNull();
-      expect(history.state?.capture).toBeUndefined();
-    });
-
-    it('se termine seule à la fin de l’animation', async () => {
-      reduit(false);
-      history.replaceState({ capture: true }, '');
-      const { fixture, el } = await rendre(capture);
-      vi.useFakeTimers();
-      anim(el)!.dispatchEvent(new Event('animationend', { bubbles: true }));
-      fixture.detectChanges();
-      expect(anim(el)).toBeNull();
-    });
-
-    it('mouvement réduit : tampon fixe, reste jusqu’à l’appui', async () => {
-      reduit(true);
-      history.replaceState({ capture: true }, '');
-      const { fixture, el } = await rendre(capture);
-      anim(el)!.dispatchEvent(new Event('animationend', { bubbles: true }));
-      fixture.detectChanges();
-      expect(anim(el)).not.toBeNull();
-      expect(anim(el)!.classList.contains('fixe')).toBe(true);
-    });
-
-    const duo = [
-      { code: 'A', libelle: 'Premier tampon' },
-      { code: 'B', libelle: 'Dix tampons' },
-    ];
-    const bouton = (el: HTMLElement) =>
-      el.querySelector<HTMLButtonElement>('[data-succes] button')!;
-
-    it('succès : un écran par succès, annoncé en toutes lettres, Suivant puis Terminer', async () => {
-      reduit(false);
-      history.replaceState({ capture: true, succes: duo }, '');
-      const { fixture, el } = await rendre(capture);
-      el.querySelector<HTMLButtonElement>('[data-animation] button')!.click();
-      fixture.detectChanges();
-      const s = el.querySelector('[data-succes]')!;
-      expect(s.getAttribute('role')).toBe('status');
-      expect(s.textContent).toContain('Premier tampon');
-      expect(bouton(el).textContent).toContain('Suivant');
-      bouton(el).click();
-      fixture.detectChanges();
-      expect(el.querySelector('[data-succes]')!.textContent).toContain('Dix tampons');
-      expect(bouton(el).textContent).toContain('Terminer');
-      bouton(el).click();
-      fixture.detectChanges();
-      expect(el.querySelector('[data-succes]')).toBeNull();
-    });
-
-    it('succès, mouvement réduit : affichage statique', async () => {
-      reduit(true);
-      history.replaceState({ capture: true, succes: duo }, '');
-      const { fixture, el } = await rendre(capture);
-      el.querySelector<HTMLButtonElement>('[data-animation] button')!.click();
-      fixture.detectChanges();
-      expect(el.querySelector('[data-succes]')!.classList.contains('fixe')).toBe(true);
-    });
-
-    it('aucun succès : pas d’écran de succès', async () => {
-      reduit(false);
-      history.replaceState({ capture: true, succes: [] }, '');
-      const { fixture, el } = await rendre(capture);
-      el.querySelector<HTMLButtonElement>('[data-animation] button')!.click();
-      fixture.detectChanges();
-      expect(el.querySelector('[data-succes]')).toBeNull();
-    });
-
-    it('ouverture normale de la fiche : pas d’animation', async () => {
       const { el } = await rendre(capture);
-      expect(anim(el)).toBeNull();
+      expect(document.activeElement).toBe(feuille(el)!.querySelector('h1'));
+    });
+
+    it('« Continuer » ferme la feuille, rend le focus au titre de la fiche et vide l’historique', async () => {
+      history.replaceState({ capture: true, succes: duo }, '');
+      const { fixture, el } = await rendre(capture);
+      continuer(el).click();
+      await attendre(fixture);
+      expect(feuille(el)).toBeNull();
+      expect(history.state?.capture).toBeUndefined();
+      expect(history.state?.succes).toBeUndefined();
+      expect(document.activeElement).toBe(el.querySelector('h1'));
+    });
+
+    it('fermeture native (Échap) : même effet', async () => {
+      history.replaceState({ capture: true }, '');
+      const { fixture, el } = await rendre(capture);
+      feuille(el)!.dispatchEvent(new Event('close'));
+      fixture.detectChanges();
+      expect(feuille(el)).toBeNull();
+    });
+
+    it('appui sur le voile = Continuer, appui dans la feuille = rien', async () => {
+      history.replaceState({ capture: true }, '');
+      const { fixture, el } = await rendre(capture);
+      feuille(el)!.querySelector<HTMLElement>('.feuille')!.click();
+      fixture.detectChanges();
+      expect(feuille(el)).not.toBeNull();
+      feuille(el)!.click();
+      fixture.detectChanges();
+      expect(feuille(el)).toBeNull();
+    });
+
+    it('succès gagnés : premier tampon en titre, lignes avec critère, lien vers le carnet', async () => {
+      history.replaceState({ capture: true, succes: duo }, '');
+      const { el } = await rendre(capture);
+      const d = feuille(el)!;
+      expect(d.querySelector('h1')?.textContent).toContain('Ton premier tampon');
+      const lignes = [...d.querySelectorAll('.succes li')];
+      expect(lignes.length).toBe(2);
+      expect(lignes[0].textContent).toContain('Premier tampon');
+      expect(lignes[0].textContent).toContain('Premier monument tamponné');
+      expect(lignes[1].textContent).toContain('10 monuments tamponnés');
+      expect(d.querySelector('.autres')).toBeNull();
+      expect(d.querySelector('a[href="/carnet"]')?.textContent).toContain('Voir mon carnet');
+    });
+
+    it('plus de 3 succès : 3 lignes puis « + 2 autres succès » vers la liste', async () => {
+      const cinq = ['A', 'B', 'C', 'D', 'E'].map((code) => ({ code, libelle: `Succès ${code}` }));
+      history.replaceState({ capture: true, succes: cinq }, '');
+      const { el } = await rendre(capture);
+      const d = feuille(el)!;
+      expect(d.querySelectorAll('.succes li').length).toBe(3);
+      expect(d.querySelector('.autres')?.textContent).toContain('+ 2 autres succès');
+      expect(d.querySelector('.autres')?.getAttribute('href')).toBe('/profil');
+    });
+
+    it('ouverture normale de la fiche : pas de feuille', async () => {
+      const { el } = await rendre(capture);
+      expect(feuille(el)).toBeNull();
     });
   });
 

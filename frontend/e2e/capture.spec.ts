@@ -19,7 +19,7 @@ test.describe('à 100 m de A', () => {
     await cameraPrete(page);
     await page.getByRole('button', { name: 'Prendre la photo' }).click();
 
-    await expect(page.locator('[data-animation]')).toContainText('Capturé');
+    await expect(page.getByRole('dialog', { name: /Ton premier tampon/ })).toContainText('Tour A');
     await page.getByRole('button', { name: 'Continuer' }).click();
     await expect(page.getByRole('heading', { name: 'Tour A' })).toBeVisible();
     await expect(page.getByText('Histoire de la Tour A.')).toBeVisible();
