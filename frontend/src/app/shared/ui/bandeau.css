@@ -1,0 +1,77 @@
+:host {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-block-size: 108px;
+  padding: 14px 18px;
+  overflow: hidden;
+  border-radius: var(--zn-rayon-18);
+  background: var(--zn-marine) url('/guilloche-bandeau.svg') right center / cover no-repeat;
+  color: var(--zn-papier);
+}
+
+.sceau-z {
+  position: absolute;
+  inset-block-start: 14px;
+  inset-inline-end: 14px;
+  inline-size: 62px;
+  block-size: 62px;
+  color: var(--zn-or);
+  opacity: 0.85;
+  font-family: var(--zn-police-titre);
+}
+
+.surtitre {
+  margin: 0;
+  color: var(--zn-brume);
+  font: 500 var(--zn-fs-10) / 1 var(--zn-police-mono);
+  letter-spacing: var(--zn-ls-eyebrow);
+  text-transform: uppercase;
+}
+
+h1,
+h2 {
+  margin: 0;
+  font: 400 var(--zn-fs-24) / 1 var(--zn-police-titre);
+  overflow-wrap: anywhere;
+}
+
+.stats {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 4px 18px;
+  margin: 14px 0 0;
+  padding: 0 76px 0 0;
+  list-style: none;
+  color: var(--zn-brume);
+  font-size: var(--zn-fs-12);
+  font-variant-numeric: tabular-nums;
+}
+
+.stats b {
+  margin-inline-end: 5px;
+  color: var(--zn-papier);
+  font: 400 var(--zn-fs-22) / 1 var(--zn-police-titre);
+}
+
+.stats .or b {
+  color: var(--zn-or);
+}
+
+@media (forced-colors: active) {
+  :host {
+    background: Canvas;
+    border: 1px solid CanvasText;
+    color: CanvasText;
+  }
+
+  .sceau-z,
+  .surtitre,
+  .stats,
+  .stats b,
+  .stats .or b {
+    color: CanvasText;
+  }
+}

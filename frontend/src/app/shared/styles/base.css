@@ -113,6 +113,11 @@ label {
   white-space: nowrap;
 }
 
+/* Encre irrégulière des tampons : filtre défini une fois dans index.html (ADR 0022) */
+.zn-encre {
+  filter: url('#zn-encre');
+}
+
 /* Mouvement réduit : l'information n'est jamais portée par le mouvement seul */
 @media (prefers-reduced-motion: reduce) {
   *,
@@ -127,6 +132,15 @@ label {
 
 /* Contraste élevé Windows : bordures et focus en couleurs système */
 @media (forced-colors: active) {
+  .zn-encre {
+    filter: none;
+  }
+
+  zn-tampon,
+  zn-medaille {
+    color: CanvasText;
+  }
+
   :focus-visible {
     outline-color: Highlight;
   }

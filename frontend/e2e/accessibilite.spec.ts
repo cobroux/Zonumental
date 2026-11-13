@@ -65,3 +65,10 @@ test('refus de capture', async ({ page }) => {
   await expect(page.getByText('Signal trop faible')).toBeVisible();
   expect(await violations(page)).toEqual([]);
 });
+
+test('Design system : tampons, planche, bandeau, médailles', async ({ page }) => {
+  await mockApi(page);
+  await page.goto('/design-system');
+  await expect(page.locator('zn-planche svg[role="img"]')).toHaveCount(4);
+  expect(await violations(page)).toEqual([]);
+});

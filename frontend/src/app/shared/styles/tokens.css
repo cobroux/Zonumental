@@ -19,6 +19,29 @@
   --zn-gris-45: #45494f;
   --zn-gris-6b: #6b6f75; /* 4,5:1 sur papier clair seulement : pas de texte sur papier */
   --zn-nuit: #0e0f11;
+  /* Maquettes v4 à v6 : couleurs absentes, ajoutées (fidelite-1) */
+  --zn-or: #d9b26a; /* uniquement sur marine (5,75:1) : sceau Z, compteur « légendaires » */
+  --zn-brume: #c8d2df; /* uniquement sur marine (7,5:1) : libellés du bandeau */
+  --zn-halo-zone: #4cc38a; /* décor du bouton « zone » : jamais seul porteur d'info */
+  --zn-blanc: #ffffff;
+  --zn-bordeaux-voile: color-mix(in srgb, var(--zn-bordeaux) 22%, transparent);
+  --zn-voile-06: color-mix(in srgb, var(--zn-encre) 6%, transparent);
+  --zn-voile-10: color-mix(in srgb, var(--zn-encre) 10%, transparent);
+  --zn-voile-14: color-mix(in srgb, var(--zn-encre) 14%, transparent);
+  --zn-voile-22: color-mix(in srgb, var(--zn-encre) 22%, transparent);
+  --zn-voile-photo: color-mix(in srgb, var(--zn-nuit) 35%, transparent);
+  --zn-voile-modale: color-mix(in srgb, var(--zn-nuit) 72%, transparent);
+  /* Encre du tampon selon la rareté (ADR 0022) */
+  --zn-tampon-commun: var(--zn-marine);
+  --zn-tampon-rare: var(--zn-bordeaux);
+  --zn-tampon-legendaire: var(--zn-sapin);
+  /* Ombres */
+  --zn-biseau: inset 1px 1px 0 var(--zn-voile-14), inset -1px -1px 0 var(--zn-blanc);
+  --zn-ombre-planche: 0 14px 24px -18px color-mix(in srgb, var(--zn-encre) 35%, transparent);
+  --zn-ombre-barre: 0 -10px 24px -18px color-mix(in srgb, var(--zn-encre) 35%, transparent);
+  --zn-ombre-feuille: 0 -12px 30px -14px color-mix(in srgb, var(--zn-nuit) 45%, transparent);
+  --zn-ombre-bouton: 0 12px 20px -10px color-mix(in srgb, var(--zn-encre) 55%, transparent);
+  --zn-ombre-bouton-interrupteur: 0 1px 3px color-mix(in srgb, var(--zn-encre) 30%, transparent);
   --zn-gris-bordure: #858b95; /* le plus clair des gris à 3:1 sur papier (3,04:1) : bordure de champ */
 
   /* Rôles : les composants utilisent ceux-ci, jamais les couleurs brutes */
@@ -53,11 +76,22 @@
   --zn-taille-3: clamp(1.625rem, 1.3rem + 1.4vw, 2.125rem);
   --zn-taille-4: clamp(2.125rem, 1.6rem + 2.4vw, 3.25rem);
   --zn-taille-petite: 0.8125rem;
+  --zn-fs-10: 0.625rem;
+  --zn-fs-11: 0.6875rem;
+  --zn-fs-12: 0.75rem;
+  --zn-fs-15: 0.9375rem;
+  --zn-fs-22: 1.375rem;
+  --zn-fs-24: 1.5rem;
+  --zn-ls-eyebrow: 0.16em;
+  --zn-ls-etiquette: 0.14em;
 
   /* Formes (maquettes v4 à v6) */
+  --zn-rayon-6: 6px; /* planche */
+  --zn-rayon-8: 8px; /* case vide */
   --zn-rayon-12: 12px; /* champs */
   --zn-rayon-14: 14px; /* boutons */
   --zn-rayon-16: 16px;
+  --zn-rayon-18: 18px; /* bandeau */
   --zn-rayon-22: 22px;
   --zn-rayon-26: 26px; /* feuille du bas */
   --zn-rayon-pastille: 999px;
