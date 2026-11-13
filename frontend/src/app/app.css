@@ -1,3 +1,9 @@
+/* Colonne mobile centrée en bureau ; le papier du body reste de part et d'autre. */
+main {
+  position: relative; /* ancre le bouton profil (absolu) à la colonne */
+  max-inline-size: var(--zn-colonne);
+  margin-inline: auto;
+}
 /* Réserve la hauteur de la barre fixe pour que rien ne passe dessous. */
 .avec-navigation {
   padding-block-end: calc(90px + env(safe-area-inset-bottom));

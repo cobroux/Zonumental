@@ -63,6 +63,7 @@
   --zn-rayon-pastille: 999px;
   --zn-trait: 1px solid var(--zn-encre);
   --zn-cible: 2.75rem; /* 44 px */
+  --zn-colonne: 430px; /* colonne mobile centrée en bureau (maquettes 390 px) */
 
   /* Mouvement (ADR 0017) */
   --zn-duree-appui: 160ms;
