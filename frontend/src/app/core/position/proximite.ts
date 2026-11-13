@@ -9,7 +9,7 @@ export const RAYON_LISTE_METRES = 2000;
 export const PRECISION_MAX_METRES = 100; // RG-031
 
 export type Proche = MonumentResume & { distance: number; capture: boolean };
-export type EtatBouton = 'sans-position' | 'loin' | 'deja' | 'proche' | 'imprecis' | 'zone';
+export type EtatBouton = 'loin' | 'deja' | 'proche' | 'imprecis' | 'zone';
 
 export function distanceMetres(
   a: { latitude: number; longitude: number },
@@ -69,11 +69,11 @@ export function etatBouton(
   liste: Proche[],
   position: EtatPosition,
 ): { etat: EtatBouton; texte: string } {
-  if (position.statut !== 'ok' || !position.coords)
-    return { etat: 'sans-position', texte: 'Position' };
-  if (!liste.length) return { etat: 'loin', texte: '> 2 km' };
+  // position inconnue : même état que « loin » (maquette NavBar, fidélité §6.3)
+  if (position.statut !== 'ok' || !position.coords || !liste.length)
+    return { etat: 'loin', texte: '> 2 km' };
   const cible = liste.find((m) => !m.capture);
-  if (!cible) return { etat: 'deja', texte: 'Déjà tamponné ici' };
+  if (!cible) return { etat: 'deja', texte: 'Déjà tamponné' };
   if (cible.distance > cible.rayonCaptureMetres)
     return { etat: 'proche', texte: formaterDistance(cible.distance) };
   const precision = position.coords.precision;

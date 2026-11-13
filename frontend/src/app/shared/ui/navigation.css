@@ -6,15 +6,25 @@
   inline-size: min(100%, var(--zn-colonne));
   margin-inline: auto;
 }
+/* Opaque, sans backdrop-filter : écart assumé avec la maquette (fidélité §2.3). */
 nav {
+  padding: 6px 6px max(14px, env(safe-area-inset-bottom));
+  background: var(--zn-papier);
+  border-block-start: 1px solid var(--zn-voile-10);
+  box-shadow: var(--zn-ombre-barre);
+}
+ul {
   display: grid;
-  grid-template-columns: 1fr 68px 1fr; /* ordre : Explorer, Tamponner, Carnet */
+  grid-template-columns: repeat(5, minmax(0, 1fr));
   align-items: stretch;
-  padding: 6px 6px max(10px, env(safe-area-inset-bottom));
-  background: rgb(244 241 234 / 94%);
-  backdrop-filter: blur(16px);
-  border-block-start: 1px solid rgb(26 28 32 / 10%);
-  box-shadow: 0 -10px 24px -18px rgb(26 28 32 / 35%);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+li {
+  position: relative;
+  display: flex;
+  justify-content: center;
 }
 a {
   display: flex;
@@ -22,11 +32,13 @@ a {
   align-items: center;
   justify-content: center;
   gap: 3px;
+  inline-size: 100%;
   min-block-size: 56px;
-  min-inline-size: var(--zn-cible);
   color: var(--zn-gris-libelle);
   font: 500 0.6875rem / 1.2 var(--zn-police-ui);
+  letter-spacing: 0.01em;
   text-decoration: none;
+  -webkit-tap-highlight-color: transparent;
 }
 a:focus-visible {
   outline: 3px solid var(--zn-focus);
@@ -60,54 +72,109 @@ i {
   stroke-width: 2;
 }
 .actif .aplat {
-  fill: rgb(140 47 57 / 22%);
+  fill: var(--zn-bordeaux-voile);
 }
 .actif i {
   background: var(--zn-bordeaux);
 }
-.tamponner {
-  position: relative;
+
+/* Bouton central : sorti du flux, dépasse de 28 px au-dessus de la barre. */
+a.tamponner {
+  position: absolute;
+  inset-block-start: -34px;
+  inset-inline-start: 50%;
+  inline-size: 68px;
+  min-block-size: 0;
+  margin-inline-start: -34px;
+  gap: 4px;
+  justify-content: flex-start;
   font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  outline: none;
+}
+.libelle {
+  white-space: nowrap; /* libellé court (« Déjà tamponné ») : une ligne, sans toucher Carnet ni Carte à 320 px */
   color: var(--zn-gris-libelle);
 }
 .rond {
-  position: absolute;
-  inset-block: -34px auto;
-  inset-inline-start: 50%;
-  margin-inline-start: -32px;
+  position: relative;
   inline-size: 64px;
   block-size: 64px;
   border-radius: 50%;
   display: grid;
   place-items: center;
   color: var(--zn-papier-clair);
-  background: var(--zn-gris-45); /* « loin » : neutre, ne promet rien */
+  background: var(--zn-gris-45); /* « loin » et « deja » : neutre, ne promet rien */
   box-shadow:
     0 0 0 4px var(--zn-papier),
-    0 12px 20px -10px rgb(26 28 32 / 55%),
-    inset 0 -3px 0 rgb(0 0 0 / 18%);
+    var(--zn-ombre-bouton),
+    inset 0 -3px 0 color-mix(in srgb, var(--zn-nuit) 18%, transparent);
+  transition: transform var(--zn-duree-appui) var(--zn-courbe);
 }
 .rond svg {
   inline-size: 28px;
   block-size: 28px;
   stroke-width: 1.8;
 }
-.vide {
-  inline-size: 24px;
-  block-size: 24px; /* place de l'icône des autres entrées : libellés alignés */
+a.tamponner:active .rond {
+  transform: scale(0.97);
+}
+a.tamponner:focus-visible .rond {
+  outline: 3px solid var(--zn-focus);
+  outline-offset: 6px;
 }
 [data-etat='proche'] .rond,
-[data-etat='imprecis'] .rond {
+[data-etat='imprecis'] .rond,
+[data-etat='zone'] .rond {
   background: var(--zn-bordeaux);
 }
+[data-etat='proche'] .libelle,
+[data-etat='imprecis'] .libelle {
+  color: var(--zn-bordeaux);
+}
+[data-etat='zone'] .libelle {
+  color: var(--zn-sapin);
+}
 [data-etat='zone'] .rond {
-  background: var(--zn-sapin);
   box-shadow:
     0 0 0 4px var(--zn-papier),
-    0 0 0 8px rgb(47 93 74 / 35%),
-    0 12px 20px -10px rgb(26 28 32 / 55%),
-    inset 0 -3px 0 rgb(0 0 0 / 18%);
+    0 0 0 7px var(--zn-halo-zone),
+    var(--zn-ombre-bouton),
+    inset 0 -3px 0 color-mix(in srgb, var(--zn-nuit) 18%, transparent);
 }
-[data-etat='zone'] {
-  color: var(--zn-sapin);
+/* Impulsion : 3 répétitions puis arrêt (batterie, aucun clignotement). */
+[data-etat='zone'] .rond::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border: 3px solid var(--zn-halo-zone);
+  border-radius: 50%;
+  opacity: 0;
+  animation: impulsion 1.8s var(--zn-courbe) 3;
+}
+@keyframes impulsion {
+  from {
+    opacity: 0.6;
+    transform: scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: scale(1.25);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  [data-etat='zone'] .rond::after {
+    animation: none;
+  }
+  .rond {
+    transition: none;
+  }
+}
+@media (forced-colors: active) {
+  .rond {
+    border: 2px solid CanvasText;
+  }
+  a.tamponner:focus-visible .rond {
+    outline-color: Highlight;
+  }
 }
