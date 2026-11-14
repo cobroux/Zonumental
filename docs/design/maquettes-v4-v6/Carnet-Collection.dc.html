@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<title>Carnet — Collection Paris</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;700&amp;family=Special+Elite&amp;family=Caveat:wght@500;700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+button{font:inherit;color:inherit;cursor:pointer}
+</style>
+</helmet>
+<div style="width: 390px; height: 844px; box-sizing: border-box; background-color: #F1EDE3; background-image: linear-gradient(rgba(30,102,112,0.13) 1px, transparent 1px), linear-gradient(90deg, rgba(30,102,112,0.13) 1px, transparent 1px); background-size: 18px 18px; color: #23303B; font-family: 'Special Elite', monospace; display: flex; flex-direction: column; overflow: hidden">
+  <header style="padding: 26px 20px 10px; display: flex; flex-direction: column; gap: 4px">
+    <div style="display: flex; justify-content: space-between; align-items: center">
+      <span style="font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 16px; letter-spacing: 0.3em">ZONUMENTAL</span>
+      <span style="font-size: 12px; border: 1.5px solid #23303B; padding: 3px 8px">CARNET N° 1</span>
+    </div>
+    <h1 style="margin: 6px 0 0; font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 56px; line-height: 0.9; text-transform: uppercase">Paris</h1>
+    <p style="margin: 0; font-family: 'Caveat', cursive; font-size: 24px; color: {{accent}}">6 tampons sur 28 — continue !</p>
+  </header>
+
+  <main style="flex: 1; padding: 8px 18px 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px 10px; align-content: start">
+    <sc-for list="{{items}}" as="m" hint-placeholder-count="9">
+      <div style="height: 150px; display: flex; flex-direction: column; align-items: center; gap: 6px">
+        <sc-if value="{{m.captured}}" hint-placeholder-val="{{ true }}">
+          <div style="width: 100px; height: 100px; box-sizing: border-box; border-radius: 50%; border: 3px double {{m.ink}}; color: {{m.ink}}; display: flex; flex-direction: column; align-items: center; justify-content: center; transform: rotate({{m.rot}}deg); opacity: 0.92">
+            <span style="font-size: 9px; letter-spacing: 0.15em">N° {{m.num}}</span>
+            <svg viewBox="0 0 64 64" style="width: 46px; height: 46px" aria-hidden="true"><path d="{{m.d}}" fill="none" stroke="{{m.ink}}" stroke-width="2.4" stroke-linejoin="round"></path></svg>
+            <span style="font-size: 9px; letter-spacing: 0.1em">{{m.date}}</span>
+          </div>
+          <span style="font-family: 'Barlow Condensed', sans-serif; font-weight: 500; font-size: 15px; text-align: center; line-height: 1.05">{{m.name}}</span>
+        </sc-if>
+        <sc-if value="{{m.locked}}" hint-placeholder-val="{{ false }}">
+          <div style="width: 100px; height: 100px; box-sizing: border-box; border-radius: 50%; border: 2px dashed #7C8790; display: flex; align-items: center; justify-content: center; color: #59636B; font-size: 12px">n° {{m.num}}</div>
+          <span style="font-family: 'Caveat', cursive; font-size: 19px; color: #4F5960; text-align: center; line-height: 1">? à {{m.dist}}</span>
+        </sc-if>
+      </div>
+    </sc-for>
+  </main>
+
+  <nav aria-label="Navigation principale" style="height: 84px; display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); align-items: center; background: #23303B; color: #F1EDE3">
+    <button aria-current="page" style="border: 0; background: none; color: #F1EDE3; display: flex; flex-direction: column; align-items: center; gap: 3px; font-size: 11px; min-height: 48px">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#F1EDE3" stroke-width="1.6" aria-hidden="true"><path d="M5 3h12a2 2 0 0 1 2 2v16H7a2 2 0 0 1-2-2z"></path><path d="M9 3v18"></path></svg>
+      <span>Carnet</span>
+    </button>
+    <button style="border: 0; background: none; color: #F1EDE3; display: flex; flex-direction: column; align-items: center; gap: 3px; font-size: 11px; min-height: 48px">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#F1EDE3" stroke-width="1.6" aria-hidden="true"><path d="M9 4 3 6v14l6-2 6 2 6-2V4l-6 2-6-2z"></path><path d="M9 4v14M15 6v14"></path></svg>
+      <span>Carte</span>
+    </button>
+    <button aria-label="Tamponner un monument" style="justify-self: center; width: 64px; height: 64px; margin-top: -28px; border-radius: 50%; border: 0; background: {{accent}}; box-shadow: 0 0 0 4px #F1EDE3; display: flex; align-items: center; justify-content: center">
+      <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#F1EDE3" stroke-width="1.8" aria-hidden="true"><path d="M9 3h6v6l3 3v3H6v-3l3-3z"></path><path d="M5 20h14"></path></svg>
+    </button>
+    <button style="border: 0; background: none; color: #F1EDE3; display: flex; flex-direction: column; align-items: center; gap: 3px; font-size: 11px; min-height: 48px">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#F1EDE3" stroke-width="1.6" aria-hidden="true"><circle cx="12" cy="14" r="5"></circle><path d="M8 3l4 6 4-6"></path></svg>
+      <span>Succès</span>
+    </button>
+    <button style="border: 0; background: none; color: #F1EDE3; display: flex; flex-direction: column; align-items: center; gap: 3px; font-size: 11px; min-height: 48px">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#F1EDE3" stroke-width="1.6" aria-hidden="true"><circle cx="12" cy="8" r="4"></circle><path d="M4 21c1-4 4-6 8-6s7 2 8 6"></path></svg>
+      <span>Profil</span>
+    </button>
+  </nav>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"accent":{"editor":"color","default":"#A8322A","options":["#A8322A","#1E6670","#B0731C"]},"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const accent = this.props.accent ?? '#A8322A';
+    const S = {
+      eiffel: 'M31 4h2l1.5 14 3 12h3l3 14 4.5 16h-8q-8-14-16 0h-8l4.5-16 3-14h3l3-12z',
+      arc: 'M8 12h48v6H8zM10 18h44v42H40V42q-8-12-16 0v18H10z',
+      notredame: 'M8 60V20h14v40zM42 60V20h14v40zM22 60V34h20v26zM31 34l1-24 1 24z',
+      sacrecoeur: 'M8 60V40h48v20zM20 40q0-12 12-12t12 12zM30 28V16h4v12zM10 40q0-8 6-8t6 8zM42 40q0-8 6-8t6 8z',
+      pantheon: 'M8 60V48h48v12zM12 48V34h40v14zM10 34l22-10 22 10zM22 24q0-12 10-12t10 12zM31 12V5h2v7z',
+      opera: 'M6 60V36h52v24zM10 36l22-8 22 8zM24 28q0-8 8-8t8 8z'
+    };
+    const inks = [accent, '#1E6670', '#23303B'];
+    const items = [
+      { num: '001', name: 'Tour Eiffel', d: S.eiffel, date: '12 OCT 26', captured: true },
+      { num: '002', name: 'Arc de Triomphe', d: S.arc, date: '12 OCT 26', captured: true },
+      { num: '003', name: 'Notre-Dame', d: S.notredame, date: '14 OCT 26', captured: true },
+      { num: '004', name: 'Sacré-Cœur', d: S.sacrecoeur, date: '15 OCT 26', captured: true },
+      { num: '005', dist: '1,2 km' },
+      { num: '006', name: 'Panthéon', d: S.pantheon, date: '18 OCT 26', captured: true },
+      { num: '007', dist: '2,8 km' },
+      { num: '008', name: 'Opéra Garnier', d: S.opera, date: '19 OCT 26', captured: true },
+      { num: '009', dist: '900 m' }
+    ].map((m, i) => ({ ...m, captured: !!m.captured, locked: !m.captured, rot: [-8, 6, -3, 9, 0, -6, 0, 4, 0][i], ink: inks[i % 3] }));
+    return { accent, items };
+  }
+}
+</script>
+</body>
+</html>
