@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<title>Barre de navigation — états du bouton Tamponner</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Gloock&amp;family=Geist:wght@400;500;600&amp;family=Geist+Mono:wght@400;500&amp;display=swap" rel="stylesheet">
+<style>body{margin:0}</style>
+</helmet>
+<div style="width: 390px; height: 560px; box-sizing: border-box; background: #E9E4D8; display: flex; flex-direction: column; gap: 10px; padding: 20px 0; font-family: 'Geist', system-ui, sans-serif; color: #1A1C20">
+  <sc-for list="{{states}}" as="s" hint-placeholder-count="3">
+    <div style="display: flex; flex-direction: column; gap: 2px">
+      <span style="padding: 0 16px; font-family: 'Geist Mono', monospace; font-size: 11px; letter-spacing: 0.14em; color: #45494F">{{s.title}}</span>
+      <span style="padding: 0 16px; font-size: 13px; color: #45494F">{{s.desc}}</span>
+      <dc-import name="NavBar" active="{{s.active}}" capture="{{s.capture}}" dist="{{s.dist}}" hint-size="390px,116px"></dc-import>
+    </div>
+  </sc-for>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":560}}'>
+class Component extends DCLogic {
+  renderVals() {
+    return { states: [
+      { title: 'LOIN · AUCUN MONUMENT À MOINS DE 2 KM', desc: 'Bouton encre grise : ouvre « le plus proche » plutôt que la caméra.', active: 'accueil', capture: 'loin', dist: '' },
+      { title: 'PROCHE · MONUMENT À 420 M', desc: 'Bordeaux + distance en direct : la caméra s’ouvre, déclencheur verrouillé.', active: 'carnet', capture: 'proche', dist: '420 m' },
+      { title: 'DANS LA ZONE · MOINS DE 150 M', desc: 'Halo vert : on peut tamponner tout de suite.', active: 'defis', capture: 'zone', dist: '' }
+    ] };
+  }
+}
+</script>
+</body>
+</html>

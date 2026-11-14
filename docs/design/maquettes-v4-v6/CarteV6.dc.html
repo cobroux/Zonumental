@@ -1,0 +1,154 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<title>Carte</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Gloock&amp;family=Geist:wght@400;500;600&amp;family=Geist+Mono:wght@400;500&amp;display=swap" rel="stylesheet">
+<style>body{margin:0}</style>
+</helmet>
+<div style="position: relative; width: 390px; height: 844px; overflow: hidden; background: #E9E3D3; color: #1A1C20; font-family: 'Geist', system-ui, sans-serif; -webkit-font-smoothing: antialiased">
+  <svg aria-hidden="true" style="position: absolute; width: 0; height: 0">
+    <filter id="paperM"><feTurbulence type="fractalNoise" baseFrequency="0.85" numOctaves="3" stitchTiles="stitch"></feTurbulence><feColorMatrix values="0 0 0 0 0.42  0 0 0 0 0.36  0 0 0 0 0.27  0 0 0 0.12 0"></feColorMatrix></filter>
+    <filter id="soft"><feGaussianBlur stdDeviation="14"></feGaussianBlur></filter>
+    <filter id="inkM" x="-10%" y="-10%" width="120%" height="120%"><feTurbulence type="fractalNoise" baseFrequency="1.1" numOctaves="2" seed="4" result="n"></feTurbulence><feColorMatrix in="n" type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 -3 2.15" result="holes"></feColorMatrix><feComposite in="SourceGraphic" in2="holes" operator="in"></feComposite></filter>
+  </svg>
+
+  <sc-if value="{{isParis}}" hint-placeholder-val="{{ true }}">
+    <svg viewBox="0 0 390 844" width="390" height="844" style="position: absolute; inset: 0" role="img" aria-label="Carte de Paris : 6 zones dévoilées autour de tes tampons">
+      <defs>
+        <mask id="fogMask">
+          <rect width="390" height="844" fill="#FFFFFF"></rect>
+          <g filter="url(#soft)" fill="#000000">
+            <sc-for list="{{revealed}}" as="r" hint-placeholder-count="6"><circle cx="{{r.x}}" cy="{{r.y}}" r="62"></circle></sc-for>
+          </g>
+        </mask>
+      </defs>
+      <g fill="none" stroke="#CFC6B2" stroke-width="1.2">
+        <path d="M-20 200 L410 120M-20 520 L410 600M60 -20 L140 880M300 -20 L250 880M-20 300 Q200 260 410 330M-20 450 Q190 420 410 470M110 -20 Q170 400 90 880M200 -20 Q230 420 330 880"></path>
+      </g>
+      <g fill="none" stroke="#D9D1BF" stroke-width="0.8">
+        <path d="M0 240 L390 210M0 380 L390 400M0 560 L390 520M180 0 L160 844M40 0 L20 844M350 0 L370 844M0 640 L390 700"></path>
+      </g>
+      <path d="M-20 360 C 50 330, 100 400, 165 372 S 255 300, 300 322 S 360 392, 410 380" fill="none" stroke="#BCC8CD" stroke-width="16" stroke-linecap="round"></path>
+      <ellipse cx="236" cy="352" rx="16" ry="6" fill="#E9E3D3" transform="rotate(-18 236 352)"></ellipse>
+      <rect width="390" height="844" fill="#F4F1EA" fill-opacity="0.94" mask="url(#fogMask)"></rect>
+      <rect width="390" height="844" filter="url(#paperM)" mask="url(#fogMask)"></rect>
+
+      <sc-for list="{{pins}}" as="p" hint-placeholder-count="9">
+        <g transform="translate({{p.x}} {{p.y}})">
+          <sc-if value="{{p.got}}" hint-placeholder-val="{{ true }}">
+            <g filter="url(#inkM)" transform="rotate({{p.r}})" style="color: {{p.ink}}">
+              <circle r="16" fill="#F4F1EA" fill-opacity="0.75" stroke="currentColor" stroke-width="2.2"></circle>
+              <circle r="11" fill="none" stroke="currentColor" stroke-width="1"></circle>
+              <text y="3.5" text-anchor="middle" fill="currentColor" font-family="Gloock, serif" font-size="9.5">{{p.num}}</text>
+            </g>
+          </sc-if>
+          <sc-if value="{{p.todo}}" hint-placeholder-val="{{ false }}">
+            <circle r="15" fill="#FBF9F4" stroke="{{p.ring}}" stroke-width="{{p.ringW}}"></circle>
+            <text y="3.5" text-anchor="middle" fill="#45494F" font-family="Geist Mono, monospace" font-size="8.5">{{p.num}}</text>
+          </sc-if>
+        </g>
+      </sc-for>
+      <circle cx="176" cy="330" r="20" fill="#1F3A5F" fill-opacity="0.16"></circle>
+      <circle cx="176" cy="330" r="7.5" fill="#1F3A5F" stroke="#FBF9F4" stroke-width="2.5"></circle>
+    </svg>
+
+    <button aria-label="Recentrer sur ma position" style="position: absolute; right: 16px; top: 528px; width: 48px; height: 48px; border-radius: 50%; border: 1px solid rgba(26,28,32,0.12); background: #FBF9F4; box-shadow: 0 8px 18px -10px rgba(26,28,32,0.5); display: flex; align-items: center; justify-content: center; cursor: pointer">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#1F3A5F" stroke-width="1.9" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="6.5"></circle><path d="M12 2.5v3M12 18.5v3M2.5 12h3M18.5 12h3"></path></svg>
+    </button>
+
+    <a href="V2-Capture.dc.html" style="position: absolute; left: 16px; right: 16px; top: 590px; height: 108px; box-sizing: border-box; padding: 12px; border-radius: 18px; background: #FBF9F4; border: 1px solid rgba(26,28,32,0.08); box-shadow: 0 14px 28px -16px rgba(26,28,32,0.55); display: grid; grid-template-columns: 84px minmax(0, 1fr) auto; gap: 14px; align-items: center; text-decoration: none; color: #1A1C20">
+      <img src="/_blob/e91905670fdad566400117dde479d4bf" alt="" style="width: 84px; height: 84px; border-radius: 12px; object-fit: cover; filter: grayscale(0.85); outline: 1px solid rgba(0,0,0,0.1); outline-offset: -1px">
+      <span style="display: flex; flex-direction: column; gap: 3px; min-width: 0">
+        <span style="font-family: 'Geist Mono', monospace; font-size: 10px; letter-spacing: 0.14em; color: #5B5F66">N°005 · RARE · À DÉCOUVRIR</span>
+        <strong style="font-family: 'Gloock', serif; font-weight: 400; font-size: 22px; line-height: 1">Musée du Louvre</strong>
+        <span style="font-size: 13px; color: #5B5F66; font-variant-numeric: tabular-nums">1,2 km · 14 min à pied</span>
+      </span>
+      <span style="height: 40px; padding: 0 14px; border-radius: 12px; background: #1A1C20; color: #FBF9F4; display: flex; align-items: center; font-size: 14px; font-weight: 600">Y aller</span>
+    </a>
+  </sc-if>
+
+  <sc-if value="{{isFrance}}" hint-placeholder-val="{{ false }}">
+    <div style="position: absolute; inset: 0; background: #F4F1EA">
+      <svg aria-hidden="true" style="position: absolute; inset: 0; width: 100%; height: 100%"><rect width="100%" height="100%" filter="url(#paperM)"></rect></svg>
+    </div>
+    <svg viewBox="-10 -10 320 290" width="370" height="335" style="position: absolute; left: 10px; top: 150px" role="img" aria-label="Carte de France : Paris dévoilée, 9 villes encore dans le brouillard">
+      <defs>
+        <clipPath id="fr"><path d="{{fr}}"></path></clipPath>
+        <pattern id="hatch" width="5" height="5" patternUnits="userSpaceOnUse" patternTransform="rotate(40)"><rect width="1" height="5" fill="#1A1C20" fill-opacity="0.08"></rect></pattern>
+      </defs>
+      <path d="{{fr}}" fill="#E9E3D3" stroke="#1A1C20" stroke-opacity="0.55" stroke-width="1.2" stroke-linejoin="round"></path>
+      <ellipse cx="288" cy="258" rx="7" ry="14" fill="#E9E3D3" stroke="#1A1C20" stroke-opacity="0.55" stroke-width="1"></ellipse>
+      <g clip-path="url(#fr)">
+        <rect x="-10" y="-10" width="330" height="300" fill="url(#hatch)"></rect>
+        <circle cx="150" cy="72" r="26" fill="#F4F1EA"></circle>
+        <circle cx="150" cy="72" r="26" fill="none" stroke="#8C2F39" stroke-width="1.2" stroke-dasharray="3 3"></circle>
+      </g>
+      <sc-for list="{{cities}}" as="c" hint-placeholder-count="10">
+        <g transform="translate({{c.x}} {{c.y}})">
+          <circle r="{{c.r}}" fill="{{c.fill}}" stroke="{{c.stroke}}" stroke-width="1.5"></circle>
+          <text x="{{c.lx}}" y="4" text-anchor="{{c.anchor}}" fill="#1A1C20" font-family="Geist, sans-serif" font-size="10" font-weight="{{c.weight}}">{{c.name}}</text>
+          <text x="{{c.lx}}" y="15" text-anchor="{{c.anchor}}" fill="#5B5F66" font-family="Geist Mono, monospace" font-size="8">{{c.count}}</text>
+        </g>
+      </sc-for>
+    </svg>
+
+    <div style="position: absolute; left: 16px; right: 16px; top: 590px; box-sizing: border-box; padding: 16px; border-radius: 18px; background: #FBF9F4; border: 1px solid rgba(26,28,32,0.08); box-shadow: 0 14px 28px -16px rgba(26,28,32,0.45); display: flex; flex-direction: column; gap: 10px">
+      <div style="display: flex; align-items: baseline; justify-content: space-between">
+        <strong style="font-family: 'Gloock', serif; font-weight: 400; font-size: 22px">1 ville dévoilée sur 10</strong>
+        <span style="font-family: 'Geist Mono', monospace; font-size: 12px; font-variant-numeric: tabular-nums">6 / 118</span>
+      </div>
+      <span style="height: 4px; border-radius: 2px; background: rgba(26,28,32,0.1); overflow: hidden"><span style="display: block; width: 5%; height: 100%; background: #8C2F39"></span></span>
+      <span style="font-size: 13px; color: #5B5F66">Chaque nouvelle ville lève le brouillard sur sa région.</span>
+    </div>
+  </sc-if>
+
+  <header style="position: absolute; top: 16px; left: 16px; right: 16px; display: flex; flex-direction: column; gap: 10px">
+    <div role="tablist" aria-label="Échelle de la carte" style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); padding: 3px; border-radius: 12px; background: rgba(251,249,244,0.92); border: 1px solid rgba(26,28,32,0.08); box-shadow: 0 8px 18px -12px rgba(26,28,32,0.45)">
+      <sc-for list="{{scopes}}" as="s" hint-placeholder-count="2">
+        <a href="{{s.href}}" role="tab" aria-selected="{{s.on}}" style="height: 38px; border-radius: 9px; background: {{s.bg}}; color: {{s.fg}}; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 600; text-decoration: none">{{s.label}}</a>
+      </sc-for>
+    </div>
+    <span style="align-self: flex-start; height: 30px; padding: 0 12px; border-radius: 999px; background: rgba(251,249,244,0.92); border: 1px solid rgba(26,28,32,0.08); display: flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 500; font-variant-numeric: tabular-nums">
+      <span style="width: 8px; height: 8px; border-radius: 50%; background: #8C2F39"></span>{{reveal}}
+    </span>
+  </header>
+
+  <div style="position: absolute; left: 0; right: 0; bottom: 0; height: 116px">
+    <dc-import name="NavBar" active="carte" capture="proche" dist="1,2 km" hint-size="390px,116px"></dc-import>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"vue":{"editor":"enum","options":["paris","france"],"default":"france"},"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const vue = this.props.vue ?? 'france';
+    const isParis = vue === 'paris';
+    const M = '#1F3A5F', B = '#8C2F39', V = '#2F5D4A';
+    const got = (num, x, y, ink, r) => ({ num, x, y, ink, r, got: true, todo: false });
+    const todo = (num, x, y, sel) => ({ num, x, y, got: false, todo: true, ring: sel ? '#8C2F39' : 'rgba(26,28,32,0.25)', ringW: sel ? 3 : 1.2 });
+    const pins = [got('001', 92, 372, M, -8), got('002', 108, 248, B, 6), got('003', 238, 344, V, 4), got('004', 226, 168, M, -6), got('006', 232, 412, B, 8), got('008', 196, 246, V, -4),
+      todo('005', 200, 296, true), todo('007', 128, 392, false), todo('009', 262, 330, false), todo('010', 300, 214, false), todo('012', 64, 300, false)];
+    const fr = 'M140 12 L170 20 L205 42 L250 62 L268 84 L262 118 L245 148 L252 180 L262 214 L232 230 L205 238 L172 248 L150 262 L112 252 L72 242 L80 205 L78 178 L68 150 L40 128 L8 100 L30 86 L68 80 L72 60 L108 56 Z';
+    const city = (name, x, y, count, on, left) => ({ name, x, y, count, r: on ? 6 : 4, fill: on ? '#8C2F39' : '#FBF9F4', stroke: on ? '#8C2F39' : 'rgba(26,28,32,0.45)', weight: on ? 600 : 500, lx: left ? -9 : 9, anchor: left ? 'end' : 'start' });
+    return {
+      isParis, isFrance: !isParis,
+      reveal: isParis ? 'Paris dévoilé à 21 %' : 'France dévoilée à 5 %',
+      scopes: [['Paris', 'Carte-Paris.dc.html', isParis], ['France', 'CarteV6.dc.html', !isParis]].map(([label, href, on]) => ({ label, href, on: on ? 'true' : 'false', bg: on ? '#1A1C20' : 'transparent', fg: on ? '#FBF9F4' : '#1A1C20' })),
+      revealed: pins.filter((p) => p.got).map((p) => ({ x: p.x, y: p.y })),
+      pins, fr,
+      cities: [city('Paris', 150, 72, '6/28', true, false), city('Lille', 165, 24, '0/10', false, false), city('Strasbourg', 256, 84, '0/10', false, true), city('Nantes', 66, 132, '0/10', false, false),
+        city('Lyon', 214, 166, '0/10', false, false), city('Bordeaux', 86, 186, '0/10', false, false), city('Toulouse', 128, 232, '0/10', false, true), city('Montpellier', 182, 228, '0/10', false, false),
+        city('Marseille', 210, 232, '0/10', false, false), city('Nice', 254, 212, '0/10', false, true)]
+    };
+  }
+}
+</script>
+</body>
+</html>

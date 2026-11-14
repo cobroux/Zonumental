@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<title>Bienvenue</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Gloock&amp;family=Geist:wght@400;500;600&amp;family=Geist+Mono:wght@400;500&amp;display=swap" rel="stylesheet">
+<style>body{margin:0}</style>
+</helmet>
+<div style="position: relative; width: 390px; height: 844px; overflow: hidden; background: #F4F1EA; color: #1A1C20; font-family: 'Geist', system-ui, sans-serif; -webkit-font-smoothing: antialiased">
+  <svg aria-hidden="true" style="position: absolute; width: 0; height: 0">
+    <filter id="inkO1" x="-6%" y="-6%" width="112%" height="112%">
+      <feTurbulence type="fractalNoise" baseFrequency="1.1" numOctaves="2" seed="3" result="n"></feTurbulence>
+      <feColorMatrix in="n" type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 -3 2.15" result="holes"></feColorMatrix>
+      <feComposite in="SourceGraphic" in2="holes" operator="in" result="inked"></feComposite>
+      <feDisplacementMap in="inked" in2="n" scale="1.3" xChannelSelector="R" yChannelSelector="G"></feDisplacementMap>
+    </filter>
+    <filter id="paperO1"><feTurbulence type="fractalNoise" baseFrequency="0.85" numOctaves="3" stitchTiles="stitch"></feTurbulence><feColorMatrix values="0 0 0 0 0.42  0 0 0 0 0.36  0 0 0 0 0.27  0 0 0 0.10 0"></feColorMatrix></filter>
+  </svg>
+
+  <img src="/_blob/a9e142171156ec1a9709bfd6e10bc1eb" alt="L'Arc de Triomphe" style="position: absolute; top: 0; left: 0; width: 100%; height: 540px; object-fit: cover; object-position: 50% 45%; outline: 1px solid rgba(0,0,0,0.1); outline-offset: -1px">
+  <span style="position: absolute; top: 0; left: 0; right: 0; height: 140px; background: linear-gradient(rgba(14,15,17,0.45), rgba(14,15,17,0))"></span>
+  <span style="position: absolute; top: 24px; left: 20px; font-family: 'Geist Mono', monospace; font-size: 11px; letter-spacing: 0.16em; color: #F4F1EA">CARNET D'EXPLORATEUR</span>
+
+  <section style="position: absolute; top: 500px; left: 0; right: 0; bottom: 0; border-radius: 26px 26px 0 0; background: #F4F1EA; padding: 34px 24px 28px; display: flex; flex-direction: column; gap: 14px; box-shadow: 0 -12px 30px -14px rgba(14,15,17,0.4)">
+    <svg aria-hidden="true" style="position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none"><rect width="100%" height="100%" filter="url(#paperO1)"></rect></svg>
+    <h1 style="position: relative; margin: 0; font-family: 'Gloock', serif; font-weight: 400; font-size: 46px; line-height: 0.9; letter-spacing: -0.02em">Zonumental</h1>
+    <p style="position: relative; margin: 0; font-size: 17px; line-height: 1.45; color: #2C2F34; text-wrap: pretty; max-width: 300px">Va voir les monuments de France. Chaque visite imprime un tampon dans ton carnet.</p>
+    <div style="position: relative; margin-top: auto; display: flex; flex-direction: column; gap: 6px">
+      <a href="O6-Compte.dc.html" style="height: 54px; border-radius: 14px; background: #1A1C20; color: #FBF9F4; text-decoration: none; display: flex; align-items: center; justify-content: center; font-weight: 600; font-size: 16px">Commencer</a>
+      <a href="#" style="height: 44px; display: flex; align-items: center; justify-content: center; font-size: 15px; font-weight: 500; color: #1F3A5F; text-decoration: none">J'ai déjà un carnet</a>
+    </div>
+  </section>
+
+  <svg viewBox="0 0 140 100" width="170" height="121" style="position: absolute; top: 418px; right: 18px; color: #8C2F39; transform: rotate(-9deg)" role="img" aria-label="Tampon : Bienvenue">
+    <g filter="url(#inkO1)" fill="none" stroke="currentColor">
+      <ellipse cx="70" cy="50" rx="66" ry="46" stroke-width="3"></ellipse>
+      <ellipse cx="70" cy="50" rx="59" ry="39" stroke-width="1"></ellipse>
+      <text x="70" y="34" text-anchor="middle" fill="currentColor" stroke="none" font-family="Geist Mono, monospace" font-size="8" letter-spacing="2">FRANCE · N°000</text>
+      <text x="70" y="59" text-anchor="middle" fill="currentColor" stroke="none" font-family="Gloock, serif" font-size="19">Bienvenue</text>
+      <text x="70" y="74" text-anchor="middle" fill="currentColor" stroke="none" font-family="Geist Mono, monospace" font-size="7.5">118 MONUMENTS À TAMPONNER</text>
+    </g>
+  </svg>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  renderVals() { return {}; }
+}
+</script>
+</body>
+</html>
