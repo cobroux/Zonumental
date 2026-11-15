@@ -46,6 +46,10 @@ describe('Localisation', () => {
     expect(racine().querySelector('h1')?.textContent).toContain('sur place');
     expect(racine().textContent).toContain('Étape 2 / 2');
     expect(racine().querySelectorAll('.engagements li').length).toBe(3);
+    const forts = [...racine().querySelectorAll('.engagements strong')].map((e) => e.textContent);
+    expect(forts).toEqual(['Seulement appli ouverte.', 'Jamais enregistrée.', 'Réversible.']);
+    expect(racine().querySelector('svg.schema')?.getAttribute('viewBox')).toBe('0 0 342 260');
+    expect(racine().querySelector('svg.schema .tampon')?.classList).toContain('zn-encre');
     expect(racine().querySelector('svg[role="img"] title')?.textContent).toContain('150');
     expect(demande).not.toHaveBeenCalled();
   });
