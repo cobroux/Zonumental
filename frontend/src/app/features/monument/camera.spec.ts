@@ -24,7 +24,11 @@ describe('Camera', () => {
   const relire = vi.fn();
   let getUserMedia: ReturnType<typeof vi.fn>;
 
-  async function rendre(media: 'ok' | 'refus' = 'ok') {
+  async function rendre(media: 'ok' | 'refus' = 'ok', permission: PermissionState = 'granted') {
+    Object.defineProperty(navigator, 'permissions', {
+      value: { query: vi.fn(() => Promise.resolve({ state: permission })) },
+      configurable: true,
+    });
     getUserMedia = vi.fn(() =>
       media === 'ok'
         ? Promise.resolve({ getTracks: () => [{ stop: arreter }] })
@@ -47,6 +51,7 @@ describe('Camera', () => {
     const fixture = TestBed.createComponent(Camera);
     fixture.componentRef.setInput('numero', '7');
     fixture.detectChanges();
+    await vide();
     await fixture.whenStable();
     fixture.detectChanges();
     const el = fixture.nativeElement as HTMLElement;
@@ -75,6 +80,54 @@ describe('Camera', () => {
     });
     expect(el.querySelector('input[type=file]')).toBeNull();
     expect(declencher(el).textContent).toContain('Prendre la photo');
+  });
+
+  describe('feuille « Autoriser la caméra » (O3)', () => {
+    const feuille = (el: HTMLElement) => el.querySelector('app-autoriser-camera dialog');
+    const bouton = (el: HTMLElement, nom: string) =>
+      [...el.querySelectorAll('button')].find((b) => b.textContent?.trim() === nom)!;
+
+    it('permission déjà accordée : pas de feuille, caméra ouverte', async () => {
+      const { el } = await rendre('ok', 'granted');
+      expect(feuille(el)).toBeNull();
+      expect(getUserMedia).toHaveBeenCalled();
+    });
+
+    it('sinon : feuille dialog nommée, aucune demande système avant le choix', async () => {
+      const { el } = await rendre('ok', 'prompt');
+      const d = feuille(el)!;
+      expect(d.getAttribute('aria-labelledby')).toBe('titre-camera');
+      expect(el.querySelector('#titre-camera')?.textContent).toContain(
+        'Dernière étape\u00a0: la caméra',
+      );
+      expect(el.textContent).toContain('TON PREMIER TAMPON');
+      expect(el.textContent).toContain('Photo prise en direct uniquement');
+      expect(getUserMedia).not.toHaveBeenCalled();
+    });
+
+    it('Autoriser la caméra : demande système puis capture', async () => {
+      const { fixture, el } = await rendre('ok', 'prompt');
+      bouton(el, 'Autoriser la caméra').click();
+      await vide();
+      await fixture.whenStable();
+      fixture.detectChanges();
+      expect(getUserMedia).toHaveBeenCalledTimes(1);
+      expect(feuille(el)).toBeNull();
+      expect(declencher(el)).not.toBeNull();
+    });
+
+    it('Pas maintenant (et Échap) : retour à la fiche sans demande système', async () => {
+      for (const sortie of ['bouton', 'echap']) {
+        const { fixture, el } = await rendre('ok', 'prompt');
+        const aller = vi.spyOn(TestBed.inject(Router), 'navigate').mockResolvedValue(true);
+        if (sortie === 'bouton') bouton(el, 'Pas maintenant').click();
+        else feuille(el)!.dispatchEvent(new Event('close'));
+        fixture.detectChanges();
+        expect(aller).toHaveBeenCalledWith(['/monument', '7']);
+        expect(getUserMedia).not.toHaveBeenCalled();
+        TestBed.resetTestingModule();
+      }
+    });
   });
 
   it('transmet les succès gagnés à la fiche', async () => {
