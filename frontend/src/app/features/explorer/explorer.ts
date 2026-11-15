@@ -6,6 +6,8 @@ import { MonumentResume } from '../../core/api/models/monument-resume';
 import { Position } from '../../core/position/position';
 import { distanceMetres, formaterDistance } from '../../core/position/proximite';
 import { ZnMessage } from '../../shared/ui/message';
+import { ZnTampon } from '../../shared/ui/tampon';
+import { ENCRE_PAR_RARETE } from '../../shared/ui/tampon-monument';
 import { niveau } from '../../shared/ui/niveau';
 import { SILHOUETTE } from '../../shared/ui/silhouettes';
 
@@ -17,7 +19,7 @@ const MARCHE_M_PAR_MIN = 5000 / 60; // 5 km/h
 /** Écran d'arrivée : guide tant qu'aucun tampon, sinon le dernier tampon (RG-045). */
 @Component({
   selector: 'app-explorer',
-  imports: [RouterLink, ZnMessage],
+  imports: [RouterLink, ZnMessage, ZnTampon],
   template: `
     <header>
       <div class="titre">
@@ -116,9 +118,20 @@ const MARCHE_M_PAR_MIN = 5000 / 60; // 5 km/h
       </zn-message>
     } @else if (monuments.hasValue()) {
       @if (dernier(); as d) {
-        <a data-dernier [routerLink]="['/monument', d.numero]">
-          Dernier tampon : N° {{ d.numero }} · {{ d.nom }} ·
-          {{ date(d.captureeLe!) }}
+        <a data-dernier class="dernier" [routerLink]="['/monument', d.numero]">
+          <zn-tampon
+            forme="cercle"
+            [encre]="encres[d.rarete]"
+            [contenu]="vide"
+            [decoratif]="true"
+          />
+          <span class="texte">
+            <span class="label">Dernier tampon · </span>
+            <strong>{{ d.nom }}, {{ quand(d.captureeLe!) }}</strong>
+          </span>
+          <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+            <path d="M9 5l7 7-7 7" />
+          </svg>
         </a>
       } @else {
         <section class="mode-emploi" aria-labelledby="mode-emploi">
@@ -199,7 +212,15 @@ export class Explorer {
       .filter((x) => x.captureeLe)
       .reduce<MonumentResume | null>((a, x) => (!a || x.captureeLe! > a.captureeLe! ? x : a), null),
   );
-  /** ISO -> jj/mm/aaaa, heure de Paris (RG-043). */
-  protected readonly date = (iso: string) =>
-    new Date(iso).toLocaleDateString('fr-FR', { timeZone: 'Europe/Paris' });
+  protected readonly encres = ENCRE_PAR_RARETE;
+  protected readonly vide = { haut: '', centre: '', bas: '' };
+  /** « aujourd'hui », « hier », sinon jj/mm/aaaa ; jours civils à l'heure de Paris (RG-043). */
+  protected readonly quand = (iso: string) => {
+    const jour = (d: Date) =>
+      d.toLocaleDateString('fr-FR', { timeZone: 'Europe/Paris' }).split('/').reverse().join('');
+    const t = new Date(iso);
+    if (jour(t) === jour(new Date())) return 'aujourd’hui';
+    if (jour(t) === jour(new Date(Date.now() - 86_400_000))) return 'hier';
+    return t.toLocaleDateString('fr-FR', { timeZone: 'Europe/Paris' });
+  };
 }

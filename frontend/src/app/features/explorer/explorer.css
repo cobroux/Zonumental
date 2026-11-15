@@ -242,6 +242,53 @@ article[inert] img {
   outline-offset: 2px;
 }
 
+/* Dernier tampon (AccueilV4) : 56 px, tampon à encre incliné de 8 degrés */
+.dernier {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-block-size: 56px;
+  padding: 0 14px;
+  border-radius: var(--zn-rayon-16);
+  background: var(--zn-papier-clair);
+  border: 1px solid var(--zn-voile-10);
+  color: var(--zn-encre);
+  text-decoration: none;
+  transition: transform var(--zn-duree-appui) var(--zn-courbe);
+}
+.dernier:active {
+  transform: scale(0.98);
+}
+.dernier:focus-visible {
+  outline: 3px solid var(--zn-focus);
+  outline-offset: 2px;
+}
+.dernier zn-tampon {
+  flex: none;
+  inline-size: 34px;
+  transform: rotate(-8deg);
+}
+.texte {
+  flex: 1;
+  min-inline-size: 0;
+  font-size: 0.875rem;
+  overflow-wrap: anywhere;
+}
+.label {
+  color: var(--zn-gris-libelle);
+}
+.dernier strong {
+  font-weight: 600;
+}
+.dernier > svg {
+  flex: none;
+  inline-size: 16px;
+  block-size: 16px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+}
+
 .mode-emploi {
   display: flex;
   flex-direction: column;
@@ -287,10 +334,12 @@ article[inert] img {
     transition: none;
   }
   .niveau:active,
-  .aller:active {
+  .aller:active,
+  .dernier:active {
     transform: none;
   }
-  .aller {
+  .aller,
+  .dernier {
     transition: none;
   }
   .heros {

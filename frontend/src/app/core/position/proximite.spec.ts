@@ -46,28 +46,57 @@ describe('etatBouton', () => {
   it.each(['attente', 'refus', 'indisponible'] as const)(
     '%s -> loin (position inconnue)',
     (statut) => {
-      expect(etatBouton([], { statut })).toEqual({ etat: 'loin', texte: '> 2 km' });
+      expect(etatBouton([], { statut })).toEqual({
+        etat: 'loin',
+        texte: '> 2 km',
+        href: '/tamponner',
+      });
     },
   );
 
   it('aucun monument proche -> loin', () => {
-    expect(etatBouton([], ok())).toEqual({ etat: 'loin', texte: '> 2 km' });
+    expect(etatBouton([], ok())).toEqual({ etat: 'loin', texte: '> 2 km', href: '/tamponner' });
+  });
+
+  it('loin : ouvre la fiche du plus proche non capturé du catalogue entier', () => {
+    const tous = proches(
+      [monument(1, 48.5, '2026-01-01T00:00:00Z'), monument(2, 49), monument(3, 48.9)],
+      ici(),
+      Infinity,
+    );
+    expect(etatBouton([], ok(), tous)).toEqual({
+      etat: 'loin',
+      texte: '> 2 km',
+      href: '/monument/3',
+    });
   });
 
   it('tous capturés -> deja', () => {
     const p = proches([monument(1, 48.0005, '2026-01-01T00:00:00Z')], ici());
-    expect(etatBouton(p, ok())).toEqual({ etat: 'deja', texte: 'Déjà tamponné' });
+    expect(etatBouton(p, ok())).toEqual({
+      etat: 'deja',
+      texte: 'Déjà tamponné',
+      href: '/tamponner',
+    });
   });
 
   it('hors rayon -> proche avec distance du plus proche non capturé', () => {
     const p = proches([monument(1, 48.0001, '2026-01-01T00:00:00Z'), monument(2, 48.004)], ici());
-    expect(etatBouton(p, ok())).toEqual({ etat: 'proche', texte: '440 m' });
+    expect(etatBouton(p, ok())).toEqual({ etat: 'proche', texte: '440 m', href: '/monument/2' });
   });
 
   it('dans le rayon, précision 100 m -> zone ; 101 m ou absente -> imprecis', () => {
     const p = proches([monument(1, 48.0003)], ici()); // 33 m <= 50
-    expect(etatBouton(p, ok(100))).toEqual({ etat: 'zone', texte: 'Tamponner' });
-    expect(etatBouton(p, ok(101))).toEqual({ etat: 'imprecis', texte: 'Signal faible' });
+    expect(etatBouton(p, ok(100))).toEqual({
+      etat: 'zone',
+      texte: 'Tamponner',
+      href: '/monument/1/capturer',
+    });
+    expect(etatBouton(p, ok(101))).toEqual({
+      etat: 'imprecis',
+      texte: 'Signal faible',
+      href: '/tamponner',
+    });
     expect(etatBouton(p, { statut: 'ok', coords: { latitude: 48, longitude: 2 } }).etat).toBe(
       'imprecis',
     );

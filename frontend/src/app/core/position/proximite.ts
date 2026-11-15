@@ -54,32 +54,41 @@ export function formaterDistance(m: number): string {
   return arrondi < 1000 ? `${arrondi} m` : `${(m / 1000).toFixed(1).replace('.', ',')} km`;
 }
 
-export function proches(monuments: MonumentResume[], coords: Coords): Proche[] {
+export function proches(
+  monuments: MonumentResume[],
+  coords: Coords,
+  rayon = RAYON_LISTE_METRES,
+): Proche[] {
   return monuments
     .map((m) => ({
       ...m,
       distance: distanceMetres(coords, m.position),
       capture: m.captureeLe !== null,
     }))
-    .filter((m) => m.distance < RAYON_LISTE_METRES)
+    .filter((m) => m.distance < rayon)
     .sort((a, b) => a.distance - b.distance);
 }
 
+/** `href` : où mène le bouton central (fiche du plus proche, caméra dans la zone, sinon l'écran Tamponner). */
 export function etatBouton(
   liste: Proche[],
   position: EtatPosition,
-): { etat: EtatBouton; texte: string } {
+  tous: Proche[] = liste,
+): { etat: EtatBouton; texte: string; href: string } {
+  const fiche = (m: MonumentResume) => `/monument/${m.numero}`;
   // position inconnue : même état que « loin » (maquette NavBar, fidélité §6.3)
-  if (position.statut !== 'ok' || !position.coords || !liste.length)
-    return { etat: 'loin', texte: '> 2 km' };
+  if (position.statut !== 'ok' || !position.coords || !liste.length) {
+    const plusProche = position.statut === 'ok' ? tous.find((m) => !m.capture) : undefined;
+    return { etat: 'loin', texte: '> 2 km', href: plusProche ? fiche(plusProche) : '/tamponner' };
+  }
   const cible = liste.find((m) => !m.capture);
-  if (!cible) return { etat: 'deja', texte: 'Déjà tamponné' };
+  if (!cible) return { etat: 'deja', texte: 'Déjà tamponné', href: '/tamponner' };
   if (cible.distance > cible.rayonCaptureMetres)
-    return { etat: 'proche', texte: formaterDistance(cible.distance) };
+    return { etat: 'proche', texte: formaterDistance(cible.distance), href: fiche(cible) };
   const precision = position.coords.precision;
   return precision === undefined || precision > PRECISION_MAX_METRES
-    ? { etat: 'imprecis', texte: 'Signal faible' }
-    : { etat: 'zone', texte: 'Tamponner' };
+    ? { etat: 'imprecis', texte: 'Signal faible', href: '/tamponner' }
+    : { etat: 'zone', texte: 'Tamponner', href: `${fiche(cible)}/capturer` };
 }
 
 /** Catalogue + position -> monuments proches et état du bouton (ADR 0020). Calcul sur l'appareil (RG-036). */
@@ -91,11 +100,13 @@ export class Proximite {
     this.session.connecte() ? listerMonuments.PATH : undefined,
   );
   readonly erreur = computed(() => this.catalogue.error() !== undefined);
-  readonly proches = computed(() => {
+  /** Tout le catalogue trié par distance : cible du bouton quand rien n'est à moins de 2 km. */
+  private readonly tous = computed(() => {
     const { coords } = this.position.etat();
-    return coords ? proches(this.catalogue.value() ?? [], coords) : [];
+    return coords ? proches(this.catalogue.value() ?? [], coords, Infinity) : [];
   });
-  readonly bouton = computed(() => etatBouton(this.proches(), this.position.etat()));
+  readonly proches = computed(() => this.tous().filter((m) => m.distance < RAYON_LISTE_METRES));
+  readonly bouton = computed(() => etatBouton(this.proches(), this.position.etat(), this.tous()));
 
   recharger(): void {
     this.catalogue.reload();

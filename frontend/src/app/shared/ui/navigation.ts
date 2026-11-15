@@ -54,9 +54,7 @@ const ENTREES = [
             } @else {
               <a
                 class="tamponner"
-                [routerLink]="e.href"
-                routerLinkActive="actif"
-                ariaCurrentWhenActive="page"
+                [routerLink]="bouton().href"
                 [attr.data-etat]="bouton().etat"
                 [attr.aria-label]="nom()"
               >
@@ -80,8 +78,8 @@ const ENTREES = [
 })
 export class ZnNavigation {
   protected readonly entrees = ENTREES;
-  /** État et texte du bouton central, calculés par l'appelant (la barre ne connaît pas la position). */
-  readonly bouton = input.required<{ etat: string; texte: string }>();
+  /** État et texte du bouton central, et destination, calculés par l'appelant (la barre ne connaît pas la position). */
+  readonly bouton = input.required<{ etat: string; texte: string; href: string }>();
   /** Nom accessible : contient toujours le texte visible (WCAG 2.5.3), spec §6.3. */
   protected readonly nom = computed(() => {
     const { etat, texte } = this.bouton();
