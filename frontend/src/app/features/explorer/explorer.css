@@ -73,6 +73,177 @@ h1 {
   font: 400 var(--zn-fs-19) / 1 var(--zn-police-titre);
 }
 
+/* Carte héros (fidelite-11) : piste à accroche, la carte suivante dépasse de 24 px. */
+.heros {
+  display: flex;
+  gap: 10px;
+  margin: 0 -16px;
+  padding: 0 16px 14px;
+  list-style: none;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  scroll-padding-inline: 16px;
+  scrollbar-width: none;
+  overscroll-behavior-x: contain;
+  scroll-behavior: smooth;
+}
+.heros::-webkit-scrollbar {
+  display: none;
+}
+.carte {
+  position: relative;
+  flex: none;
+  inline-size: min(340px, calc(100% - 24px));
+  scroll-snap-align: start;
+}
+article {
+  position: relative;
+  isolation: isolate;
+  block-size: 440px;
+  border-radius: var(--zn-rayon-22);
+  overflow: hidden;
+  background: var(--zn-papier-sombre);
+  color: var(--zn-papier-clair);
+  box-shadow: 0 22px 36px -22px color-mix(in srgb, var(--zn-nuit) 70%, transparent);
+}
+.j0 article {
+  block-size: 470px;
+}
+article img,
+.silhouette {
+  position: absolute;
+  inset: 0;
+  inline-size: 100%;
+  block-size: 100%;
+  z-index: -2;
+}
+article img {
+  object-fit: cover;
+}
+.silhouette {
+  box-sizing: border-box;
+  padding: 25% 20%;
+  fill: var(--zn-voile-22);
+}
+article::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: linear-gradient(
+    color-mix(in srgb, var(--zn-nuit) 40%, transparent) 0%,
+    transparent 28%,
+    transparent 48%,
+    color-mix(in srgb, var(--zn-nuit) 90%, transparent) 100%
+  );
+}
+.haut {
+  position: absolute;
+  inset: 14px 14px auto;
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+}
+.chip,
+.rarete {
+  display: flex;
+  align-items: center;
+  block-size: 30px;
+  padding-inline: 11px;
+  border-radius: var(--zn-rayon-pastille);
+  white-space: nowrap;
+}
+.chip {
+  font: 400 var(--zn-fs-11) / 1 var(--zn-police-mono);
+  letter-spacing: 0.12em;
+  background: color-mix(in srgb, var(--zn-nuit) 45%, transparent);
+  border: 1px solid color-mix(in srgb, var(--zn-papier-clair) 25%, transparent);
+}
+.rarete {
+  font: 600 var(--zn-fs-12) / 1 var(--zn-police-ui);
+  background: color-mix(in srgb, var(--zn-papier-clair) 92%, transparent);
+  color: var(--zn-encre);
+}
+[data-rarete='RARE'] .rarete {
+  background: var(--zn-marine);
+  color: var(--zn-papier-clair);
+}
+[data-rarete='LEGENDAIRE'] .rarete {
+  background: var(--zn-ocre);
+  color: var(--zn-encre);
+}
+.bas {
+  position: absolute;
+  inset: auto 20px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.kicker {
+  font: 400 var(--zn-fs-11) / 1 var(--zn-police-mono);
+  letter-spacing: var(--zn-ls-etiquette);
+  color: var(--zn-papier);
+}
+h2 {
+  margin: 0;
+  font: 400 2.5rem / 0.92 var(--zn-police-titre);
+  letter-spacing: -0.015em;
+  overflow-wrap: anywhere;
+}
+.meta {
+  font-size: 0.875rem;
+  color: var(--zn-papier);
+}
+.aller {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-block-size: 52px;
+  margin-block-start: 8px;
+  border-radius: var(--zn-rayon-14);
+  background: var(--zn-papier-clair);
+  color: var(--zn-encre);
+  font-weight: 600;
+  font-size: 1rem;
+  text-decoration: none;
+  transition: transform var(--zn-duree-appui) var(--zn-courbe);
+}
+.aller:active {
+  transform: scale(0.97);
+}
+.aller:focus-visible {
+  outline: 3px solid var(--zn-papier-clair);
+  outline-offset: 3px;
+}
+.aller svg {
+  inline-size: 18px;
+  block-size: 18px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+}
+/* aperçu de la carte suivante : inerte et voilé, toute sa surface est un bouton */
+article[inert] .haut,
+article[inert] .bas {
+  visibility: hidden;
+}
+article[inert] img {
+  filter: saturate(0.6);
+}
+.apercu {
+  position: absolute;
+  inset: 0;
+  border: 0;
+  border-radius: var(--zn-rayon-22);
+  background: transparent;
+  cursor: pointer;
+}
+.apercu:focus-visible {
+  outline: 3px solid var(--zn-focus);
+  outline-offset: 2px;
+}
+
 .mode-emploi {
   display: flex;
   flex-direction: column;
@@ -117,7 +288,14 @@ h1 {
   .niveau {
     transition: none;
   }
-  .niveau:active {
+  .niveau:active,
+  .aller:active {
     transform: none;
+  }
+  .aller {
+    transition: none;
+  }
+  .heros {
+    scroll-behavior: auto;
   }
 }
