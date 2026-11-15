@@ -2,8 +2,7 @@ import type { MesSucces } from '../../../core/api/models/mes-succes';
 import { styleMedaille } from '../../../shared/ui/medaille-catalogue';
 import type { Encre } from '../../../shared/ui/tampon';
 
-/** Niveau = 1 + ⌊tampons ÷ 3⌋ (valeur par défaut retenue, spec fidélité §7.3). */
-export const niveau = (tampons: number) => 1 + Math.floor(tampons / 3);
+export { niveau } from '../../../shared/ui/niveau';
 
 /** Nombre de succès configurés (RG-R2-01) : l'API ne renvoie ni les masqués ni le total. */
 export const TOTAL_SUCCES = 11;

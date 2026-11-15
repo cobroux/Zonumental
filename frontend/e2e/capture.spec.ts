@@ -9,7 +9,7 @@ test.describe('à 100 m de A', () => {
   }) => {
     const api = await mockApi(page);
     await page.goto('/explorer');
-    await expect(page.getByRole('heading', { name: 'Explorer' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Bienvenue' })).toBeVisible();
 
     await page.getByRole('link', { name: /^Tamponner/ }).click();
     await page.getByRole('radio', { name: /Tour A/ }).check();
