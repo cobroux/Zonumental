@@ -31,10 +31,12 @@ describe('Explorer', () => {
     const el = await rendre([m(1, 'A', null)]);
     const etapes = [...el.querySelectorAll('ol li')].map((l) => l.textContent?.trim());
     expect(etapes).toEqual([
-      'Rapproche-toi d’un monument',
-      'Prends-le en photo',
+      'Va jusqu’au monument',
+      'Photographie-le à moins de 150 m',
       'Reçois ton tampon',
     ]);
+    expect(el.querySelector('h1')?.textContent).toBe('Bienvenue');
+    expect(el.querySelector('.date')?.textContent).toMatch(/ · PARIS$/);
     expect(el.querySelector('[data-dernier]')).toBeNull();
   });
 
@@ -45,11 +47,36 @@ describe('Explorer', () => {
       m(9, 'C', null),
     ]);
     expect(el.querySelector('ol')).toBeNull();
+    expect(el.querySelector('h1')?.textContent).toBe('Bonjour, explorateur');
     const a = el.querySelector('a[data-dernier]') as HTMLAnchorElement;
     expect(a.getAttribute('href')).toBe('/monument/7');
     expect(a.textContent).toContain('N° 7');
     expect(a.textContent).toContain('Tour Eiffel');
     expect(a.textContent).toContain('05/11/2026');
+  });
+
+  it('niveau 1 + ⌊tampons ÷ 3⌋ : anneau, libellé et lien vers le profil', async () => {
+    const t = '2026-11-01T10:00:00Z';
+    const el = await rendre([
+      m(1, 'A', t),
+      m(2, 'B', t),
+      m(3, 'C', t),
+      m(4, 'D', t),
+      m(5, 'E', null),
+    ]);
+    const a = el.querySelector('a.niveau') as HTMLAnchorElement;
+    expect(a.getAttribute('href')).toBe('/profil');
+    expect(a.getAttribute('aria-label')).toBe('Niveau 2, ouvrir le profil');
+    expect(a.textContent?.trim()).toBe('2');
+    expect(a.querySelector('.progres')?.getAttribute('stroke-dasharray')).toMatch(/^33\.3+ 100$/);
+  });
+
+  it('jour 0 : niveau 1, piste seule sans arc', async () => {
+    const el = await rendre([m(1, 'A', null)]);
+    expect(el.querySelector('a.niveau')?.getAttribute('aria-label')).toBe(
+      'Niveau 1, ouvrir le profil',
+    );
+    expect(el.querySelector('.progres')).toBeNull();
   });
 
   it('hors ligne : Pas de connexion. Réessayer', async () => {

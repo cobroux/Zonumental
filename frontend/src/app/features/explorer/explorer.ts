@@ -1,20 +1,43 @@
 import { httpResource } from '@angular/common/http';
 import { ChangeDetectionStrategy, Component, computed } from '@angular/core';
 import { RouterLink } from '@angular/router';
+import { Profil } from '../../core/api/models/profil';
 import { MonumentResume } from '../../core/api/models/monument-resume';
 import { ZnMessage } from '../../shared/ui/message';
+import { niveau } from '../../shared/ui/niveau';
 
 /** Écran d'arrivée : guide tant qu'aucun tampon, sinon le dernier tampon (RG-045). */
 @Component({
   selector: 'app-explorer',
   imports: [RouterLink, ZnMessage],
   template: `
-    <a class="profil" routerLink="/profil" aria-label="Mon profil">
-      <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-        <path d="M12 4a3.5 3.5 0 1 1 0 7a3.5 3.5 0 1 1 0-7zM5 20c0-3.9 3.1-6 7-6s7 2.1 7 6" />
-      </svg>
-    </a>
-    <h1>Explorer</h1>
+    <header>
+      <div class="titre">
+        <span class="date">{{ aujourdhui }}</span>
+        <h1>{{ salut() }}</h1>
+      </div>
+      <a
+        class="niveau"
+        routerLink="/profil"
+        [attr.aria-label]="'Niveau ' + niveau() + ', ouvrir le profil'"
+      >
+        <svg viewBox="0 0 52 52" aria-hidden="true" focusable="false">
+          <circle class="piste" cx="26" cy="26" r="23" />
+          @if (anneau()) {
+            <circle
+              class="progres"
+              cx="26"
+              cy="26"
+              r="23"
+              pathLength="100"
+              [attr.stroke-dasharray]="anneau() + ' 100'"
+              transform="rotate(-90 26 26)"
+            />
+          }
+        </svg>
+        <span class="chiffre" aria-hidden="true">{{ niveau() }}</span>
+      </a>
+    </header>
     @if (monuments.error()) {
       <zn-message type="erreur">
         Pas de connexion.
@@ -27,19 +50,50 @@ import { ZnMessage } from '../../shared/ui/message';
           {{ date(d.captureeLe!) }}
         </a>
       } @else {
-        <ol>
-          <li>Rapproche-toi d’un monument</li>
-          <li>Prends-le en photo</li>
-          <li>Reçois ton tampon</li>
-        </ol>
+        <section class="mode-emploi" aria-labelledby="mode-emploi">
+          <h2 id="mode-emploi">Comment ça marche</h2>
+          <ol>
+            @for (e of etapes; track e) {
+              <li>{{ e }}</li>
+            }
+          </ol>
+        </section>
       }
     }
   `,
-  styleUrl: '../coquille.css',
+  styleUrl: './explorer.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class Explorer {
   protected readonly monuments = httpResource<MonumentResume[]>(() => '/api/catalogue/monuments');
+  private readonly compte = httpResource<Profil>(() => '/api/compte/moi');
+  private readonly tampons = computed(
+    () =>
+      (this.monuments.hasValue() ? this.monuments.value() : []).filter((x) => x.captureeLe).length,
+  );
+  protected readonly jour0 = computed(() => this.monuments.hasValue() && this.tampons() === 0);
+  protected readonly niveau = computed(() => niveau(this.tampons()));
+  /** Part du niveau en cours (0, 1/3, 2/3) sur 100 ; 0 = piste seule (pas de point en Safari). */
+  protected readonly anneau = computed(() => ((this.tampons() % 3) / 3) * 100);
+  protected readonly salut = computed(() =>
+    this.jour0()
+      ? 'Bienvenue'
+      : `Bonjour, ${this.compte.hasValue() ? this.compte.value().pseudo : 'explorateur'}`,
+  );
+  protected readonly aujourdhui =
+    new Date()
+      .toLocaleDateString('fr-FR', {
+        timeZone: 'Europe/Paris',
+        weekday: 'long',
+        day: 'numeric',
+        month: 'long',
+      })
+      .toLocaleUpperCase('fr-FR') + ' · PARIS';
+  protected readonly etapes = [
+    'Va jusqu’au monument',
+    'Photographie-le à moins de 150 m',
+    'Reçois ton tampon',
+  ];
   protected readonly dernier = computed(() =>
     (this.monuments.hasValue() ? this.monuments.value() : [])
       .filter((x) => x.captureeLe)
