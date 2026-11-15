@@ -70,9 +70,19 @@ describe('Explorer', () => {
     expect(el.querySelector('h1')?.textContent).toBe('Bonjour, explorateur');
     const a = el.querySelector('a[data-dernier]') as HTMLAnchorElement;
     expect(a.getAttribute('href')).toBe('/monument/7');
-    expect(a.textContent).toContain('N° 7');
-    expect(a.textContent).toContain('Tour Eiffel');
-    expect(a.textContent).toContain('05/11/2026');
+    expect(a.textContent).toContain('Dernier tampon');
+    expect(a.textContent).toContain('Tour Eiffel, 05/11/2026');
+    expect(a.querySelector('zn-tampon')).not.toBeNull(); // tampon à encre, décoratif
+    expect(a.querySelector('svg[aria-hidden="true"]')).not.toBeNull();
+  });
+
+  it('« hier » et « aujourd’hui » pour les tampons récents', async () => {
+    const hier = new Date(Date.now() - 86_400_000).toISOString();
+    const el = await rendre([m(7, 'Tour Eiffel', hier)]);
+    expect(el.querySelector('a[data-dernier]')?.textContent).toMatch(/Tour Eiffel, hier/);
+    TestBed.resetTestingModule();
+    const el2 = await rendre([m(7, 'Tour Eiffel', new Date().toISOString())]);
+    expect(el2.querySelector('a[data-dernier]')?.textContent).toMatch(/Tour Eiffel, aujourd’hui/);
   });
 
   it('niveau 1 + ⌊tampons ÷ 3⌋ : anneau, libellé et lien vers le profil', async () => {
