@@ -38,30 +38,19 @@ const bouton = (el: HTMLElement, texte: string) =>
   [...el.querySelectorAll('button')].find((b) => b.textContent?.includes(texte));
 
 describe('Tamponner', () => {
-  it('liste les monuments proches avec leur distance, seul monument non capturé présélectionné', () => {
-    const { el } = rendre(ok(), [proche(1, 30, true), proche(2, 420), proche(3, 1234, true)]);
+  it('plus de liste radio : un monument proche non capturé renvoie vers sa fiche', () => {
+    const { el } = rendre(ok(), [proche(1, 30, true), proche(2, 420), proche(3, 900)]);
     expect(el.querySelector('h1')?.textContent).toBe('Tamponner');
-    const radios = [...el.querySelectorAll<HTMLInputElement>('input[type=radio]')];
-    expect(radios.map((r) => r.checked)).toEqual([false, true, false]);
-    expect(radios[0].disabled).toBe(true); // déjà tamponné
-    const texte = el.querySelector('fieldset')?.textContent;
-    expect(texte).toContain('Monument 2');
-    expect(texte).toContain('420 m');
-    expect(texte).toContain('Déjà tamponné');
+    expect(el.querySelector('input, fieldset')).toBeNull();
+    const a = el.querySelector('a[href^="/monument"]') as HTMLAnchorElement;
+    expect(a.getAttribute('href')).toBe('/monument/2');
+    expect(a.textContent).toContain('Monument 2');
   });
 
-  it('plusieurs monuments non capturés proches : aucune présélection (R1-51)', () => {
-    const { el } = rendre(ok(), [proche(2, 420), proche(3, 900)]);
-    const radios = [...el.querySelectorAll<HTMLInputElement>('input[type=radio]')];
-    expect(radios.map((r) => r.checked)).toEqual([false, false]);
-  });
-
-  it('choisir un autre monument change la sélection', () => {
-    const { el, fixture } = rendre(ok(), [proche(2, 420), proche(3, 900)]);
-    const radios = [...el.querySelectorAll<HTMLInputElement>('input[type=radio]')];
-    radios[1].click();
-    fixture.detectChanges();
-    expect(radios.map((r) => r.checked)).toEqual([false, true]);
+  it('tout est déjà tamponné : message et lien vers le carnet', () => {
+    const { el } = rendre(ok(), [proche(1, 30, true)]);
+    expect(el.textContent).toContain('Déjà tamponné ici');
+    expect(el.querySelector('a')?.getAttribute('href')).toBe('/carnet');
   });
 
   it('liste vide : « Rien à tamponner près de toi »', () => {
@@ -91,7 +80,7 @@ describe('Tamponner', () => {
     expect(recharger).toHaveBeenCalledOnce();
   });
 
-  it('signal faible (> 100 m) : message, la liste reste affichée', () => {
+  it('signal faible (> 100 m) : message, le lien vers la fiche reste proposé', () => {
     const { el } = rendre(ok(101), [proche(2, 420)]);
     expect(el.textContent).toContain('Signal trop faible, réessaie à découvert');
     expect(el.textContent).toContain('420 m');
@@ -99,18 +88,5 @@ describe('Tamponner', () => {
 
   it('bonne précision : pas de message de signal', () => {
     expect(rendre(ok(100), [proche(2, 420)]).el.textContent).not.toContain('Signal trop faible');
-  });
-
-  it('lien vers la fiche pour le non capturé seulement', () => {
-    const { el } = rendre(ok(), [proche(1, 30, true), proche(2, 420)]);
-    const liens = [...el.querySelectorAll('a')].map((a) => a.getAttribute('href'));
-    expect(liens).toEqual(['/monument/2']);
-  });
-
-  it('lien « Voir la fiche » hors du label, nom accessible explicite', () => {
-    const { el } = rendre(ok(), [proche(2, 420)]);
-    const a = el.querySelector('a') as HTMLAnchorElement;
-    expect(a.closest('label')).toBeNull();
-    expect(a.getAttribute('aria-label')).toContain('Voir la fiche de');
   });
 });

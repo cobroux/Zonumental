@@ -1,8 +1,8 @@
-import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { PRECISION_MAX_METRES, Proximite, formaterDistance } from '../../core/position/proximite';
 
-/** Monuments à moins de 2 km (RG-024). La capture elle-même vient avec r1-capturer-2. */
+/** États de position, « rien à tamponner » (RG-024) ; le bouton central mène directement à la fiche ou à la caméra. */
 @Component({
   selector: 'app-tamponner',
   imports: [RouterLink],
@@ -35,33 +35,13 @@ import { PRECISION_MAX_METRES, Proximite, formaterDistance } from '../../core/po
           @if (!proches().length) {
             <p>Rien à tamponner près de toi</p>
             <a routerLink="/carnet">Voir mon carnet</a>
+          } @else if (libre(); as m) {
+            <a [routerLink]="['/monument', m.numero]">
+              {{ m.nom }}, {{ m.ville.nom }} · {{ distance(m.distance) }}
+            </a>
           } @else {
-            <fieldset>
-              <legend>Monuments à moins de 2 km</legend>
-              @for (m of proches(); track m.numero) {
-                <div>
-                  <label>
-                    <input
-                      type="radio"
-                      name="monument"
-                      [value]="m.numero"
-                      [checked]="m.numero === choix()"
-                      [disabled]="m.capture"
-                      (change)="choisi.set(m.numero)"
-                    />
-                    <span>{{ m.nom }}, {{ m.ville.nom }}</span>
-                    <span>{{ m.capture ? 'Déjà tamponné' : distance(m.distance) }}</span>
-                  </label>
-                  @if (!m.capture) {
-                    <a
-                      [routerLink]="['/monument', m.numero]"
-                      [attr.aria-label]="'Voir la fiche de ' + m.nom"
-                      >Voir la fiche</a
-                    >
-                  }
-                </div>
-              }
-            </fieldset>
+            <p>Déjà tamponné ici</p>
+            <a routerLink="/carnet">Voir mon carnet</a>
           }
         }
       }
@@ -76,12 +56,7 @@ export class Tamponner {
   protected readonly proches = this.proximite.proches;
   protected readonly erreur = this.proximite.erreur;
   protected readonly distance = formaterDistance;
-  protected readonly choisi = signal<number | null>(null);
-  /** Choix de l'explorateur, sinon présélection seulement s'il n'y a qu'un monument non capturé (R1-51). */
-  protected readonly choix = computed(() => {
-    const libres = this.proches().filter((m) => !m.capture);
-    return this.choisi() ?? (libres.length === 1 ? libres[0].numero : null);
-  });
+  protected readonly libre = computed(() => this.proches().find((m) => !m.capture));
   protected readonly imprecis = computed(() => {
     const p = this.etat().coords?.precision;
     return p === undefined || p > PRECISION_MAX_METRES;

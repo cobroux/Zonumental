@@ -7,7 +7,7 @@ import { ZnNavigation } from './navigation';
 @Component({ template: '' })
 class Page {}
 
-let bouton = { etat: 'loin', texte: '> 2 km' };
+let bouton = { etat: 'loin', texte: '> 2 km', href: '/tamponner' };
 
 async function rendre(url: string) {
   TestBed.configureTestingModule({
@@ -29,11 +29,11 @@ async function rendre(url: string) {
   return fixture.nativeElement as HTMLElement;
 }
 
-const bouton$ = (el: HTMLElement) => el.querySelector('a[href="/tamponner"]') as HTMLElement;
+const bouton$ = (el: HTMLElement) => el.querySelector('a.tamponner') as HTMLElement;
 
 describe('ZnNavigation', () => {
   it('une nav nommée, 5 <li> dans l’ordre Explorer, Carnet, Tamponner, Carte, Défis', async () => {
-    bouton = { etat: 'loin', texte: '> 2 km' };
+    bouton = { etat: 'loin', texte: '> 2 km', href: '/tamponner' };
     const el = await rendre('/explorer');
     expect(el.querySelector('nav')?.getAttribute('aria-label')).toBe('Navigation principale');
     const items = [...el.querySelectorAll('nav > ul > li')];
@@ -58,9 +58,8 @@ describe('ZnNavigation', () => {
     ['/carnet', 'Carnet'],
     ['/carte', 'Carte'],
     ['/defis', 'Défis'],
-    ['/tamponner', '> 2 km'],
   ])('%s : seule l’entrée active porte aria-current="page"', async (url, actif) => {
-    bouton = { etat: 'loin', texte: '> 2 km' };
+    bouton = { etat: 'loin', texte: '> 2 km', href: '/tamponner' };
     const el = await rendre(url);
     const courants = [...el.querySelectorAll('a[aria-current="page"]')];
     expect(courants.map((a) => a.textContent?.trim())).toEqual([actif]);
@@ -79,14 +78,26 @@ describe('ZnNavigation', () => {
     ['deja', 'Déjà tamponné', 'Tamponner : déjà tamponné ici'],
     ['imprecis', 'Signal faible', 'Tamponner : signal faible'],
   ])('état %s « %s » : nom accessible contenant le texte visible', async (etat, texte, nom) => {
-    bouton = { etat, texte };
+    bouton = { etat, texte, href: '/tamponner' };
     const lien = bouton$(await rendre('/explorer'));
     expect(lien.dataset['etat']).toBe(etat);
     expect(lien.textContent?.trim()).toBe(texte);
     expect(lien.getAttribute('aria-label')).toBe(nom);
     expect(nom.toLowerCase()).toContain(texte.toLowerCase()); // WCAG 2.5.3
     expect(lien.hasAttribute('disabled')).toBe(false);
-    expect(lien.getAttribute('aria-current')).toBeNull(); // hors /tamponner
+    expect(lien.getAttribute('aria-current')).toBeNull();
+  });
+
+  it.each([
+    ['proche', '/monument/5'],
+    ['zone', '/monument/5/capturer'],
+  ])('état %s : le bouton mène à %s', async (etat, href) => {
+    bouton = { etat, texte: 'x', href };
+    TestBed.configureTestingModule({ providers: [provideRouter([])] });
+    const f = TestBed.createComponent(ZnNavigation);
+    f.componentRef.setInput('bouton', bouton);
+    await f.whenStable();
+    expect(bouton$(f.nativeElement).getAttribute('href')).toBe(href);
   });
 
   it('les icônes sont décoratives', async () => {
