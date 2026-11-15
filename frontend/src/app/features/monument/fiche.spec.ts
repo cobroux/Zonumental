@@ -114,6 +114,29 @@ describe('Fiche', () => {
     expect(el.querySelectorAll('dd')[2].textContent).toBe('—');
   });
 
+  it('capturée : trio ANNÉE / HAUTEUR / MATÉRIAU, matériau « — » tant que l’API ne l’expose pas', async () => {
+    const { el } = await rendre(capture);
+    const dt = [...el.querySelectorAll('dt')].map((x) => x.textContent);
+    expect(dt).toEqual(['Année', 'Hauteur', 'Matériau']);
+    expect([...el.querySelectorAll('dd')].map((x) => x.textContent)).toEqual([
+      '1889',
+      '330 m',
+      '—',
+    ]);
+  });
+
+  it('gabarit : h1 unique, Retour nommé vers le carnet, pastilles rareté + type, licences visibles', async () => {
+    const { el } = await rendre(capture);
+    expect(el.querySelectorAll('h1').length).toBe(1);
+    expect(el.querySelector('a[aria-label="Retour au carnet"]')?.getAttribute('href')).toBe(
+      '/carnet',
+    );
+    expect(el.querySelector('.pastilles')?.textContent).toContain('Rare');
+    expect(el.querySelector('.pastilles')?.textContent).toContain('Tour');
+    expect(el.textContent).toContain('CC BY-SA 4.0');
+    expect(el.textContent).toContain('Texte : Source, CC BY-SA');
+  });
+
   it('verrouillée : ni tampon ni Remplacer la photo', async () => {
     const { el } = await rendre(verrouille);
     expect(el.querySelector('[data-tampon]')).toBeNull();
@@ -238,7 +261,7 @@ describe('Fiche', () => {
     it('identité : numéro, type, rareté en lettres, siècle, histoire cadenassée, pas de tampon', async () => {
       const { el } = await rendre({ ...verrouille, siecle: 17 });
       const t = el.textContent ?? '';
-      expect(t).toContain('N° 7');
+      expect(t).toContain('N°007 · PARIS');
       expect(t).toContain('Tour');
       expect(t).toContain('Légendaire');
       expect(t).toContain('XVIIe siècle');

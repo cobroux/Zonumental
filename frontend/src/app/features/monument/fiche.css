@@ -1,0 +1,174 @@
+/* Fiche monument : V2-Fiche (photo 360 px, feuille arrondie, kicker, stats en 3 colonnes). */
+:host {
+  display: block;
+  position: relative;
+  max-inline-size: 32rem;
+  margin-inline: auto;
+  min-block-size: 100dvh;
+}
+.photo {
+  display: block;
+  inline-size: 100%;
+  block-size: 360px;
+  object-fit: cover;
+  object-position: 50% 28%;
+  background: var(--zn-papier-sombre);
+}
+.rond {
+  position: absolute;
+  inset: 18px auto auto 16px;
+  z-index: 1;
+  display: grid;
+  place-items: center;
+  inline-size: var(--zn-cible);
+  block-size: var(--zn-cible);
+  border-radius: 50%;
+  background: var(--zn-voile-photo);
+  border: 1px solid color-mix(in srgb, var(--zn-papier-clair) 25%, transparent);
+  color: var(--zn-papier-clair);
+}
+.rond:focus-visible,
+button:focus-visible,
+a:focus-visible {
+  outline: 3px solid var(--zn-focus);
+  outline-offset: 2px;
+}
+.feuille {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  margin-block-start: -30px;
+  padding: 22px 20px calc(22px + env(safe-area-inset-bottom));
+  min-block-size: calc(100dvh - 330px);
+  border-radius: var(--zn-rayon-26) var(--zn-rayon-26) 0 0;
+  background: var(--zn-papier) url('../../shared/styles/papier.webp');
+  box-shadow: var(--zn-ombre-feuille);
+}
+.kicker {
+  font: 400 var(--zn-fs-11) / 1 var(--zn-police-mono);
+  letter-spacing: var(--zn-ls-etiquette);
+  color: var(--zn-gris-libelle);
+}
+h1 {
+  margin-block-start: -8px;
+  font-size: 42px;
+  line-height: 0.92;
+  letter-spacing: -0.02em;
+}
+.pastilles {
+  display: flex;
+  gap: 6px;
+}
+.pastilles span {
+  padding: 4px 10px;
+  border-radius: var(--zn-rayon-pastille);
+  font: 500 var(--zn-fs-12) / 1.2 var(--zn-police-ui);
+  border: 1px solid var(--zn-voile-22);
+}
+.pastilles .rarete {
+  font-weight: 600;
+  border-color: transparent;
+  background: var(--zn-papier-clair);
+}
+[data-rarete='RARE'] .rarete {
+  background: var(--zn-marine);
+  color: var(--zn-papier-clair);
+}
+[data-rarete='LEGENDAIRE'] .rarete {
+  background: var(--zn-ocre);
+  color: var(--zn-encre);
+}
+.stats {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  margin: 0;
+  border-block: 1px solid var(--zn-voile-14);
+}
+.stats div {
+  display: flex;
+  flex-direction: column-reverse;
+  gap: 2px;
+  padding: 10px 0 10px 12px;
+  border-inline-start: 1px solid var(--zn-voile-14);
+}
+.stats div:first-child {
+  padding-inline-start: 0;
+  border-inline-start: 0;
+}
+.stats dd {
+  margin: 0;
+  font: 400 var(--zn-fs-22) / 1.2 var(--zn-police-titre);
+}
+.stats dt {
+  font: 400 var(--zn-fs-10) / 1.2 var(--zn-police-mono);
+  letter-spacing: var(--zn-ls-etiquette);
+  text-transform: uppercase;
+  color: var(--zn-gris-libelle);
+}
+.histoire {
+  font-size: var(--zn-fs-15);
+  line-height: 1.5;
+  color: var(--zn-texte);
+}
+.meta,
+.visee,
+.verrou,
+.date,
+.credit {
+  font-size: var(--zn-taille-petite);
+  color: var(--zn-gris-libelle);
+}
+.date {
+  font-family: var(--zn-police-mono);
+}
+.visee {
+  display: flex;
+  gap: 6px;
+}
+.fleche {
+  display: inline-block;
+}
+.ta-photo {
+  inline-size: 100%;
+  max-block-size: 240px;
+  object-fit: cover;
+  border-radius: var(--zn-rayon-14);
+}
+.actions {
+  margin-block-start: auto;
+  display: flex;
+}
+.actions button {
+  flex: 1;
+  min-block-size: 54px;
+  border-radius: var(--zn-rayon-14);
+  font: 600 1rem / 1 var(--zn-police-ui);
+  transition: transform var(--zn-duree-appui) var(--zn-courbe);
+}
+.actions button:active:not(:disabled) {
+  transform: scale(0.97);
+}
+.principal {
+  border: 0;
+  background: var(--zn-encre);
+  color: var(--zn-papier-clair);
+}
+.principal:disabled {
+  background: var(--zn-voile-22);
+  color: var(--zn-gris-libelle);
+}
+.secondaire {
+  border: 1px solid var(--zn-voile-22);
+  background: transparent;
+  color: var(--zn-encre);
+}
+.erreur {
+  padding: var(--zn-esp-4);
+}
+@media (forced-colors: active) {
+  .rond,
+  .pastilles span {
+    border: 1px solid CanvasText;
+  }
+}

@@ -12,7 +12,7 @@ import {
   input,
   signal,
 } from '@angular/core';
-import { Router } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { Position } from '../../core/position/position';
 import {
   POINTS,
@@ -22,6 +22,7 @@ import {
   formaterDistance,
 } from '../../core/position/proximite';
 import { Monument } from '../../core/api/models/monument';
+import { ZnIcone } from '../../shared/ui/icone';
 import { Celebration } from './celebration';
 import { formaterSiecle } from './siecle';
 
@@ -59,85 +60,104 @@ const TYPES = {
 /** Fiche monument : verrouillée (indices, N&B) tant que non capturé (RG-042, RG-054). */
 @Component({
   selector: 'app-fiche',
-  imports: [Celebration],
+  imports: [Celebration, RouterLink, ZnIcone],
   template: `
     @if (monument.hasValue(); as _) {
       @let m = monument.value();
       @if (animation()) {
         <app-celebration [monument]="m" [succes]="succes()" (fermer)="fin()" />
       }
-      <h1 tabindex="-1">{{ m.nom }}</h1>
-      <p>N° {{ m.numero }} · {{ types[m.type] }} · {{ raretes[m.rarete] }}</p>
-      <p>{{ m.ville.nom }} · {{ siecle(m.siecle) }}</p>
-      @if (!m.captureeLe) {
-        @if (visee(); as v) {
-          <p>
-            {{ v.distance }}
-            <span aria-hidden="true" class="fleche" [style.transform]="'rotate(' + v.cap + 'deg)'"
-              >↑</span
-            >
-            <span>Direction : {{ v.point }}</span>
-          </p>
-        }
-        <button type="button" [disabled]="!dansLaZone()" (click)="aller()">
-          Aller le tamponner
-        </button>
-      }
+      <a class="rond retour" routerLink="/carnet" aria-label="Retour au carnet">
+        <zn-icone nom="retour" />
+      </a>
       @if (!m.image) {
-        <div data-silhouette role="img" aria-label="Image indisponible"></div>
+        <div class="photo" data-silhouette role="img" aria-label="Image indisponible"></div>
       } @else if (m.image; as i) {
-        <figure>
-          <img [src]="couleur() ?? i.url" [alt]="m.nom" />
-          <figcaption>
-            Source : <a [href]="i.sourceUrl">{{ i.auteur ?? 'Wikimedia Commons' }}</a
+        <img class="photo" [src]="couleur() ?? i.url" [alt]="m.nom" />
+      }
+      <div class="feuille" [attr.data-rarete]="m.rarete">
+        <p class="kicker">N°{{ numero3(m.numero) }} · {{ m.ville.nom.toUpperCase() }}</p>
+        <h1 tabindex="-1">{{ m.nom }}</h1>
+        <p class="pastilles">
+          <span class="rarete">{{ raretes[m.rarete] }}</span>
+          <span class="type">{{ types[m.type] }}</span>
+        </p>
+        @if (m.captureeLe) {
+          <dl class="stats">
+            <div>
+              <dt>Année</dt>
+              <dd>{{ m.stats?.annee ?? '—' }}</dd>
+            </div>
+            <div>
+              <dt>Hauteur</dt>
+              <dd>{{ hauteur(m.stats?.hauteurMetres) }}</dd>
+            </div>
+            <div>
+              <dt>Matériau</dt>
+              <!-- le contrat ne porte pas encore stats.materiau (D3) -->
+              <dd>—</dd>
+            </div>
+          </dl>
+          <h2>Histoire</h2>
+          @if (m.histoire; as h) {
+            <p class="histoire">{{ h.texte }}</p>
+            <p class="credit">Texte : <a [href]="h.sourceUrl">Source</a>, {{ h.licence }}</p>
+          } @else {
+            <p class="histoire">Histoire à venir</p>
+          }
+          <p class="date" data-tampon>Capturé le {{ date(m.captureeLe) }}</p>
+          @if (photo(); as p) {
+            <img class="ta-photo" data-photo [src]="p" alt="Ta photo" />
+          }
+        } @else {
+          <p class="meta">{{ m.ville.nom }} · {{ siecle(m.siecle) }}</p>
+          @if (visee(); as v) {
+            <p class="visee">
+              {{ v.distance }}
+              <span aria-hidden="true" class="fleche" [style.transform]="'rotate(' + v.cap + 'deg)'"
+                >↑</span
+              >
+              <span>Direction : {{ v.point }}</span>
+            </p>
+          }
+          <h2>Histoire</h2>
+          <p class="histoire">Histoire verrouillée : tamponne ce monument pour la lire.</p>
+          <p class="verrou">Stats verrouillées</p>
+        }
+        @if (m.image; as i) {
+          <p class="credit">
+            Image : <a [href]="i.sourceUrl">{{ i.auteur ?? 'Wikimedia Commons' }}</a
             >,
             {{ i.licence }}
             @if (!couleur()) {
               <span>(image modifiée : noir et blanc)</span>
             }
-          </figcaption>
-        </figure>
-      }
-      @if (m.captureeLe) {
-        <p data-tampon>Capturé le {{ date(m.captureeLe) }}</p>
-        @if (photo(); as p) {
-          <img data-photo [src]="p" alt="Ta photo" />
+          </p>
         }
-        <button type="button" (click)="aller(true)">Remplacer la photo</button>
-        @if (m.stats; as s) {
-          <dl>
-            <dt>Année</dt>
-            <dd>{{ s.annee ?? '—' }}</dd>
-            <dt>Style</dt>
-            <dd>{{ s.style ?? '—' }}</dd>
-            <dt>Hauteur</dt>
-            <dd>{{ s.hauteurMetres === null ? '—' : s.hauteurMetres + ' m' }}</dd>
-          </dl>
-        }
-        <h2>Histoire</h2>
-        @if (m.histoire; as h) {
-          <p>{{ h.texte }}</p>
-          <p><a [href]="h.sourceUrl">Source</a>, {{ h.licence }}</p>
-        } @else {
-          <p>Histoire à venir</p>
-        }
-      } @else {
-        <h2>Histoire</h2>
-        <p>Histoire verrouillée : tamponne ce monument pour la lire.</p>
-        <p>Stats verrouillées</p>
-      }
+        <div class="actions">
+          @if (m.captureeLe) {
+            <button type="button" class="secondaire" (click)="aller(true)">
+              Remplacer la photo
+            </button>
+          } @else {
+            <button type="button" class="principal" [disabled]="!dansLaZone()" (click)="aller()">
+              Aller le tamponner
+            </button>
+          }
+        </div>
+      </div>
     } @else if (monument.error()) {
       @if (horsLigne()) {
-        <p role="alert">
+        <p class="erreur" role="alert">
           Pas de connexion.
           <button type="button" (click)="monument.reload()">Réessayer</button>
         </p>
       } @else {
-        <p role="alert">Monument introuvable.</p>
+        <p class="erreur" role="alert">Monument introuvable.</p>
       }
     }
   `,
-  styleUrl: '../coquille.css',
+  styleUrl: './fiche.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class Fiche {
@@ -165,6 +185,8 @@ export class Fiche {
   private readonly injector = inject(Injector);
   private readonly hote = inject<ElementRef<HTMLElement>>(ElementRef).nativeElement;
   protected readonly siecle = formaterSiecle;
+  protected readonly hauteur = (h?: number | null) => (h == null ? '—' : `${h} m`);
+  protected readonly numero3 = (n: number) => String(n).padStart(3, '0');
   protected readonly date = formaterDate;
   protected readonly raretes = RARETES;
   protected readonly types = TYPES;
