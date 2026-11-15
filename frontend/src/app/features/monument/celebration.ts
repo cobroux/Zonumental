@@ -21,7 +21,7 @@ import {
 } from '../../shared/ui/tampon-monument';
 
 /** Critères de RG-R2-01 connus (spec fidélité §8.2) ; les autres succès n'ont que leur nom. */
-const CRITERE: Record<string, string> = {
+export const CRITERE: Record<string, string> = {
   PREMIER_TAMPON: 'Premier monument tamponné',
   EXPLORATEUR_10: '10 monuments tamponnés',
   EXPLORATEUR_25: '25 monuments tamponnés',

@@ -14,6 +14,83 @@
   object-position: 50% 28%;
   background: var(--zn-papier-sombre);
 }
+.hero {
+  position: relative;
+}
+.sr-only {
+  position: absolute;
+  inline-size: 1px;
+  block-size: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+/* Tampon d'encre sur la photo (V2-Fiche) : papier sur photo, jamais cliquable ni bloquant */
+.tampon-photo {
+  position: absolute;
+  inset: auto 16px 34px auto;
+  inline-size: 138px;
+  color: var(--zn-papier);
+  transform: rotate(var(--rot));
+  pointer-events: none;
+}
+.tampon-photo[data-etat='attente'] {
+  opacity: 0;
+}
+.tampon-photo[data-etat='pose'] {
+  animation: zf-press var(--zn-duree-tampon) var(--zn-courbe) 220ms both;
+}
+@keyframes zf-press {
+  from {
+    opacity: 0;
+    transform: translateY(-14px) scale(1.32) rotate(calc(var(--rot) - 10deg));
+  }
+  58% {
+    opacity: 1;
+    transform: translateY(0) scale(0.95) rotate(calc(var(--rot) + 1deg));
+  }
+  to {
+    opacity: 1;
+    transform: rotate(var(--rot));
+  }
+}
+.lie {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.lie h2 {
+  font: 400 var(--zn-fs-11) / 1.2 var(--zn-police-mono);
+  letter-spacing: var(--zn-ls-etiquette);
+  text-transform: uppercase;
+  color: var(--zn-gris-libelle);
+}
+.ligne {
+  display: grid;
+  grid-template-columns: 40px 1fr;
+  column-gap: 12px;
+  align-items: center;
+  min-block-size: var(--zn-cible);
+  padding: 10px 12px;
+  border-radius: var(--zn-rayon-14);
+  background: var(--zn-papier-clair);
+  border: 1px solid var(--zn-voile-14);
+}
+.medaille {
+  grid-row: span 2;
+}
+.medaille zn-medaille {
+  inline-size: 40px;
+  block-size: 40px;
+}
+.nom {
+  font: 600 14px / 1.2 var(--zn-police-ui);
+}
+.critere {
+  grid-column: 2;
+  font-size: 13px;
+  color: var(--zn-gris-libelle);
+}
 .rond {
   position: absolute;
   inset: 18px auto auto 16px;
@@ -166,7 +243,15 @@ h1 {
 .erreur {
   padding: var(--zn-esp-4);
 }
+@media (prefers-reduced-motion: reduce) {
+  .tampon-photo[data-etat='pose'] {
+    animation: none;
+  }
+}
 @media (forced-colors: active) {
+  .tampon-photo {
+    color: CanvasText;
+  }
   .rond,
   .pastilles span {
     border: 1px solid CanvasText;

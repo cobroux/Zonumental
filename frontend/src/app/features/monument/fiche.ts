@@ -23,7 +23,13 @@ import {
 } from '../../core/position/proximite';
 import { Monument } from '../../core/api/models/monument';
 import { ZnIcone } from '../../shared/ui/icone';
-import { Celebration } from './celebration';
+import { MesSucces } from '../../core/api/models/mes-succes';
+import { styleMedaille } from '../../shared/ui/medaille-catalogue';
+import { ZnMedaille } from '../../shared/ui/medaille';
+import { placement } from '../../shared/ui/placement';
+import { ZnTampon } from '../../shared/ui/tampon';
+import { ENCRE_PAR_RARETE, FORME_PAR_TYPE, contenuTampon } from '../../shared/ui/tampon-monument';
+import { Celebration, CRITERE } from './celebration';
 import { formaterSiecle } from './siecle';
 
 /** Blob authentifié (intercepteur Bearer) -> URL objet, révoquée au changement et à la destruction (ADR 0021). */
@@ -60,7 +66,7 @@ const TYPES = {
 /** Fiche monument : verrouillée (indices, N&B) tant que non capturé (RG-042, RG-054). */
 @Component({
   selector: 'app-fiche',
-  imports: [Celebration, RouterLink, ZnIcone],
+  imports: [Celebration, RouterLink, ZnIcone, ZnMedaille, ZnTampon],
   template: `
     @if (monument.hasValue(); as _) {
       @let m = monument.value();
@@ -70,11 +76,27 @@ const TYPES = {
       <a class="rond retour" routerLink="/carnet" aria-label="Retour au carnet">
         <zn-icone nom="retour" />
       </a>
-      @if (!m.image) {
-        <div class="photo" data-silhouette role="img" aria-label="Image indisponible"></div>
-      } @else if (m.image; as i) {
-        <img class="photo" [src]="couleur() ?? i.url" [alt]="m.nom" />
-      }
+      <div class="hero">
+        @if (!m.image) {
+          <div class="photo" data-silhouette role="img" aria-label="Image indisponible"></div>
+        } @else if (m.image; as i) {
+          <img class="photo" [src]="couleur() ?? i.url" [alt]="m.nom" />
+        }
+        @if (m.captureeLe) {
+          <!-- illustration : la date et le nom sont déjà dans la fiche (RG-043) -->
+          <zn-tampon
+            class="tampon-photo"
+            aria-hidden="true"
+            [attr.data-etat]="etatTampon()"
+            [style]="'--rot: ' + rotation(m.numero) + 'deg'"
+            [forme]="forme[m.type]"
+            [encre]="encres[m.rarete]"
+            [contenu]="contenu(m)"
+            [decoratif]="true"
+          />
+        }
+      </div>
+      <p class="sr-only" aria-live="polite">{{ annonce() }}</p>
       <div class="feuille" [attr.data-rarete]="m.rarete">
         <p class="kicker">N°{{ numero3(m.numero) }} · {{ m.ville.nom.toUpperCase() }}</p>
         <h1 tabindex="-1">{{ m.nom }}</h1>
@@ -106,6 +128,26 @@ const TYPES = {
             <p class="histoire">Histoire à venir</p>
           }
           <p class="date" data-tampon>Capturé le {{ date(m.captureeLe) }}</p>
+          @if (lie(); as l) {
+            <section class="lie" aria-labelledby="titre-lie">
+              <h2 id="titre-lie">Succès débloqués</h2>
+              <p class="ligne">
+                <span class="medaille" aria-hidden="true">
+                  <zn-medaille
+                    [nom]="l.libelle"
+                    [encre]="l.style.encre"
+                    [glyphe]="l.style.glyphe"
+                    [texte]="l.style.texte"
+                    [rotation]="l.style.rotation"
+                  />
+                </span>
+                <span class="nom">{{ l.libelle }}</span>
+                @if (l.critere) {
+                  <span class="critere">{{ l.critere }}</span>
+                }
+              </p>
+            </section>
+          }
           @if (photo(); as p) {
             <img class="ta-photo" data-photo [src]="p" alt="Ta photo" />
           }
@@ -171,6 +213,34 @@ export class Fiche {
   protected readonly succes = signal<{ code: string; libelle: string }[]>(
     history.state?.succes ?? [],
   );
+  /** Retour de capture : le tampon se pose une fois la feuille fermée (jamais sous le voile). */
+  private readonly aPoser = history.state?.capture === true;
+  protected readonly etatTampon = computed(() =>
+    this.aPoser ? (this.animation() ? 'attente' : 'pose') : null,
+  );
+  /** Annonce unique, après la feuille (qui a déjà annoncé la capture) ; vide sinon. */
+  protected readonly annonce = computed(() =>
+    this.etatTampon() === 'pose' ? 'Tampon posé sur la fiche.' : '',
+  );
+  protected readonly forme = FORME_PAR_TYPE;
+  protected readonly encres = ENCRE_PAR_RARETE;
+  protected readonly contenu = contenuTampon;
+  protected readonly rotation = (n: number) => placement(n).rotation;
+  private readonly succesApi = httpResource<MesSucces>(() =>
+    this.monument.hasValue() && this.monument.value().captureeLe
+      ? '/api/progression/succes'
+      : undefined,
+  );
+  /** Pas de lien monument-succès dans l'API : le succès obtenu avec la capture (même instant, ±60 s). */
+  protected readonly lie = computed(() => {
+    const m = this.monument.hasValue() ? this.monument.value() : undefined;
+    if (!m?.captureeLe || !this.succesApi.hasValue()) return null;
+    const t = Date.parse(m.captureeLe);
+    const s = this.succesApi
+      .value()
+      .obtenus.find((o) => Math.abs(Date.parse(o.obtenuLe) - t) < 60_000);
+    return s && { ...s, style: styleMedaille(s.code), critere: CRITERE[s.code] };
+  });
   /** « Continuer » : ferme la feuille et ramène le focus sur le titre de la fiche. */
   protected fin(): void {
     this.animation.set(false);
