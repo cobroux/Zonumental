@@ -17,6 +17,7 @@ import { capturer } from '../../core/api/fn/capture/capturer';
 import { Position } from '../../core/position/position';
 import { POINTS, capVers } from '../../core/position/proximite';
 import { ZnMessage } from '../../shared/ui/message';
+import { AutoriserCamera } from './autoriser-camera';
 
 const COTE_LONG_MAX = 1600;
 const OCTETS_MAX = 5_000_000;
@@ -108,6 +109,9 @@ function enBlob(canvas: HTMLCanvasElement, qualite: number): Promise<Blob | null
   selector: 'app-camera',
   template: `
     <h1>Prendre la photo</h1>
+    @if (feuille()) {
+      <app-autoriser-camera (accepter)="ouvrir()" (plusTard)="plusTard()" />
+    }
     @if (refus(); as r) {
       <zn-message type="erreur">
         {{ r.texte }}
@@ -139,7 +143,7 @@ function enBlob(canvas: HTMLCanvasElement, qualite: number): Promise<Blob | null
       }
     }
   `,
-  imports: [ZnMessage, RouterLink],
+  imports: [ZnMessage, RouterLink, AutoriserCamera],
   styles: 'video { inline-size: 100%; max-block-size: 70dvh; background: #000; }',
   styleUrl: '../coquille.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -153,6 +157,7 @@ export class Camera implements OnInit {
   private readonly pos = inject(Position);
   private readonly position = inject(Position).etat;
   private flux: MediaStream | null = null;
+  protected readonly feuille = signal(false);
   protected readonly cameraRefusee = signal(false);
   protected readonly pret = signal(false);
   protected readonly envoi = signal(false);
@@ -168,8 +173,23 @@ export class Camera implements OnInit {
     inject(DestroyRef).onDestroy(() => this.flux?.getTracks().forEach((t) => t.stop()));
   }
 
-  /** Atteint depuis « Aller le tamponner » : c'est l'appui qui déclenche la demande caméra (RG-026). */
+  /** Atteint depuis « Aller le tamponner » : sans permission déjà accordée, la feuille O3 précède la demande système (RG-026). */
   async ngOnInit(): Promise<void> {
+    const etat = await navigator.permissions
+      ?.query({ name: 'camera' as PermissionName })
+      .then((p) => p.state)
+      .catch(() => null); // Safari/Firefox : pas de permission « camera » interrogeable
+    if (etat === 'granted') return this.ouvrir();
+    this.feuille.set(true);
+  }
+
+  protected plusTard(): void {
+    this.feuille.set(false);
+    void this.router.navigate(['/monument', this.numero()]);
+  }
+
+  protected async ouvrir(): Promise<void> {
+    this.feuille.set(false);
     try {
       this.flux = await navigator.mediaDevices.getUserMedia({
         video: { facingMode: 'environment' },
