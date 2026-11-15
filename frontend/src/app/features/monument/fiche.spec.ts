@@ -166,6 +166,69 @@ describe('Fiche', () => {
     expect(URL.revokeObjectURL).toHaveBeenCalledWith('blob:x');
   });
 
+  describe('tampon sur la photo et succès lié (fidelite-15)', () => {
+    afterEach(() => history.replaceState(null, ''));
+    const tampon = (el: HTMLElement) => el.querySelector<HTMLElement>('.tampon-photo');
+    const succes = (obtenuLe: string) => ({
+      enCours: [],
+      obtenus: [{ code: 'LEGENDE', libelle: 'Dame de fer', obtenuLe }],
+    });
+
+    it('fiche capturée ouverte normalement : tampon posé, sans animation ni annonce', async () => {
+      const { el } = await rendre(capture);
+      expect(tampon(el)).not.toBeNull();
+      expect(tampon(el)!.dataset['etat']).toBeUndefined();
+      expect(tampon(el)!.getAttribute('aria-hidden')).toBe('true');
+      expect(el.querySelector('[aria-live="polite"]')?.textContent?.trim()).toBe('');
+    });
+
+    it('verrouillée : pas de tampon', async () => {
+      const { el } = await rendre(verrouille);
+      expect(tampon(el)).toBeNull();
+    });
+
+    it('retour de capture : le tampon attend la fin de la feuille, puis se pose et est annoncé une fois', async () => {
+      history.replaceState({ capture: true }, '');
+      const { fixture, el } = await rendre(capture);
+      expect(tampon(el)!.dataset['etat']).toBe('attente');
+      expect(el.querySelector('[aria-live="polite"]')?.textContent?.trim()).toBe('');
+      el.querySelector<HTMLButtonElement>('app-celebration .principal')!.click();
+      await attendre(fixture);
+      expect(tampon(el)!.dataset['etat']).toBe('pose');
+      expect(el.querySelector('[aria-live="polite"]')?.textContent).toContain('Tampon posé');
+      expect(tampon(el)!.matches('a, button, [tabindex]')).toBe(false);
+    });
+
+    it('succès obtenu avec la capture : bloc « Succès débloqués » nommé, critère lisible', async () => {
+      const { fixture, http, el } = await rendre(capture);
+      http.expectOne('/api/progression/succes').flush(succes(capture.captureeLe));
+      await attendre(fixture);
+      const bloc = el.querySelector('.lie')!;
+      expect(bloc.querySelector('h2')?.textContent).toContain('Succès débloqués');
+      expect(bloc.textContent).toContain('Dame de fer');
+      expect(bloc.querySelector('[role="img"]')?.closest('[aria-hidden="true"]')).not.toBeNull();
+    });
+
+    it('aucun succès lié à la capture, ou erreur : bloc absent', async () => {
+      const a = await rendre(capture);
+      a.http.expectOne('/api/progression/succes').flush(succes('2026-10-01T10:00:00Z'));
+      await attendre(a.fixture);
+      expect(a.el.querySelector('.lie')).toBeNull();
+      TestBed.resetTestingModule();
+      const b = await rendre(capture);
+      b.http
+        .expectOne('/api/progression/succes')
+        .flush(null, { status: 500, statusText: 'Erreur' });
+      await attendre(b.fixture);
+      expect(b.el.querySelector('.lie')).toBeNull();
+    });
+
+    it('verrouillée : aucun appel aux succès', async () => {
+      const { http } = await rendre(verrouille);
+      http.expectNone('/api/progression/succes');
+    });
+  });
+
   describe('célébration du tampon (après capture)', () => {
     const feuille = (el: HTMLElement) => el.querySelector<HTMLElement>('app-celebration dialog');
     const continuer = (el: HTMLElement) =>
