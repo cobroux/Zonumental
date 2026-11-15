@@ -12,10 +12,17 @@ describe('Bienvenue', () => {
     expect(r.textContent).toContain(
       'Va voir les monuments de France. Chaque visite imprime un tampon dans ton carnet.',
     );
-    expect(r.querySelector('[role="img"]')?.getAttribute('aria-label')).toBe('Tampon : Bienvenue');
-    expect(r.textContent).not.toContain('118');
+    const tampon = r.querySelector('[role="img"]');
+    expect(tampon?.getAttribute('aria-label')).toContain('118 monuments à tamponner');
+    expect(tampon?.textContent).toContain('118 MONUMENTS À TAMPONNER');
+    expect(r.querySelector('zn-tampon svg')?.classList).toContain('zn-encre');
     expect(r.querySelector('a[href="/inscription"]')?.textContent).toContain('Commencer');
-    expect(r.querySelector('a[href="/connexion"]')?.textContent).toContain('J’ai déjà un carnet');
+    const lien = r.querySelector('a[href="/connexion"]');
+    expect(lien?.textContent).toContain('J’ai déjà un carnet');
+    expect(lien?.hasAttribute('znBouton')).toBe(false);
+    expect(r.querySelector('.visuel')?.getAttribute('aria-hidden')).toBe('true');
+    expect(r.querySelector('.visuel linearGradient')).not.toBeNull();
+    expect(r.querySelector('.grain rect')?.getAttribute('filter')).toBe('url(#zn-papier)');
     expect(r.querySelectorAll('img')).toHaveLength(0);
   });
 });

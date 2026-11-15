@@ -27,6 +27,15 @@
           yChannelSelector="G"
         />
       </filter>
+      <filter id="zn-papier">
+        <feTurbulence
+          type="fractalNoise"
+          baseFrequency="0.85"
+          numOctaves="3"
+          stitchTiles="stitch"
+        />
+        <feColorMatrix values="0 0 0 0 0.42  0 0 0 0 0.36  0 0 0 0 0.27  0 0 0 0.10 0" />
+      </filter>
     </svg>
     <app-root></app-root>
     <noscript>Active JavaScript pour utiliser Zonumental.</noscript>
