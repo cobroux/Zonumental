@@ -1,18 +1,38 @@
 import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
+import { signal } from '@angular/core';
 import { provideRouter } from '@angular/router';
+import { Position, EtatPosition } from '../../core/position/position';
 import { Explorer } from './explorer';
 
-const m = (numero: number, nom: string, captureeLe: string | null) => ({
+const m = (numero: number, nom: string, captureeLe: string | null, latitude = 48.86) => ({
   numero,
   nom,
   captureeLe,
+  type: 'MUSEE',
+  rarete: 'RARE',
+  image: null,
+  ville: { nom: 'Paris' },
+  position: { latitude, longitude: 2.34 },
+  rayonCaptureMetres: 50,
 });
+const ici = {
+  statut: 'ok',
+  coords: { latitude: 48.85, longitude: 2.34, precision: 10 },
+} as EtatPosition;
 
-async function rendre(liste: object[] | { status: number }) {
+async function rendre(
+  liste: object[] | { status: number },
+  position: EtatPosition = { statut: 'refus' },
+) {
   TestBed.configureTestingModule({
-    providers: [provideHttpClient(), provideHttpClientTesting(), provideRouter([])],
+    providers: [
+      provideHttpClient(),
+      provideHttpClientTesting(),
+      provideRouter([]),
+      { provide: Position, useValue: { etat: signal(position) } },
+    ],
   });
   const http = TestBed.inject(HttpTestingController);
   const f = TestBed.createComponent(Explorer);
@@ -83,5 +103,63 @@ describe('Explorer', () => {
     const el = await rendre({ status: 0 });
     expect(el.querySelector('[role="alert"]')?.textContent).toContain('Pas de connexion.');
     expect(el.querySelector('button')?.textContent).toContain('Réessayer');
+  });
+
+  describe('carte héros (fidelite-11)', () => {
+    const t = '2026-11-01T10:00:00Z';
+    // 0,01° de latitude = 1,1 km
+    const liste = [m(1, 'Loin', null, 48.88), m(2, 'Proche', null, 48.86), m(3, 'Vu', t, 48.851)];
+
+    it('jour 0 : le plus proche, kicker premier tampon, chip sans « à découvrir », distance et marche', async () => {
+      const el = await rendre([m(1, 'Loin', null, 48.88), m(2, 'Proche', null, 48.86)], ici);
+      const c = el.querySelector('article') as HTMLElement;
+      expect(c.querySelector('h2')?.textContent).toBe('Proche');
+      expect(c.textContent).toContain('TON PREMIER TAMPON T’ATTEND');
+      expect(c.textContent).toContain('N°002');
+      expect(c.textContent).not.toContain('À DÉCOUVRIR');
+      expect(c.textContent).toContain('Rare');
+      expect(c.textContent).toMatch(/1,1 km · 13 min à pied/);
+    });
+
+    it('avec tampon et position : LE PLUS PROCHE non capturé, chip À DÉCOUVRIR', async () => {
+      const el = await rendre(liste, ici);
+      const c = el.querySelector('article') as HTMLElement;
+      expect(c.querySelector('h2')?.textContent).toBe('Proche');
+      expect(c.textContent).toContain('LE PLUS PROCHE');
+      expect(c.textContent).toContain('N°002 · À DÉCOUVRIR');
+    });
+
+    it('« Y aller » : lien vers la fiche, nom accessible contenant le texte visible', async () => {
+      const el = await rendre(liste, ici);
+      const a = el.querySelector('article a.aller') as HTMLAnchorElement;
+      expect(a.getAttribute('href')).toBe('/monument/2');
+      expect(a.textContent).toContain('Y aller');
+      expect(a.getAttribute('aria-label')).toBe('Y aller : Proche');
+    });
+
+    it('sans position : premier non capturé, sans distance, IL TE MANQUE ENCORE', async () => {
+      const el = await rendre(liste);
+      const c = el.querySelector('article') as HTMLElement;
+      expect(c.querySelector('h2')?.textContent).toBe('Loin');
+      expect(c.textContent).toContain('IL TE MANQUE ENCORE');
+      expect(c.textContent).not.toMatch(/\d min à pied|km/);
+    });
+
+    it('aperçu du suivant : inerte, un bouton fait défiler', async () => {
+      const el = await rendre(liste, ici);
+      const cartes = el.querySelectorAll('li.carte');
+      expect(cartes).toHaveLength(2);
+      expect(cartes[0].querySelector('article')?.hasAttribute('inert')).toBe(false);
+      expect(cartes[1].querySelector('article')?.hasAttribute('inert')).toBe(true);
+      const piste = el.querySelector('ul.heros') as HTMLElement;
+      piste.scrollTo = vi.fn() as never;
+      (cartes[1].querySelector('button.apercu') as HTMLButtonElement).click();
+      expect(piste.scrollTo).toHaveBeenCalled();
+    });
+
+    it('tout capturé : pas de carte', async () => {
+      const el = await rendre([m(3, 'Vu', t)], ici);
+      expect(el.querySelector('article')).toBeNull();
+    });
   });
 });

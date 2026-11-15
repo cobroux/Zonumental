@@ -1,10 +1,18 @@
 import { httpResource } from '@angular/common/http';
-import { ChangeDetectionStrategy, Component, computed } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { Profil } from '../../core/api/models/profil';
 import { MonumentResume } from '../../core/api/models/monument-resume';
+import { Position } from '../../core/position/position';
+import { distanceMetres, formaterDistance } from '../../core/position/proximite';
 import { ZnMessage } from '../../shared/ui/message';
 import { niveau } from '../../shared/ui/niveau';
+import { SILHOUETTE } from '../../shared/ui/silhouettes';
+
+const RARETES = { COMMUN: 'Commun', RARE: 'Rare', LEGENDAIRE: 'Légendaire' };
+const MAX_HEROS = 5;
+const PAS = 350; // carte 340 px + écart 10 px (maquette)
+const MARCHE_M_PAR_MIN = 5000 / 60; // 5 km/h
 
 /** Écran d'arrivée : guide tant qu'aucun tampon, sinon le dernier tampon (RG-045). */
 @Component({
@@ -38,6 +46,69 @@ import { niveau } from '../../shared/ui/niveau';
         <span class="chiffre" aria-hidden="true">{{ niveau() }}</span>
       </a>
     </header>
+    @if (heros().length) {
+      <ul
+        class="heros"
+        #piste
+        (scroll)="courant.set(index(piste))"
+        aria-label="Monuments à découvrir"
+      >
+        @for (h of heros(); track h.m.numero; let i = $index) {
+          <li class="carte" [class.j0]="jour0()">
+            <article [attr.inert]="i === courant() ? null : ''" [attr.data-rarete]="h.m.rarete">
+              @if (h.m.image; as img) {
+                <img [src]="img.url" alt="" />
+              } @else {
+                <svg class="silhouette" viewBox="0 0 48 48" aria-hidden="true" focusable="false">
+                  <path [attr.d]="silhouette[h.m.type]" />
+                </svg>
+              }
+              <svg class="voile" aria-hidden="true" focusable="false" preserveAspectRatio="none">
+                <defs>
+                  <linearGradient [attr.id]="'v' + h.m.numero" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0" stop-opacity="0.4" />
+                    <stop offset="0.28" stop-opacity="0" />
+                    <stop offset="0.48" stop-opacity="0" />
+                    <stop offset="1" stop-opacity="0.9" />
+                  </linearGradient>
+                </defs>
+                <rect width="100%" height="100%" [attr.fill]="'url(#v' + h.m.numero + ')'" />
+              </svg>
+              <div class="haut">
+                <span class="chip">N°{{ h.numero }}{{ jour0() ? '' : ' · À DÉCOUVRIR' }}</span>
+                <span class="rarete">{{ raretes[h.m.rarete] }}</span>
+              </div>
+              <div class="bas">
+                <span class="kicker">{{ kicker(h.distance) }}</span>
+                <h2>{{ h.m.nom }}</h2>
+                @if (h.meta) {
+                  <span class="meta">{{ h.meta }}</span>
+                }
+                <a
+                  class="aller"
+                  [routerLink]="['/monument', h.m.numero]"
+                  [attr.aria-label]="'Y aller : ' + h.m.nom"
+                >
+                  <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                    <path d="M12 21s-7-6.2-7-11.5A7 7 0 0 1 19 9.5C19 14.8 12 21 12 21z" />
+                    <circle cx="12" cy="9.5" r="2.5" />
+                  </svg>
+                  Y aller
+                </a>
+              </div>
+            </article>
+            @if (i === courant() + 1) {
+              <button
+                type="button"
+                class="apercu"
+                (click)="piste.scrollTo({ left: i * pas })"
+                aria-label="Monument suivant"
+              ></button>
+            }
+          </li>
+        }
+      </ul>
+    }
     @if (monuments.error()) {
       <zn-message type="erreur">
         Pas de connexion.
@@ -71,6 +142,35 @@ export class Explorer {
     () =>
       (this.monuments.hasValue() ? this.monuments.value() : []).filter((x) => x.captureeLe).length,
   );
+  private readonly position = inject(Position).etat;
+  protected readonly raretes = RARETES;
+  protected readonly silhouette = SILHOUETTE;
+  protected readonly pas = PAS;
+  protected readonly courant = signal(0);
+  protected readonly index = (piste: HTMLElement) => Math.round(piste.scrollLeft / PAS);
+  /** Non capturés : du plus proche (position connue) ou dans l'ordre du catalogue ; calcul sur l'appareil (RG-036). */
+  protected readonly heros = computed(() => {
+    const coords = this.position().coords;
+    return (this.monuments.hasValue() ? this.monuments.value() : [])
+      .filter((x) => !x.captureeLe)
+      .map((m) => {
+        const distance = coords ? distanceMetres(coords, m.position) : undefined;
+        const numero = String(m.numero).padStart(3, '0');
+        const meta =
+          distance === undefined
+            ? ''
+            : `${formaterDistance(distance)} · ${Math.round(distance / MARCHE_M_PAR_MIN)} min à pied`;
+        return { m, distance, numero, meta };
+      })
+      .sort((a, b) => (a.distance ?? 0) - (b.distance ?? 0))
+      .slice(0, MAX_HEROS);
+  });
+  protected readonly kicker = (distance?: number) =>
+    this.jour0()
+      ? 'TON PREMIER TAMPON T’ATTEND'
+      : distance === undefined
+        ? 'IL TE MANQUE ENCORE'
+        : 'LE PLUS PROCHE';
   protected readonly jour0 = computed(() => this.monuments.hasValue() && this.tampons() === 0);
   protected readonly niveau = computed(() => niveau(this.tampons()));
   /** Part du niveau en cours (0, 1/3, 2/3) sur 100 ; 0 = piste seule (pas de point en Safari). */
