@@ -125,17 +125,15 @@ article img {
   padding: 25% 20%;
   fill: var(--zn-voile-22);
 }
-article::before {
-  content: '';
+.voile {
   position: absolute;
   inset: 0;
   z-index: -1;
-  background: linear-gradient(
-    color-mix(in srgb, var(--zn-nuit) 40%, transparent) 0%,
-    transparent 28%,
-    transparent 48%,
-    color-mix(in srgb, var(--zn-nuit) 90%, transparent) 100%
-  );
+  inline-size: 100%;
+  block-size: 100%;
+}
+.voile stop {
+  stop-color: var(--zn-nuit);
 }
 .haut {
   position: absolute;

@@ -63,6 +63,17 @@ const MARCHE_M_PAR_MIN = 5000 / 60; // 5 km/h
                   <path [attr.d]="silhouette[h.m.type]" />
                 </svg>
               }
+              <svg class="voile" aria-hidden="true" focusable="false" preserveAspectRatio="none">
+                <defs>
+                  <linearGradient [attr.id]="'v' + h.m.numero" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0" stop-opacity="0.4" />
+                    <stop offset="0.28" stop-opacity="0" />
+                    <stop offset="0.48" stop-opacity="0" />
+                    <stop offset="1" stop-opacity="0.9" />
+                  </linearGradient>
+                </defs>
+                <rect width="100%" height="100%" [attr.fill]="'url(#v' + h.m.numero + ')'" />
+              </svg>
               <div class="haut">
                 <span class="chip">N°{{ h.numero }}{{ jour0() ? '' : ' · À DÉCOUVRIR' }}</span>
                 <span class="rarete">{{ raretes[h.m.rarete] }}</span>
