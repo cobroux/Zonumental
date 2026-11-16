@@ -22,6 +22,11 @@
   /* Maquettes v4 à v6 : couleurs absentes, ajoutées (fidelite-1) */
   --zn-or: #d9b26a; /* uniquement sur marine (5,75:1) : sceau Z, compteur « légendaires » */
   --zn-brume: #c8d2df; /* uniquement sur marine (7,5:1) : libellés du bandeau */
+  /* Fond de carte (maquette CarteV6, ADR 0023) : décor, jamais porteur d'info */
+  --zn-carte-fond: #e9e3d3;
+  --zn-carte-rue: #cfc6b2;
+  --zn-carte-rue-fine: #d9d1bf;
+  --zn-carte-eau: #bcc8cd;
   --zn-halo-zone: #4cc38a; /* décor du bouton « zone » : jamais seul porteur d'info */
   --zn-blanc: #ffffff;
   --zn-bordeaux-voile: color-mix(in srgb, var(--zn-bordeaux) 22%, transparent);

@@ -43,7 +43,7 @@ const explorer: Routes = [
   },
   {
     path: 'carte',
-    loadChildren: () => import('./features/bientot/bientot.routes').then((m) => m.CARTE_ROUTES),
+    loadChildren: () => import('./features/carte/carte.routes').then((m) => m.CARTE_ROUTES),
   },
   {
     path: 'defis',

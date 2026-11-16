@@ -1,0 +1,218 @@
+/* Carte fidèle à CarteV6 (ADR 0023). Seules les règles MapLibre utiles sont reprises. */
+:host {
+  position: relative;
+  display: block;
+  overflow: hidden;
+  block-size: calc(100dvh - 90px - env(safe-area-inset-bottom));
+  min-block-size: 24rem;
+  background: var(--zn-carte-fond);
+}
+
+.canevas,
+.brouillard,
+.epingles {
+  position: absolute;
+  inset: 0;
+}
+
+:host ::ng-deep .maplibregl-map {
+  overflow: hidden; /* position absolue gardée : celle de .canevas */
+  -webkit-tap-highlight-color: transparent;
+}
+:host ::ng-deep .maplibregl-canvas {
+  position: absolute;
+  inset: 0;
+}
+:host ::ng-deep .maplibregl-canvas-container.maplibregl-touch-zoom-rotate,
+:host ::ng-deep .maplibregl-canvas-container.maplibregl-touch-drag-pan {
+  touch-action: none;
+}
+:host ::ng-deep .maplibregl-canvas:focus-visible {
+  outline: 3px solid var(--zn-focus);
+  outline-offset: -3px;
+}
+
+.brouillard {
+  inline-size: 100%;
+  block-size: 100%;
+  pointer-events: none;
+}
+.plein {
+  fill: var(--zn-blanc);
+}
+.trou {
+  fill: var(--zn-nuit);
+}
+.voile {
+  fill: var(--zn-papier);
+  fill-opacity: 0.94;
+}
+
+.epingles {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  pointer-events: none;
+}
+.epingles li {
+  position: absolute;
+  inset: 0 auto auto 0;
+}
+.epingles button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  inline-size: var(--zn-cible);
+  block-size: var(--zn-cible);
+  margin: calc(var(--zn-cible) / -2) 0 0 calc(var(--zn-cible) / -2);
+  padding: 0;
+  border: 1px solid var(--zn-voile-22);
+  border-radius: 50%;
+  background: var(--zn-papier-clair);
+  color: var(--zn-gris-45);
+  font: 500 0.53rem / 1 var(--zn-police-mono);
+  pointer-events: auto;
+  cursor: pointer;
+}
+.epingles button.obtenu {
+  border: 0;
+  background: none;
+}
+.epingles button zn-tampon {
+  inline-size: 100%;
+}
+.epingles button[aria-pressed='true'] {
+  border: 3px solid var(--zn-bordeaux);
+}
+.epingles button:focus-visible {
+  outline: 3px solid var(--zn-focus);
+  outline-offset: 2px;
+}
+
+header {
+  position: absolute;
+  inset: 16px 16px auto;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  pointer-events: none;
+}
+.onglets {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  padding: 3px;
+  border: 1px solid var(--zn-voile-10);
+  border-radius: var(--zn-rayon-12);
+  background: var(--zn-papier-clair);
+  pointer-events: auto;
+}
+.onglets button {
+  min-block-size: var(--zn-cible);
+  border: 0;
+  border-radius: 9px;
+  background: transparent;
+  color: var(--zn-texte);
+  font: 600 0.875rem var(--zn-police-ui);
+  cursor: pointer;
+}
+.onglets button[aria-selected='true'] {
+  background: var(--zn-action);
+  color: var(--zn-fond-clair);
+}
+.onglets button:focus-visible {
+  outline: 3px solid var(--zn-focus);
+  outline-offset: 2px;
+}
+.pastille {
+  display: flex;
+  align-items: center;
+  align-self: flex-start;
+  gap: 6px;
+  min-block-size: 30px;
+  margin: 0;
+  padding: 0 12px;
+  border: 1px solid var(--zn-voile-10);
+  border-radius: var(--zn-rayon-pastille);
+  background: var(--zn-papier-clair);
+  font: 500 0.75rem var(--zn-police-ui);
+  font-variant-numeric: tabular-nums;
+}
+.point {
+  inline-size: 8px;
+  block-size: 8px;
+  border-radius: 50%;
+  background: var(--zn-bordeaux);
+}
+
+[role='tabpanel'] {
+  display: contents;
+}
+.bientot {
+  position: absolute;
+  inset: 0;
+  margin: 0;
+  padding: 96px 16px 0;
+  background: var(--zn-papier);
+  color: var(--zn-gris-45);
+}
+
+.repli {
+  position: absolute;
+  inset: 120px 16px auto;
+  margin: 0;
+  padding: 12px 16px;
+  border-radius: var(--zn-rayon-14);
+  background: var(--zn-papier-clair);
+  color: var(--zn-texte);
+}
+
+.selection {
+  position: absolute;
+  inset: auto 16px 64px;
+}
+.selection a {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  padding: 12px 16px;
+  border: 1px solid var(--zn-voile-10);
+  border-radius: 18px;
+  background: var(--zn-papier-clair);
+  box-shadow: var(--zn-ombre-planche);
+  color: var(--zn-texte);
+  text-decoration: none;
+}
+.selection a:focus-visible {
+  outline: 3px solid var(--zn-focus);
+  outline-offset: 2px;
+}
+.selection .num {
+  color: var(--zn-texte-doux);
+  font: 400 0.625rem var(--zn-police-mono);
+  letter-spacing: 0.14em;
+}
+.selection strong {
+  font: 400 1.375rem / 1 var(--zn-police-titre);
+}
+.selection .voir {
+  color: var(--zn-lien);
+  font-size: 0.8125rem;
+  font-weight: 600;
+}
+
+.attribution {
+  position: absolute;
+  /* colonne à gauche du bouton central de la barre, qui déborde sur la carte */
+  inset: auto auto 4px 4px;
+  max-inline-size: 34%;
+  margin: 0;
+  padding: 2px 6px;
+  border-radius: 6px;
+  background: var(--zn-papier-clair);
+  color: var(--zn-gris-45);
+  font-size: 0.6875rem;
+}
+.attribution a {
+  color: inherit;
+}
