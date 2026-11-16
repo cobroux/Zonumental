@@ -131,6 +131,12 @@ describe('Explorer', () => {
       expect(c.textContent).toMatch(/1,1 km · 13 min à pied/);
     });
 
+    it('au-delà de 2 h de marche : distance seule', async () => {
+      const el = await rendre([m(1, 'Loin', null, 52.4)], ici);
+      expect(el.querySelector('article')?.textContent).toMatch(/\d+,\d km/);
+      expect(el.querySelector('article')?.textContent).not.toContain('à pied');
+    });
+
     it('avec tampon et position : LE PLUS PROCHE non capturé, chip À DÉCOUVRIR', async () => {
       const el = await rendre(liste, ici);
       const c = el.querySelector('article') as HTMLElement;
