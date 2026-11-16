@@ -30,6 +30,8 @@
   --zn-voile-14: color-mix(in srgb, var(--zn-encre) 14%, transparent);
   --zn-voile-22: color-mix(in srgb, var(--zn-encre) 22%, transparent);
   --zn-voile-photo: color-mix(in srgb, var(--zn-nuit) 35%, transparent);
+  --zn-verre: color-mix(in srgb, var(--zn-nuit) 55%, transparent); /* pastilles sur la caméra */
+  --zn-filet-clair: color-mix(in srgb, var(--zn-papier-clair) 22%, transparent);
   --zn-voile-modale: color-mix(in srgb, var(--zn-nuit) 72%, transparent);
   /* Encre du tampon selon la rareté (ADR 0022) */
   --zn-tampon-commun: var(--zn-marine);
