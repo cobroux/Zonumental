@@ -13,10 +13,39 @@ video {
   inline-size: 100%;
   block-size: 100%;
   object-fit: cover;
-  transition: filter var(--zn-duree) var(--zn-courbe);
+  transition:
+    filter var(--zn-duree) var(--zn-courbe),
+    transform var(--zn-duree) var(--zn-courbe);
 }
+/* hors zone (O4) : flux reculé à .82, plus sombre */
 video.attenue {
   filter: brightness(0.8) saturate(0.85);
+  transform: scale(0.82);
+  transform-origin: 50% 30%;
+}
+.flash {
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+  background: var(--zn-papier-clair);
+  pointer-events: none;
+  animation: eclair 180ms var(--zn-courbe) forwards;
+}
+@keyframes eclair {
+  from {
+    opacity: 0.85;
+  }
+  to {
+    opacity: 0;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .flash {
+    display: none;
+  }
+  video {
+    transition: none;
+  }
 }
 .voile {
   position: absolute;
@@ -54,6 +83,9 @@ video.attenue {
   background: var(--zn-verre);
   color: var(--zn-papier-clair);
   transition: transform var(--zn-duree-appui) var(--zn-courbe);
+}
+.rond-droit {
+  inset-inline: auto 0;
 }
 .rond:active {
   transform: scale(0.97);
@@ -151,11 +183,11 @@ video.attenue {
 .bas {
   position: absolute;
   inset-inline: 0;
-  inset-block-end: 0;
+  inset-block-end: 156px;
   display: flex;
   flex-direction: column;
   gap: var(--zn-esp-4);
-  padding: 0 24px max(34px, env(safe-area-inset-bottom));
+  padding: 0 24px;
 }
 .monument {
   display: flex;
@@ -179,19 +211,134 @@ h1 {
   font-size: 0.875rem;
   color: var(--zn-papier-sombre);
 }
-button {
+.boussole {
+  display: flex;
+  align-items: center;
+  gap: var(--zn-esp-4);
+  margin-inline: -4px;
+  padding: var(--zn-esp-4);
+  border: 1px solid var(--zn-filet-clair);
+  border-radius: var(--zn-rayon-18);
+  background: var(--zn-verre);
+  backdrop-filter: blur(10px);
+}
+.aiguille {
+  flex: none;
+  display: grid;
+  place-items: center;
+  inline-size: 64px;
+  block-size: 64px;
+  border: 1.5px solid var(--zn-filet-clair);
+  border-radius: 50%;
+}
+.aiguille svg {
+  inline-size: 34px;
+  block-size: 34px;
+  fill: var(--zn-papier-clair);
+}
+.texte {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+.texte strong {
+  font: 400 1.625rem / 1 var(--zn-police-titre);
+}
+.trajet {
+  font-size: 0.875rem;
+  font-variant-numeric: tabular-nums;
+  color: var(--zn-papier-sombre);
+}
+
+.pied {
+  position: absolute;
+  inset-inline: 0;
+  inset-block-end: max(34px, env(safe-area-inset-bottom));
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  align-items: center;
+  row-gap: var(--zn-esp-3);
+  padding-inline: 28px;
+}
+.carnet {
+  justify-self: start;
+  display: grid;
+  place-items: center;
+  inline-size: 48px;
+  block-size: 48px;
+  border-radius: 12px;
+  background: var(--zn-papier);
+  color: var(--zn-marine);
+  box-shadow: 0 0 0 2px var(--zn-filet-clair);
+}
+.carnet svg {
+  inline-size: 38px;
+  block-size: 38px;
+  transform: rotate(-9deg);
+}
+.declencheur {
+  grid-column: 2;
+  justify-self: center;
+  display: grid;
+  place-items: center;
+  inline-size: 80px;
+  block-size: 80px;
+  padding: 0;
+  border: 4px solid var(--zn-papier-clair);
+  border-radius: 50%;
+  background: transparent;
+  color: var(--zn-papier-clair);
+  transition: transform var(--zn-duree-appui) var(--zn-courbe);
+}
+.declencheur span {
+  inline-size: 64px;
+  block-size: 64px;
+  border-radius: 50%;
+  background: var(--zn-papier-clair);
+}
+.declencheur svg {
+  inline-size: 26px;
+  block-size: 26px;
+  fill: none;
+  stroke: currentcolor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+}
+.declencheur:active:not(:disabled, [aria-disabled='true']) {
+  transform: scale(0.97);
+}
+.declencheur[aria-disabled='true'] {
+  border-color: var(--zn-filet-clair);
+  cursor: not-allowed;
+}
+.declencheur:disabled {
+  opacity: 0.6;
+}
+.pied .rond-droit {
+  position: static;
+  grid-column: 3;
+  justify-self: end;
+  inline-size: 48px;
+  block-size: 48px;
+}
+.aide {
+  grid-column: 1 / -1;
+  margin: 0;
+  text-align: center;
+  font-size: 0.8125rem;
+  font-variant-numeric: tabular-nums;
+  color: var(--zn-papier-sombre);
+}
+.action {
+  grid-column: 1 / -1;
   min-block-size: 3.375rem;
   border: 0;
   border-radius: var(--zn-rayon-14);
   background: var(--zn-papier-clair);
   color: var(--zn-encre);
   font: 600 var(--zn-fs-15) var(--zn-police-ui);
-  transition: transform var(--zn-duree-appui) var(--zn-courbe);
 }
-button:active:not(:disabled) {
-  transform: scale(0.97);
-}
-button:disabled {
+.action:disabled {
   opacity: 0.6;
 }
 a:focus-visible,

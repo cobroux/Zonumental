@@ -56,9 +56,11 @@ test.describe('à 420 m de A', () => {
     const api = await mockApi(page);
     await page.goto('/monument/1/capturer');
     await cameraPrete(page);
-    await page.getByRole('button', { name: 'Prendre la photo' }).click();
-
-    await expect(page.getByText('Tu es à 420 m, rapproche-toi !')).toBeVisible();
+    const declencheur = page.getByRole('button', { name: /Déclencheur verrouillé/ });
+    await expect(declencheur).toHaveAttribute('aria-disabled', 'true');
+    await expect(page.getByText(/420 m au \S+ · \d+ min/)).toBeVisible();
+    await expect(page.getByText(/encore 270 m/)).toBeVisible();
+    await declencheur.click({ force: true });
     expect(api.captures.size).toBe(0);
     await page.goto('/carnet');
     await expect(page.locator('zn-bandeau')).toContainText('0 tampon');
