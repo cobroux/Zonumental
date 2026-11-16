@@ -110,6 +110,7 @@ export class Proximite {
   private readonly catalogue = httpResource<MonumentResume[]>(() =>
     this.session.connecte() ? listerMonuments.PATH : undefined,
   );
+  readonly monuments = computed(() => this.catalogue.value() ?? []);
   readonly erreur = computed(() => this.catalogue.error() !== undefined);
   /** Tout le catalogue trié par distance : cible du bouton quand rien n'est à moins de 2 km. */
   private readonly tous = computed(() => {

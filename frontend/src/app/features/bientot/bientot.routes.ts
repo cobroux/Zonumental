@@ -11,5 +11,4 @@ const bientot = (titre: string): Routes => [
   },
 ];
 
-export const CARTE_ROUTES = bientot('Carte');
 export const DEFIS_ROUTES = bientot('Défis');
