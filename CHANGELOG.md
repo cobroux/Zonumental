@@ -38,3 +38,8 @@ Format : [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/).
 
 ### Modifié
 - CI passée en Java 25, Node lu via `.nvmrc`.
+- Refonte visuelle fidèle aux maquettes v4-v6 : socle tampons/planche/bandeau, carnet, profil, collections, célébration, navigation à 5 entrées, colonne mobile, bienvenue, accueil, fiche, capture.
+
+### Corrigé
+- Accessibilité des tampons (correctif a11y).
+- Test `ExportTest` dépendant du fuseau horaire.
