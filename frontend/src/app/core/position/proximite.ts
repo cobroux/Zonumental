@@ -54,6 +54,17 @@ export function formaterDistance(m: number): string {
   return arrondi < 1000 ? `${arrondi} m` : `${(m / 1000).toFixed(1).replace('.', ',')} km`;
 }
 
+const MARCHE_M_PAR_MIN = 5000 / 60; // 5 km/h
+const MARCHE_MAX_MIN = 120;
+
+/** Durée à pied ; vide au-delà de 2 h (peu pertinent). */
+export function dureeAPied(m: number): string {
+  const min = Math.round(m / MARCHE_M_PAR_MIN);
+  if (min > MARCHE_MAX_MIN) return '';
+  if (min < 60) return `${min} min à pied`;
+  return `${Math.floor(min / 60)} h ${String(min % 60).padStart(2, '0')} à pied`;
+}
+
 export function proches(
   monuments: MonumentResume[],
   coords: Coords,

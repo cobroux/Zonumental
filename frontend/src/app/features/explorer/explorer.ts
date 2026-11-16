@@ -4,7 +4,7 @@ import { RouterLink } from '@angular/router';
 import { Profil } from '../../core/api/models/profil';
 import { MonumentResume } from '../../core/api/models/monument-resume';
 import { Position } from '../../core/position/position';
-import { distanceMetres, formaterDistance } from '../../core/position/proximite';
+import { distanceMetres, dureeAPied, formaterDistance } from '../../core/position/proximite';
 import { ZnMessage } from '../../shared/ui/message';
 import { ZnTampon } from '../../shared/ui/tampon';
 import { ENCRE_PAR_RARETE } from '../../shared/ui/tampon-monument';
@@ -14,7 +14,6 @@ import { SILHOUETTE } from '../../shared/ui/silhouettes';
 const RARETES = { COMMUN: 'Commun', RARE: 'Rare', LEGENDAIRE: 'Légendaire' };
 const MAX_HEROS = 5;
 const PAS = 350; // carte 340 px + écart 10 px (maquette)
-const MARCHE_M_PAR_MIN = 5000 / 60; // 5 km/h
 
 /** Écran d'arrivée : guide tant qu'aucun tampon, sinon le dernier tampon (RG-045). */
 @Component({
@@ -172,7 +171,7 @@ export class Explorer {
         const meta =
           distance === undefined
             ? ''
-            : `${formaterDistance(distance)} · ${Math.round(distance / MARCHE_M_PAR_MIN)} min à pied`;
+            : [formaterDistance(distance), dureeAPied(distance)].filter(Boolean).join(' · ');
         return { m, distance, numero, meta };
       })
       .sort((a, b) => (a.distance ?? 0) - (b.distance ?? 0))

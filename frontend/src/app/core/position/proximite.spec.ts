@@ -1,5 +1,12 @@
 import { MonumentResume } from '../api/models/monument-resume';
-import { capVers, distanceMetres, etatBouton, formaterDistance, proches } from './proximite';
+import {
+  capVers,
+  distanceMetres,
+  dureeAPied,
+  etatBouton,
+  formaterDistance,
+  proches,
+} from './proximite';
 
 const monument = (numero: number, latitude: number, captureeLe: string | null = null, rayon = 50) =>
   ({
@@ -116,4 +123,15 @@ describe('capVers', () => {
     expect(capVers(ici(), { latitude: 47.999, longitude: 2 })).toBeCloseTo(180, 0);
     expect(capVers(ici(), { latitude: 48, longitude: 1.999 })).toBeCloseTo(270, 0);
   });
+});
+
+describe('dureeAPied', () => {
+  it.each([
+    [870, '10 min à pied'],
+    [5000, '1 h 00 à pied'],
+    [6700, '1 h 20 à pied'],
+    [10000, '2 h 00 à pied'],
+    [10100, ''],
+    [393100, ''],
+  ])('%d m -> %s', (m, texte) => expect(dureeAPied(m)).toBe(texte));
 });
