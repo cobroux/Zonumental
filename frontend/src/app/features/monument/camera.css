@@ -1,0 +1,210 @@
+/* Capture plein écran (maquettes V2-Capture, O4) : flux plein cadre sous deux voiles, tout en papier sur nuit. */
+:host {
+  position: fixed;
+  inset: 0;
+  display: block;
+  overflow: hidden;
+  background: var(--zn-nuit);
+  color: var(--zn-papier-clair);
+}
+video {
+  position: absolute;
+  inset: 0;
+  inline-size: 100%;
+  block-size: 100%;
+  object-fit: cover;
+  transition: filter var(--zn-duree) var(--zn-courbe);
+}
+video.attenue {
+  filter: brightness(0.8) saturate(0.85);
+}
+.voile {
+  position: absolute;
+  inset-inline: 0;
+  inline-size: 100%;
+  color: var(--zn-nuit);
+  pointer-events: none;
+}
+.voile-haut {
+  inset-block-start: 0;
+  block-size: 180px;
+}
+.voile-bas {
+  inset-block-end: 0;
+  block-size: 300px;
+}
+
+.entete {
+  position: absolute;
+  inset-block-start: max(18px, env(safe-area-inset-top));
+  inset-inline: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.rond {
+  position: absolute;
+  inset-inline-start: 0;
+  display: grid;
+  place-items: center;
+  inline-size: var(--zn-cible);
+  block-size: var(--zn-cible);
+  border-radius: 50%;
+  border: 1px solid var(--zn-filet-clair);
+  background: var(--zn-verre);
+  color: var(--zn-papier-clair);
+  transition: transform var(--zn-duree-appui) var(--zn-courbe);
+}
+.rond:active {
+  transform: scale(0.97);
+}
+.rond svg {
+  inline-size: 18px;
+  block-size: 18px;
+  fill: none;
+  stroke: currentcolor;
+  stroke-width: 1.9;
+}
+.puce {
+  display: flex;
+  align-items: center;
+  gap: var(--zn-esp-2);
+  min-block-size: 36px;
+  margin: 0;
+  padding-inline: 14px;
+  border: 1px solid var(--zn-filet-clair);
+  border-radius: var(--zn-rayon-pastille);
+  background: var(--zn-verre);
+  font: 500 var(--zn-taille-petite) var(--zn-police-ui);
+  font-variant-numeric: tabular-nums;
+}
+/* ocre sous encre (4,7:1) : hors zone et signal faible se lisent sans la couleur, par le mot */
+.puce[data-etat='hors'],
+.puce[data-etat='imprecis'] {
+  border-color: transparent;
+  background: var(--zn-ocre);
+  color: var(--zn-encre);
+  font-weight: 600;
+}
+.point {
+  position: relative;
+  inline-size: 8px;
+  block-size: 8px;
+  border-radius: 50%;
+  background: var(--zn-halo-zone);
+}
+@media (prefers-reduced-motion: no-preference) {
+  .point::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: 50%;
+    background: var(--zn-halo-zone);
+    animation: impulsion 1.6s var(--zn-courbe) infinite;
+  }
+  @keyframes impulsion {
+    from {
+      transform: scale(1);
+      opacity: 0.55;
+    }
+    to {
+      transform: scale(2.4);
+      opacity: 0;
+    }
+  }
+}
+
+.cadre {
+  position: absolute;
+  inset-inline: 44px;
+  inset-block-start: 132px;
+  block-size: min(400px, 46dvh);
+  pointer-events: none;
+}
+.cadre span {
+  position: absolute;
+  inline-size: 28px;
+  block-size: 28px;
+  border: 0 solid var(--zn-papier-clair);
+}
+.cadre span:nth-child(1) {
+  inset: 0 auto auto 0;
+  border-width: 2px 0 0 2px;
+  border-start-start-radius: 6px;
+}
+.cadre span:nth-child(2) {
+  inset: 0 0 auto auto;
+  border-width: 2px 2px 0 0;
+  border-start-end-radius: 6px;
+}
+.cadre span:nth-child(3) {
+  inset: auto auto 0 0;
+  border-width: 0 0 2px 2px;
+  border-end-start-radius: 6px;
+}
+.cadre span:nth-child(4) {
+  inset: auto 0 0 auto;
+  border-width: 0 2px 2px 0;
+  border-end-end-radius: 6px;
+}
+
+.bas {
+  position: absolute;
+  inset-inline: 0;
+  inset-block-end: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--zn-esp-4);
+  padding: 0 24px max(34px, env(safe-area-inset-bottom));
+}
+.monument {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.kicker {
+  margin: 0;
+  font: 500 var(--zn-fs-11) var(--zn-police-mono);
+  letter-spacing: var(--zn-ls-eyebrow);
+  text-transform: uppercase;
+  color: var(--zn-papier);
+}
+h1 {
+  margin: 0;
+  font: 400 2.5rem / 0.95 var(--zn-police-titre);
+  text-wrap: balance;
+}
+.consigne {
+  margin: 0;
+  font-size: 0.875rem;
+  color: var(--zn-papier-sombre);
+}
+button {
+  min-block-size: 3.375rem;
+  border: 0;
+  border-radius: var(--zn-rayon-14);
+  background: var(--zn-papier-clair);
+  color: var(--zn-encre);
+  font: 600 var(--zn-fs-15) var(--zn-police-ui);
+  transition: transform var(--zn-duree-appui) var(--zn-courbe);
+}
+button:active:not(:disabled) {
+  transform: scale(0.97);
+}
+button:disabled {
+  opacity: 0.6;
+}
+a:focus-visible,
+button:focus-visible {
+  outline: 3px solid var(--zn-papier-clair);
+  outline-offset: 3px;
+}
+.sr-only {
+  position: absolute;
+  inline-size: 1px;
+  block-size: 1px;
+  margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}

@@ -15,6 +15,15 @@ describe('dimensionsReduites', () => {
   });
 });
 
+// ~0,001° de latitude = 111 m
+const monument = {
+  numero: 1,
+  nom: 'Tour Eiffel',
+  rarete: 'LEGENDAIRE',
+  ville: { nom: 'Paris' },
+  position: { latitude: 48.1, longitude: 2.2 },
+  rayonCaptureMetres: 150,
+};
 const vide = () => new Promise((r) => setTimeout(r, 0));
 
 describe('Camera', () => {
@@ -52,10 +61,13 @@ describe('Camera', () => {
     fixture.componentRef.setInput('numero', '7');
     fixture.detectChanges();
     await vide();
+    const http = TestBed.inject(HttpTestingController);
+    http.expectOne('/api/catalogue/monuments/7').flush(monument);
+    await vide();
     await fixture.whenStable();
     fixture.detectChanges();
     const el = fixture.nativeElement as HTMLElement;
-    return { fixture, el, http: TestBed.inject(HttpTestingController) };
+    return { fixture, el, http };
   }
   const declencher = (el: HTMLElement) =>
     el.querySelector<HTMLButtonElement>('button[data-prendre]')!;
@@ -127,6 +139,43 @@ describe('Camera', () => {
         expect(getUserMedia).not.toHaveBeenCalled();
         TestBed.resetTestingModule();
       }
+    });
+  });
+
+  describe('statut de zone', () => {
+    const puce = (el: HTMLElement) => el.querySelector('.puce')!;
+    const annonce = (el: HTMLElement) => el.querySelector('[aria-live=polite]')!.textContent;
+
+    it('dans la zone : pastille, cadre, bloc monument, annonce polie', async () => {
+      const { el } = await rendre();
+      expect(puce(el).textContent).toContain('Dans la zone · 0 m');
+      expect(puce(el).querySelector('.point')).not.toBeNull();
+      expect(el.querySelector('.cadre')).not.toBeNull();
+      expect(el.querySelector('h1')?.textContent).toBe('Tour Eiffel');
+      expect(el.querySelector('.kicker')?.textContent?.replace(/\s+/g, ' ')).toContain(
+        'N°001 · LÉGENDAIRE · Paris',
+      );
+      expect(el.textContent).toContain('Cadre le monument entier');
+      expect(annonce(el)).toBe('Dans la zone');
+      expect(el.querySelector('[aria-label="Fermer la caméra"]')).not.toBeNull();
+    });
+
+    it('hors zone, en direct : distance arrondie, plus de cadre', async () => {
+      const { el, fixture } = await rendre();
+      etat.set({ statut: 'ok', coords: { latitude: 48.1038, longitude: 2.2, precision: 10 } });
+      fixture.detectChanges();
+      expect(puce(el).textContent).toContain('Hors zone · 420 m');
+      expect(puce(el).getAttribute('data-etat')).toBe('hors');
+      expect(el.querySelector('.cadre')).toBeNull();
+      expect(annonce(el)).toBe('Hors zone');
+    });
+
+    it('position imprécise : ni dans la zone ni hors zone', async () => {
+      const { el, fixture } = await rendre();
+      etat.set({ statut: 'ok', coords: { ...coords, precision: 250 } });
+      fixture.detectChanges();
+      expect(puce(el).textContent).toContain('Position imprécise');
+      expect(annonce(el)).toContain('Position imprécise');
     });
   });
 
@@ -222,10 +271,6 @@ describe('Camera', () => {
     http
       .expectOne('/api/captures')
       .flush({ code: 'trop-loin', distanceMetres: 420 }, { status: 422, statusText: 'x' });
-    await vide();
-    http
-      .expectOne('/api/catalogue/monuments/7')
-      .flush({ position: { latitude: 49.1, longitude: 2.2 } });
     await vide();
     fixture.detectChanges();
     expect(el.querySelectorAll('zn-message').length).toBe(1);

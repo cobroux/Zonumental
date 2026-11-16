@@ -10,12 +10,19 @@ import {
   signal,
   viewChild,
 } from '@angular/core';
-import { HttpClient, HttpErrorResponse } from '@angular/common/http';
+import { HttpErrorResponse, httpResource } from '@angular/common/http';
 import { Router, RouterLink } from '@angular/router';
 import { Api } from '../../core/api/api';
 import { capturer } from '../../core/api/fn/capture/capturer';
 import { Position } from '../../core/position/position';
-import { POINTS, capVers } from '../../core/position/proximite';
+import { Monument } from '../../core/api/models/monument';
+import {
+  POINTS,
+  PRECISION_MAX_METRES,
+  capVers,
+  distanceMetres,
+  formaterDistance,
+} from '../../core/position/proximite';
 import { ZnMessage } from '../../shared/ui/message';
 import { AutoriserCamera } from './autoriser-camera';
 
@@ -108,44 +115,101 @@ function enBlob(canvas: HTMLCanvasElement, qualite: number): Promise<Blob | null
 @Component({
   selector: 'app-camera',
   template: `
-    <h1>Prendre la photo</h1>
+    <svg class="voile voile-haut" aria-hidden="true" focusable="false" preserveAspectRatio="none">
+      <defs>
+        <linearGradient id="voile-haut" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stop-color="currentColor" stop-opacity=".7" />
+          <stop offset="1" stop-color="currentColor" stop-opacity="0" />
+        </linearGradient>
+      </defs>
+      <rect width="100%" height="100%" fill="url(#voile-haut)" />
+    </svg>
+    <svg class="voile voile-bas" aria-hidden="true" focusable="false" preserveAspectRatio="none">
+      <defs>
+        <linearGradient id="voile-bas" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stop-color="currentColor" stop-opacity="0" />
+          <stop offset=".55" stop-color="currentColor" stop-opacity=".86" />
+          <stop offset="1" stop-color="currentColor" stop-opacity=".9" />
+        </linearGradient>
+      </defs>
+      <rect width="100%" height="100%" fill="url(#voile-bas)" />
+    </svg>
     @if (feuille()) {
       <app-autoriser-camera (accepter)="ouvrir()" (plusTard)="plusTard()" />
     }
-    @if (refus(); as r) {
-      <zn-message type="erreur">
-        {{ r.texte }}
-        @if (cap() !== null) {
-          <span data-fleche aria-hidden="true" [style.transform]="'rotate(' + cap() + 'deg)'"
-            >↑</span
-          >
-          Direction : {{ point() }}.
-        }
-        @if (r.email) {
-          <a routerLink="/inscription/verifie-ton-email">Vérifier mon e-mail</a>
-        }
-      </zn-message>
-    }
     @if (!cameraRefusee()) {
-      <video #video autoplay playsinline muted aria-label="Aperçu de la caméra"></video>
-      @if (photo && refus()?.remplacer) {
-        <button type="button" data-remplacer [disabled]="envoi()" (click)="reessayer()">
-          {{ envoi() ? 'Envoi en cours…' : 'Remplacer la photo' }}
-        </button>
-      } @else if (photo && refus()?.reessayer) {
-        <button type="button" data-reessayer [disabled]="envoi()" (click)="reessayer()">
-          {{ envoi() ? 'Envoi en cours…' : 'Réessayer' }}
-        </button>
-      } @else {
-        <button type="button" data-prendre [disabled]="envoi() || !pret()" (click)="prendre()">
-          {{ envoi() ? 'Envoi en cours…' : 'Prendre la photo' }}
-        </button>
-      }
+      <video
+        #video
+        autoplay
+        playsinline
+        muted
+        aria-label="Aperçu de la caméra"
+        [class.attenue]="zone().etat !== 'dans'"
+      ></video>
     }
+    <header class="entete">
+      <a class="rond" [routerLink]="['/monument', numero()]" aria-label="Fermer la caméra">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18" /></svg>
+      </a>
+      <p class="puce" [attr.data-etat]="zone().etat">
+        @if (zone().etat === 'dans') {
+          <span class="point" aria-hidden="true"></span>
+        }
+        {{ zone().texte }}
+      </p>
+    </header>
+    <p class="sr-only" aria-live="polite">{{ zone().annonce }}</p>
+    @if (zone().etat === 'dans') {
+      <div class="cadre" aria-hidden="true">
+        <span></span><span></span><span></span><span></span>
+      </div>
+    }
+    <div class="bas">
+      @if (refus(); as r) {
+        <zn-message type="erreur">
+          {{ r.texte }}
+          @if (cap() !== null) {
+            <span data-fleche aria-hidden="true" [style.transform]="'rotate(' + cap() + 'deg)'"
+              >↑</span
+            >
+            Direction : {{ point() }}.
+          }
+          @if (r.email) {
+            <a routerLink="/inscription/verifie-ton-email">Vérifier mon e-mail</a>
+          }
+        </zn-message>
+      }
+      <section class="monument">
+        @if (monument.hasValue()) {
+          <p class="kicker">
+            N°{{ numero3(monument.value().numero) }} · {{ raretes[monument.value().rarete] }} ·
+            {{ monument.value().ville.nom }}
+          </p>
+          <h1>{{ monument.value().nom }}</h1>
+        } @else {
+          <h1>Prendre la photo</h1>
+        }
+        <p class="consigne">Cadre le monument entier, puis déclenche.</p>
+      </section>
+      @if (!cameraRefusee()) {
+        @if (photo && refus()?.remplacer) {
+          <button type="button" data-remplacer [disabled]="envoi()" (click)="reessayer()">
+            {{ envoi() ? 'Envoi en cours…' : 'Remplacer la photo' }}
+          </button>
+        } @else if (photo && refus()?.reessayer) {
+          <button type="button" data-reessayer [disabled]="envoi()" (click)="reessayer()">
+            {{ envoi() ? 'Envoi en cours…' : 'Réessayer' }}
+          </button>
+        } @else {
+          <button type="button" data-prendre [disabled]="envoi() || !pret()" (click)="prendre()">
+            {{ envoi() ? 'Envoi en cours…' : 'Prendre la photo' }}
+          </button>
+        }
+      }
+    </div>
   `,
   imports: [ZnMessage, RouterLink, AutoriserCamera],
-  styles: 'video { inline-size: 100%; max-block-size: 70dvh; background: #000; }',
-  styleUrl: '../coquille.css',
+  styleUrl: './camera.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class Camera implements OnInit {
@@ -153,7 +217,6 @@ export class Camera implements OnInit {
   private readonly video = viewChild<ElementRef<HTMLVideoElement>>('video');
   private readonly api = inject(Api);
   private readonly router = inject(Router);
-  private readonly http = inject(HttpClient);
   private readonly pos = inject(Position);
   private readonly position = inject(Position).etat;
   private flux: MediaStream | null = null;
@@ -162,7 +225,34 @@ export class Camera implements OnInit {
   protected readonly pret = signal(false);
   protected readonly envoi = signal(false);
   protected readonly refus = signal<Refus | null>(null);
-  protected readonly cap = signal<number | null>(null);
+  protected readonly monument = httpResource<Monument>(
+    () => `/api/catalogue/monuments/${this.numero()}`,
+  );
+  protected readonly raretes = { COMMUN: 'COMMUN', RARE: 'RARE', LEGENDAIRE: 'LÉGENDAIRE' };
+  protected readonly numero3 = (n: number) => String(n).padStart(3, '0');
+  /** Statut de zone calculé sur l'appareil, en direct (RG-036) : mêmes seuils que le bouton central. */
+  protected readonly zone = computed(() => {
+    const coords = this.position().coords;
+    const m = this.monument.hasValue() ? this.monument.value() : undefined;
+    if (!coords || !m) return { etat: 'inconnue', texte: 'Position en cours…', annonce: '' };
+    const distance = distanceMetres(coords, m.position);
+    const d = formaterDistance(distance);
+    if (distance > m.rayonCaptureMetres)
+      return { etat: 'hors', texte: `Hors zone · ${d}`, annonce: 'Hors zone' };
+    if (coords.precision === undefined || coords.precision > PRECISION_MAX_METRES)
+      return {
+        etat: 'imprecis',
+        texte: 'Position imprécise',
+        annonce: 'Position imprécise, réessaie à découvert',
+      };
+    return { etat: 'dans', texte: `Dans la zone · ${d}`, annonce: 'Dans la zone' };
+  });
+  /** Cap vers le monument après « trop loin », comme la fiche (#39) ; sans flèche si le monument est illisible. */
+  protected readonly cap = computed(() => {
+    const coords = this.position().coords;
+    const m = this.monument.hasValue() ? this.monument.value() : undefined;
+    return this.refus()?.distance !== undefined && coords && m ? capVers(coords, m.position) : null;
+  });
   protected readonly point = computed(() => POINTS[Math.round((this.cap() ?? 0) / 45) % 8]);
   /** Reste en mémoire pour « Réessayer » ; perdue avec l'écran (RG-057, R1-82). */
   protected photo: Blob | null = null;
@@ -261,7 +351,6 @@ export class Camera implements OnInit {
 
   private async envoyer(coords: { latitude: number; longitude: number; precision?: number }) {
     this.envoi.set(true);
-    this.cap.set(null);
     try {
       const r = await this.api.invoke(capturer, {
         body: {
@@ -283,19 +372,6 @@ export class Camera implements OnInit {
       if (refus && !refus.reessayer && !refus.remplacer) this.photo = null;
       this.refus.set(refus);
       this.envoi.set(false);
-      if (refus?.distance !== undefined) this.orienter(coords);
     }
-  }
-
-  /** Cap vers le monument, comme la fiche (#39) ; sans flèche si le monument est illisible. */
-  private orienter(coords: { latitude: number; longitude: number }): void {
-    this.http
-      .get<{ position: { latitude: number; longitude: number } }>(
-        `/api/catalogue/monuments/${this.numero()}`,
-      )
-      .subscribe({
-        next: (m) => this.cap.set(capVers(coords, m.position)),
-        error: () => undefined,
-      });
   }
 }
