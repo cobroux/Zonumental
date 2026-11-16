@@ -32,6 +32,8 @@ describe('Camera', () => {
   let etat: ReturnType<typeof signal<object>>;
   const relire = vi.fn();
   let getUserMedia: ReturnType<typeof vi.fn>;
+  let piste: Record<string, unknown>;
+  let peripheriques: { kind: string }[];
 
   async function rendre(media: 'ok' | 'refus' = 'ok', permission: PermissionState = 'granted') {
     Object.defineProperty(navigator, 'permissions', {
@@ -40,11 +42,14 @@ describe('Camera', () => {
     });
     getUserMedia = vi.fn(() =>
       media === 'ok'
-        ? Promise.resolve({ getTracks: () => [{ stop: arreter }] })
+        ? Promise.resolve({
+            getTracks: () => [{ stop: arreter }],
+            getVideoTracks: () => [piste],
+          })
         : Promise.reject(new DOMException('no', 'NotAllowedError')),
     );
     Object.defineProperty(navigator, 'mediaDevices', {
-      value: { getUserMedia },
+      value: { getUserMedia, enumerateDevices: () => Promise.resolve(peripheriques) },
       configurable: true,
     });
     etat = signal({ statut: 'ok', coords });
@@ -77,6 +82,8 @@ describe('Camera', () => {
 
   beforeEach(() => {
     arreter.mockClear();
+    piste = { stop: arreter };
+    peripheriques = [{ kind: 'videoinput' }];
     relire.mockReset().mockResolvedValue(coords);
     HTMLCanvasElement.prototype.getContext = vi.fn(() => ({ drawImage: vi.fn() })) as never;
     HTMLCanvasElement.prototype.toBlob = vi.fn(function (cb: BlobCallback) {
@@ -91,7 +98,7 @@ describe('Camera', () => {
       audio: false,
     });
     expect(el.querySelector('input[type=file]')).toBeNull();
-    expect(declencher(el).textContent).toContain('Prendre la photo');
+    expect(declencher(el).getAttribute('aria-label')).toBe('Prendre la photo');
   });
 
   describe('feuille « Autoriser la caméra » (O3)', () => {
@@ -170,12 +177,77 @@ describe('Camera', () => {
       expect(annonce(el)).toBe('Hors zone');
     });
 
+    it('dans la zone : déclencheur actif nommé, lien carnet, flux plein', async () => {
+      const { el } = await rendre();
+      const d = declencher(el);
+      expect(d.getAttribute('aria-label')).toBe('Prendre la photo');
+      expect(d.getAttribute('aria-disabled')).toBeNull();
+      expect(d.disabled).toBe(false);
+      expect(el.querySelector('a[aria-label="Ouvrir le carnet"]')?.getAttribute('href')).toBe(
+        '/carnet',
+      );
+      expect(el.querySelector('video.attenue')).toBeNull();
+      expect(el.querySelector('.boussole')).toBeNull();
+    });
+
+    it('hors zone : déclencheur verrouillé, boussole, flux réduit, aucun envoi', async () => {
+      const { el, fixture, http } = await rendre();
+      etat.set({ statut: 'ok', coords: { latitude: 48.1038, longitude: 2.2, precision: 10 } });
+      fixture.detectChanges();
+      const d = declencher(el);
+      expect(d.getAttribute('aria-disabled')).toBe('true');
+      expect(d.getAttribute('aria-label')).toContain('rapproche-toi à moins de 150 mètres');
+      expect(el.querySelector('#aide-declencheur')?.textContent).toContain(
+        "s'active à 150 m · encore 270 m",
+      );
+      expect(el.querySelector('.boussole')?.textContent).toContain('420 m au sud · 5 min à pied');
+      expect(el.querySelector<HTMLElement>('.aiguille svg')?.style.transform).toBe(
+        'rotate(180deg)',
+      );
+      expect(el.querySelector('video.attenue')).not.toBeNull();
+      d.click();
+      http.expectNone('/api/captures');
+      expect(el.querySelector('.flash')).toBeNull();
+    });
+
     it('position imprécise : ni dans la zone ni hors zone', async () => {
       const { el, fixture } = await rendre();
       etat.set({ statut: 'ok', coords: { ...coords, precision: 250 } });
       fixture.detectChanges();
       expect(puce(el).textContent).toContain('Position imprécise');
       expect(annonce(el)).toContain('Position imprécise');
+    });
+  });
+
+  describe('flash et changement de caméra', () => {
+    it('masqués si le navigateur ne les gère pas', async () => {
+      const { el } = await rendre();
+      expect(el.querySelector('[aria-label="Flash"]')).toBeNull();
+      expect(el.querySelector('[aria-label="Changer de caméra"]')).toBeNull();
+    });
+
+    it('flash : agit sur la torche et reflète l’état', async () => {
+      piste['getCapabilities'] = () => ({ torch: true });
+      piste['applyConstraints'] = vi.fn(() => Promise.resolve());
+      const { el, fixture } = await rendre();
+      const b = el.querySelector<HTMLButtonElement>('[aria-label="Flash"]')!;
+      b.click();
+      await fixture.whenStable();
+      fixture.detectChanges();
+      expect(piste['applyConstraints']).toHaveBeenCalledWith({ advanced: [{ torch: true }] });
+      expect(b.getAttribute('aria-pressed')).toBe('true');
+    });
+
+    it('changer de caméra : rouvre le flux en façade', async () => {
+      peripheriques = [{ kind: 'videoinput' }, { kind: 'videoinput' }];
+      const { el, fixture } = await rendre();
+      el.querySelector<HTMLButtonElement>('[aria-label="Changer de caméra"]')!.click();
+      await fixture.whenStable();
+      expect(getUserMedia).toHaveBeenLastCalledWith({
+        video: { facingMode: 'user' },
+        audio: false,
+      });
+      expect(arreter).toHaveBeenCalled();
     });
   });
 
@@ -199,6 +271,7 @@ describe('Camera', () => {
     await fixture.whenStable();
     fixture.detectChanges();
     expect(bouton.disabled).toBe(true);
+    expect(el.querySelector('.flash')).not.toBeNull();
     const req = http.expectOne('/api/captures');
     const corps = req.request.body as FormData;
     expect(corps.get('numero')).toBe('7');

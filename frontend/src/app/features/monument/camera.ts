@@ -21,6 +21,7 @@ import {
   PRECISION_MAX_METRES,
   capVers,
   distanceMetres,
+  dureeAPied,
   formaterDistance,
 } from '../../core/position/proximite';
 import { ZnMessage } from '../../shared/ui/message';
@@ -144,8 +145,11 @@ function enBlob(canvas: HTMLCanvasElement, qualite: number): Promise<Blob | null
         playsinline
         muted
         aria-label="Aperçu de la caméra"
-        [class.attenue]="zone().etat !== 'dans'"
+        [class.attenue]="zone().etat === 'hors'"
       ></video>
+    }
+    @if (flash()) {
+      <span class="flash" aria-hidden="true"></span>
     }
     <header class="entete">
       <a class="rond" [routerLink]="['/monument', numero()]" aria-label="Fermer la caméra">
@@ -157,6 +161,17 @@ function enBlob(canvas: HTMLCanvasElement, qualite: number): Promise<Blob | null
         }
         {{ zone().texte }}
       </p>
+      @if (torcheDispo()) {
+        <button
+          type="button"
+          class="rond rond-droit"
+          aria-label="Flash"
+          [attr.aria-pressed]="torche()"
+          (click)="basculerTorche()"
+        >
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M13 3 5 14h6l-1 7 8-11h-6z" /></svg>
+        </button>
+      }
     </header>
     <p class="sr-only" aria-live="polite">{{ zone().annonce }}</p>
     @if (zone().etat === 'dans') {
@@ -179,34 +194,106 @@ function enBlob(canvas: HTMLCanvasElement, qualite: number): Promise<Blob | null
           }
         </zn-message>
       }
-      <section class="monument">
-        @if (monument.hasValue()) {
-          <p class="kicker">
-            N°{{ numero3(monument.value().numero) }} · {{ raretes[monument.value().rarete] }} ·
-            {{ monument.value().ville.nom }}
+      @if (zone().etat === 'hors') {
+        <section class="boussole">
+          <span class="aiguille" aria-hidden="true">
+            <svg viewBox="0 0 24 24" [style.transform]="'rotate(' + capHors() + 'deg)'">
+              <path d="M12 3.5l5 15-5-3.6-5 3.6z" />
+            </svg>
+          </span>
+          <span class="texte">
+            <span class="kicker">{{ kicker() }}</span>
+            <strong>{{ monument.hasValue() ? monument.value().nom : '' }}</strong>
+            <span class="trajet">{{ trajet() }}</span>
+          </span>
+        </section>
+      } @else {
+        <section class="monument">
+          @if (monument.hasValue()) {
+            <p class="kicker">{{ kicker() }} · {{ monument.value().ville.nom }}</p>
+            <h1>{{ monument.value().nom }}</h1>
+          } @else {
+            <h1>Prendre la photo</h1>
+          }
+          <p class="consigne" role="status">
+            {{ envoi() ? 'Envoi en cours…' : 'Cadre le monument entier, puis déclenche.' }}
           </p>
-          <h1>{{ monument.value().nom }}</h1>
-        } @else {
-          <h1>Prendre la photo</h1>
-        }
-        <p class="consigne">Cadre le monument entier, puis déclenche.</p>
-      </section>
-      @if (!cameraRefusee()) {
+        </section>
+      }
+    </div>
+    @if (!cameraRefusee()) {
+      <footer class="pied">
         @if (photo && refus()?.remplacer) {
-          <button type="button" data-remplacer [disabled]="envoi()" (click)="reessayer()">
+          <button
+            type="button"
+            class="action"
+            data-remplacer
+            [disabled]="envoi()"
+            (click)="reessayer()"
+          >
             {{ envoi() ? 'Envoi en cours…' : 'Remplacer la photo' }}
           </button>
         } @else if (photo && refus()?.reessayer) {
-          <button type="button" data-reessayer [disabled]="envoi()" (click)="reessayer()">
+          <button
+            type="button"
+            class="action"
+            data-reessayer
+            [disabled]="envoi()"
+            (click)="reessayer()"
+          >
             {{ envoi() ? 'Envoi en cours…' : 'Réessayer' }}
           </button>
         } @else {
-          <button type="button" data-prendre [disabled]="envoi() || !pret()" (click)="prendre()">
-            {{ envoi() ? 'Envoi en cours…' : 'Prendre la photo' }}
+          <a class="carnet" routerLink="/carnet" aria-label="Ouvrir le carnet">
+            <svg viewBox="0 0 120 120" aria-hidden="true">
+              <g fill="none" stroke="currentColor">
+                <circle cx="60" cy="60" r="54" stroke-width="5" />
+                <circle cx="60" cy="60" r="34" stroke-width="3" />
+              </g>
+            </svg>
+          </a>
+          <button
+            type="button"
+            class="declencheur"
+            data-prendre
+            [attr.aria-label]="
+              verrouille()
+                ? 'Déclencheur verrouillé : rapproche-toi à moins de ' + rayon() + ' mètres'
+                : 'Prendre la photo'
+            "
+            [attr.aria-disabled]="verrouille() || null"
+            [attr.aria-describedby]="verrouille() ? 'aide-declencheur' : null"
+            [disabled]="envoi() || !pret()"
+            (click)="verrouille() || prendre()"
+          >
+            @if (verrouille()) {
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <rect x="5" y="11" width="14" height="9" rx="2" />
+                <path d="M8 11V8a4 4 0 0 1 8 0v3" />
+              </svg>
+            } @else {
+              <span aria-hidden="true"></span>
+            }
           </button>
+          @if (plusieursCameras()) {
+            <button
+              type="button"
+              class="rond rond-droit"
+              aria-label="Changer de caméra"
+              (click)="changerCamera()"
+            >
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M4 8h3l2-3h6l2 3h3v11H4z" />
+                <path d="M9.5 12.5a2.5 2.5 0 0 1 4.6-1.3M14.5 13.5a2.5 2.5 0 0 1-4.6 1.3" />
+              </svg>
+            </button>
+          }
+          @if (verrouille()) {
+            <p class="aide" id="aide-declencheur">{{ aide() }}</p>
+          }
         }
-      }
-    </div>
+      </footer>
+    }
   `,
   imports: [ZnMessage, RouterLink, AutoriserCamera],
   styleUrl: './camera.css',
@@ -225,19 +312,32 @@ export class Camera implements OnInit {
   protected readonly pret = signal(false);
   protected readonly envoi = signal(false);
   protected readonly refus = signal<Refus | null>(null);
+  protected readonly flash = signal(false);
+  protected readonly torcheDispo = signal(false);
+  protected readonly torche = signal(false);
+  protected readonly plusieursCameras = signal(false);
+  private face: 'environment' | 'user' = 'environment';
   protected readonly monument = httpResource<Monument>(
     () => `/api/catalogue/monuments/${this.numero()}`,
   );
   protected readonly raretes = { COMMUN: 'COMMUN', RARE: 'RARE', LEGENDAIRE: 'LÉGENDAIRE' };
   protected readonly numero3 = (n: number) => String(n).padStart(3, '0');
+  private readonly distance = computed(() => {
+    const coords = this.position().coords;
+    const m = this.monument.hasValue() ? this.monument.value() : undefined;
+    return coords && m ? distanceMetres(coords, m.position) : null;
+  });
+  protected readonly rayon = computed(() =>
+    this.monument.hasValue() ? this.monument.value().rayonCaptureMetres : 0,
+  );
   /** Statut de zone calculé sur l'appareil, en direct (RG-036) : mêmes seuils que le bouton central. */
   protected readonly zone = computed(() => {
     const coords = this.position().coords;
-    const m = this.monument.hasValue() ? this.monument.value() : undefined;
-    if (!coords || !m) return { etat: 'inconnue', texte: 'Position en cours…', annonce: '' };
-    const distance = distanceMetres(coords, m.position);
+    const distance = this.distance();
+    if (!coords || distance === null)
+      return { etat: 'inconnue', texte: 'Position en cours…', annonce: '' };
     const d = formaterDistance(distance);
-    if (distance > m.rayonCaptureMetres)
+    if (distance > this.rayon())
       return { etat: 'hors', texte: `Hors zone · ${d}`, annonce: 'Hors zone' };
     if (coords.precision === undefined || coords.precision > PRECISION_MAX_METRES)
       return {
@@ -246,6 +346,26 @@ export class Camera implements OnInit {
         annonce: 'Position imprécise, réessaie à découvert',
       };
     return { etat: 'dans', texte: `Dans la zone · ${d}`, annonce: 'Dans la zone' };
+  });
+  protected readonly verrouille = computed(() => this.zone().etat === 'hors');
+  protected readonly kicker = computed(() => {
+    if (!this.monument.hasValue()) return '';
+    const m = this.monument.value();
+    return `N°${this.numero3(m.numero)} · ${this.raretes[m.rarete]}`;
+  });
+  /** Cap boussole hors zone : calculé depuis la position, sans capteur d'orientation. */
+  protected readonly capHors = computed(() => {
+    const coords = this.position().coords;
+    return coords && this.monument.hasValue() ? capVers(coords, this.monument.value().position) : 0;
+  });
+  protected readonly trajet = computed(() => {
+    const d = this.distance() ?? 0;
+    const pied = dureeAPied(d);
+    return `${formaterDistance(d)} au ${POINTS[Math.round(this.capHors() / 45) % 8]}${pied ? ` · ${pied}` : ''}`;
+  });
+  protected readonly aide = computed(() => {
+    const reste = formaterDistance(Math.max(0, (this.distance() ?? 0) - this.rayon()));
+    return `Le déclencheur s'active à ${this.rayon()} m · encore ${reste}`;
   });
   /** Cap vers le monument après « trop loin », comme la fiche (#39) ; sans flèche si le monument est illisible. */
   protected readonly cap = computed(() => {
@@ -280,9 +400,11 @@ export class Camera implements OnInit {
 
   protected async ouvrir(): Promise<void> {
     this.feuille.set(false);
+    this.flux?.getTracks().forEach((t) => t.stop());
+    this.torche.set(false);
     try {
       this.flux = await navigator.mediaDevices.getUserMedia({
-        video: { facingMode: 'environment' },
+        video: { facingMode: this.face },
         audio: false,
       });
     } catch {
@@ -300,6 +422,27 @@ export class Camera implements OnInit {
       if (v) v.srcObject = this.flux;
     });
     this.pret.set(true);
+    // flash et changement de caméra : masqués si le navigateur ne les gère pas
+    this.torcheDispo.set(
+      !!(this.piste()?.getCapabilities?.() as { torch?: boolean } | undefined)?.torch,
+    );
+    const peripheriques = (await navigator.mediaDevices.enumerateDevices?.().catch(() => [])) ?? [];
+    this.plusieursCameras.set(peripheriques.filter((d) => d.kind === 'videoinput').length > 1);
+  }
+
+  private piste = () => this.flux?.getVideoTracks?.()[0];
+
+  protected async basculerTorche(): Promise<void> {
+    const allumee = !this.torche();
+    await this.piste()
+      ?.applyConstraints({ advanced: [{ torch: allumee } as MediaTrackConstraintSet] })
+      .then(() => this.torche.set(allumee))
+      .catch(() => this.torcheDispo.set(false));
+  }
+
+  protected changerCamera(): Promise<void> {
+    this.face = this.face === 'environment' ? 'user' : 'environment';
+    return this.ouvrir();
   }
 
   protected async prendre(): Promise<void> {
@@ -309,6 +452,8 @@ export class Camera implements OnInit {
     if (!coords || !v) return this.sansPosition();
     this.envoi.set(true);
     this.refus.set(null);
+    this.flash.set(true);
+    setTimeout(() => this.flash.set(false), 200);
     try {
       const [l, h] = dimensionsReduites(v.videoWidth, v.videoHeight);
       const canvas = document.createElement('canvas');
