@@ -1,5 +1,12 @@
+import { ApplicationRef, signal } from '@angular/core';
+import { TestBed } from '@angular/core/testing';
+import { provideHttpClient } from '@angular/common/http';
+import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { MonumentResume } from '../api/models/monument-resume';
+import { Session } from '../session/session';
+import { Position } from './position';
 import {
+  Proximite,
   capVers,
   distanceMetres,
   dureeAPied,
@@ -134,4 +141,27 @@ describe('dureeAPied', () => {
     [10100, ''],
     [393100, ''],
   ])('%d m -> %s', (m, texte) => expect(dureeAPied(m)).toBe(texte));
+});
+
+describe('Proximite.plusProche', () => {
+  it('le monument à faire le plus proche, même au-delà de 2 km ; rien sans position', async () => {
+    const etat = signal<unknown>({ statut: 'attente' });
+    TestBed.configureTestingModule({
+      providers: [
+        provideHttpClient(),
+        provideHttpClientTesting(),
+        { provide: Session, useValue: { connecte: () => true } },
+        { provide: Position, useValue: { etat } },
+      ],
+    });
+    const proximite = TestBed.inject(Proximite);
+    TestBed.tick();
+    TestBed.inject(HttpTestingController)
+      .expectOne(() => true)
+      .flush([monument(1, 48.001, '2026-01-01'), monument(2, 48.5), monument(3, 48.2)]);
+    await TestBed.inject(ApplicationRef).whenStable();
+    expect(proximite.plusProche()).toBeUndefined();
+    etat.set(ok());
+    expect(proximite.plusProche()?.numero).toBe(3);
+  });
 });

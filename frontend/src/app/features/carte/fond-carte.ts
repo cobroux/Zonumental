@@ -6,6 +6,8 @@ export interface FondCarte {
   project(lngLat: [number, number]): { x: number; y: number };
   getZoom(): number;
   on(evenement: 'move', rappel: () => void): void;
+  /** Recentre sur la position ; sans animation si `reduit` (prefers-reduced-motion). */
+  centrer(lngLat: [number, number]): void;
   remove(): void;
 }
 
@@ -55,7 +57,7 @@ export async function creerFond(options: OptionsFond): Promise<FondCarte> {
   const url = new URL(WORKER, document.baseURI).href;
   autoriserWorker(url);
   maplibre.setWorkerUrl(url);
-  return new maplibre.Map({
+  const carte = new maplibre.Map({
     container: options.conteneur,
     style: options.style,
     center: options.centre,
@@ -68,5 +70,9 @@ export async function creerFond(options: OptionsFond): Promise<FondCarte> {
     pitchWithRotate: false,
     dragRotate: false,
     touchPitch: false,
+  });
+  return Object.assign(carte, {
+    centrer: (centre: [number, number]) =>
+      options.reduit ? carte.jumpTo({ center: centre }) : carte.easeTo({ center: centre }),
   });
 }
