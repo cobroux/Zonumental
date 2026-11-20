@@ -59,7 +59,9 @@ class CapturerTest {
   void donnees() {
     jdbc.update("delete from capture.capture");
     jdbc.update("delete from capture.refus");
-    jdbc.update("delete from catalogue.monument where numero in (9001, 9002, 9003)");
+    jdbc.update(
+        "delete from catalogue.monument where numero in (9001, 9002, 9003)"
+            + " or ville_code_insee = '99001'");
     jdbc.update("delete from catalogue.ville where code_insee = '99001'");
     jdbc.update("insert into catalogue.ville values ('99001', 'Testville', 1)");
     monument(9001, "'Une histoire.', 'https://fr.wikipedia.org/wiki/T', 'CC BY-SA 4.0'");
