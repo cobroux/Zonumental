@@ -140,6 +140,7 @@ header {
   display: flex;
   flex-direction: column;
   gap: 10px;
+  z-index: 1; /* au-dessus de l'état Bientôt */
   pointer-events: none;
 }
 .onglets {
@@ -198,7 +199,6 @@ header {
   margin: 0;
   padding: 96px 16px 0;
   background: var(--zn-papier);
-  color: var(--zn-gris-45);
 }
 
 .repli {

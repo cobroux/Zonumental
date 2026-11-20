@@ -19,6 +19,7 @@ describe('écran Bientôt (Défis)', () => {
       const el = harness.routeNativeElement as HTMLElement;
       expect(el.querySelector('h1')?.textContent).toBe(titre);
       expect(el.querySelector('a[aria-label="Retour"]')?.getAttribute('href')).toBe('/explorer');
+      expect(el.querySelector('zn-bientot-etat')?.textContent).toContain('Classement : bientôt');
       expect(routes[0].data?.['navigation']).toBe(true);
     },
   );

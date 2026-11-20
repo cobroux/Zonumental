@@ -17,6 +17,7 @@ import {
   contenuTampon,
   etiquetteTampon,
 } from '../../shared/ui/tampon-monument';
+import { ZnBientotEtat } from '../../shared/ui/bientot-etat';
 import { ZnTampon } from '../../shared/ui/tampon';
 import { libelle, pourcentage, rayon } from './calque';
 import { FOND_CARTE, FondCarte } from './fond-carte';
@@ -34,7 +35,7 @@ const ECHELLES = ['Paris', 'France'] as const;
 /** Carte de Paris : fond MapLibre, brouillard et épingles en calque Angular (ADR 0023). */
 @Component({
   selector: 'app-carte',
-  imports: [RouterLink, ZnTampon],
+  imports: [RouterLink, ZnBientotEtat, ZnTampon],
   template: `
     <div class="canevas" #canevas></div>
     @if (echelle() === 'Paris') {
@@ -125,7 +126,7 @@ const ECHELLES = ['Paris', 'France'] as const;
     </header>
     <div id="panneau-carte" role="tabpanel" [attr.aria-labelledby]="'echelle-' + echelle()">
       @if (echelle() === 'France') {
-        <p class="bientot">Bientôt disponible. On y travaille.</p>
+        <zn-bientot-etat class="bientot" sujet="Carte de France" />
       }
     </div>
     @if (echelle() === 'Paris' && !selection() && procheAffiche(); as p) {

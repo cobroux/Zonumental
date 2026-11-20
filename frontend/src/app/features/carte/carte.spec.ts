@@ -135,7 +135,9 @@ describe('Carte', () => {
     onglets[1].click();
     fixture.detectChanges();
     expect(onglets[1].getAttribute('aria-selected')).toBe('true');
-    expect(el.textContent).toContain('Bientôt disponible');
+    expect(el.querySelector('zn-bientot-etat')?.textContent).toContain(
+      'Carte de France : bientôt disponible',
+    );
     expect(el.querySelector('.pastille')).toBeNull();
     onglets[0].click();
     fixture.detectChanges();
