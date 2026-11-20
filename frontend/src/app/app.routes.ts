@@ -47,7 +47,7 @@ const explorer: Routes = [
   },
   {
     path: 'defis',
-    loadChildren: () => import('./features/bientot/bientot.routes').then((m) => m.DEFIS_ROUTES),
+    loadChildren: () => import('./features/defis/defis.routes').then((m) => m.DEFIS_ROUTES),
   },
   {
     path: 'monument',
