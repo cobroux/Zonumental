@@ -10,6 +10,7 @@
 
 .canevas,
 .brouillard,
+.position,
 .epingles {
   position: absolute;
   inset: 0;
@@ -30,6 +31,49 @@
 :host ::ng-deep .maplibregl-canvas:focus-visible {
   outline: 3px solid var(--zn-focus);
   outline-offset: -3px;
+}
+
+.position {
+  inline-size: 100%;
+  block-size: 100%;
+  pointer-events: none;
+}
+.halo {
+  fill: var(--zn-marine);
+  fill-opacity: 0.16;
+}
+.centre {
+  fill: var(--zn-marine);
+  stroke: var(--zn-papier-clair);
+  stroke-width: 2.5;
+}
+.recentrer {
+  position: absolute;
+  /* au-dessus de la carte du plus proche (64 + 108 + 12) */
+  inset: auto 16px 184px auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  inline-size: 48px;
+  block-size: 48px;
+  padding: 0;
+  border: 1px solid var(--zn-voile-14);
+  border-radius: 50%;
+  background: var(--zn-papier-clair);
+  box-shadow: var(--zn-ombre-bouton);
+  cursor: pointer;
+}
+.recentrer svg {
+  inline-size: 20px;
+  block-size: 20px;
+  fill: none;
+  stroke: var(--zn-marine);
+  stroke-width: 1.9;
+  stroke-linecap: round;
+}
+.recentrer:focus-visible {
+  outline: 3px solid var(--zn-focus);
+  outline-offset: 2px;
 }
 
 .brouillard {
@@ -199,6 +243,69 @@ header {
   color: var(--zn-lien);
   font-size: 0.8125rem;
   font-weight: 600;
+}
+
+.proche {
+  position: absolute;
+  inset: auto 16px 64px;
+  display: grid;
+  grid-template-columns: 84px minmax(0, 1fr) auto;
+  gap: 14px;
+  align-items: center;
+  box-sizing: border-box;
+  min-block-size: 108px;
+  padding: 12px;
+  border: 1px solid var(--zn-voile-10);
+  border-radius: 18px;
+  background: var(--zn-papier-clair);
+  box-shadow: var(--zn-ombre-planche);
+  color: var(--zn-texte);
+  text-decoration: none;
+}
+.proche:focus-visible {
+  outline: 3px solid var(--zn-focus);
+  outline-offset: 2px;
+}
+.proche img,
+.proche .vignette {
+  inline-size: 84px;
+  block-size: 84px;
+  border-radius: 12px;
+  background: var(--zn-papier-sombre);
+  object-fit: cover;
+  filter: grayscale(0.85);
+  outline: 1px solid var(--zn-voile-10);
+  outline-offset: -1px;
+}
+.proche .texte {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-inline-size: 0;
+}
+.proche .num {
+  color: var(--zn-texte-doux);
+  font: 400 0.625rem var(--zn-police-mono);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+.proche strong {
+  font: 400 1.375rem / 1 var(--zn-police-titre);
+}
+.proche .distance {
+  color: var(--zn-texte-doux);
+  font-size: 0.8125rem;
+  font-variant-numeric: tabular-nums;
+}
+.proche .aller {
+  display: flex;
+  align-items: center;
+  min-block-size: var(--zn-cible);
+  padding: 0 14px;
+  border-radius: var(--zn-rayon-12);
+  background: var(--zn-action);
+  color: var(--zn-fond-clair);
+  font: 600 0.875rem var(--zn-police-ui);
 }
 
 .attribution {

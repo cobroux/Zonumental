@@ -10,7 +10,7 @@ import {
   viewChild,
 } from '@angular/core';
 import { RouterLink } from '@angular/router';
-import { Proximite } from '../../core/position/proximite';
+import { Proximite, dureeAPied, formaterDistance } from '../../core/position/proximite';
 import {
   ENCRE_PAR_RARETE,
   FORME_PAR_TYPE,
@@ -28,6 +28,7 @@ const LIMITES_PARIS: [[number, number], [number, number]] = [
   [2.0, 48.7],
   [2.7, 49.0],
 ];
+const RARETES = { COMMUN: 'Commun', RARE: 'Rare', LEGENDAIRE: 'Légendaire' };
 const ECHELLES = ['Paris', 'France'] as const;
 
 /** Carte de Paris : fond MapLibre, brouillard et épingles en calque Angular (ADR 0023). */
@@ -81,6 +82,25 @@ const ECHELLES = ['Paris', 'France'] as const;
           </li>
         }
       </ul>
+      @if (point(); as pt) {
+        <svg class="position" aria-hidden="true" focusable="false">
+          <g class="repere" [attr.transform]="'translate(' + pt.x + ' ' + pt.y + ')'">
+            <circle class="halo" r="20" />
+            <circle class="centre" r="7.5" />
+          </g>
+        </svg>
+        <button
+          type="button"
+          class="recentrer"
+          aria-label="Recentrer sur ma position"
+          (click)="recentrer()"
+        >
+          <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+            <circle cx="12" cy="12" r="6.5" />
+            <path d="M12 2.5v3M12 18.5v3M2.5 12h3M18.5 12h3" />
+          </svg>
+        </button>
+      }
     }
     <header>
       <div class="onglets" role="tablist" aria-label="Échelle de la carte">
@@ -108,6 +128,21 @@ const ECHELLES = ['Paris', 'France'] as const;
         <p class="bientot">Bientôt disponible. On y travaille.</p>
       }
     </div>
+    @if (echelle() === 'Paris' && !selection() && procheAffiche(); as p) {
+      <a class="proche" [routerLink]="['/monument', p.numero]">
+        @if (p.image; as img) {
+          <img [src]="img.url" alt="" />
+        } @else {
+          <span class="vignette"></span>
+        }
+        <span class="texte">
+          <span class="num">{{ libelleDe(p) }} · {{ p.rareteLibelle }} · À découvrir</span>
+          <strong>{{ p.nom }}</strong>
+          <span class="distance">{{ p.distanceLibelle }}</span>
+        </span>
+        <span class="aller">Y aller</span>
+      </a>
+    }
     @if (selection(); as s) {
       <div class="selection">
         <a [routerLink]="['/monument', s.numero]">
@@ -131,7 +166,8 @@ const ECHELLES = ['Paris', 'France'] as const;
 })
 export class Carte {
   private readonly creer = inject(FOND_CARTE);
-  private readonly monuments = inject(Proximite).monuments;
+  private readonly proximite = inject(Proximite);
+  private readonly monuments = this.proximite.monuments;
   private readonly canevas = viewChild.required<ElementRef<HTMLElement>>('canevas');
 
   protected readonly echelles = ECHELLES;
@@ -179,6 +215,26 @@ export class Carte {
       };
     }),
   );
+  /** Position en mémoire seulement, jamais copiée ailleurs (RG-036). */
+  private readonly coords = computed(() => {
+    const { statut, coords } = this.proximite.position.etat();
+    return statut === 'ok' ? (coords ?? null) : null;
+  });
+  protected readonly point = computed(() => {
+    this.mouvement();
+    const c = this.coords();
+    return c ? this.fond()?.project([c.longitude, c.latitude]) : undefined;
+  });
+  protected readonly procheAffiche = computed(() => {
+    const p = this.proximite.plusProche();
+    if (!p) return null;
+    const duree = dureeAPied(p.distance);
+    return {
+      ...p,
+      rareteLibelle: RARETES[p.rarete],
+      distanceLibelle: formaterDistance(p.distance) + (duree ? ` · ${duree}` : ''),
+    };
+  });
   protected readonly selection = computed(
     () => this.deParis().find((m) => m.numero === this.choisi()) ?? null,
   );
@@ -211,6 +267,11 @@ export class Carte {
         })
         .catch(() => this.repli.set(true)); // sans WebGL : message, pas d'erreur
     });
+  }
+
+  protected recentrer(): void {
+    const c = this.coords();
+    if (c) this.fond()?.centrer([c.longitude, c.latitude]);
   }
 
   protected choisir(numero: number): void {

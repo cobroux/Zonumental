@@ -2,7 +2,8 @@ import { signal } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 import { MonumentResume } from '../../core/api/models/monument-resume';
-import { Proximite } from '../../core/position/proximite';
+import { EtatPosition } from '../../core/position/position';
+import { Proche, Proximite } from '../../core/position/proximite';
 import { Carte } from './carte';
 import { FOND_CARTE, FondCarte, OptionsFond } from './fond-carte';
 
@@ -40,6 +41,7 @@ function fauxFond() {
     project: ([lng, lat]) => ({ x: lng * 10, y: lat * 10 }),
     getZoom: () => zoom,
     on: (_evenement, cb) => (rappel = cb),
+    centrer: vi.fn(),
     remove: vi.fn(),
     deplacer: (z) => {
       zoom = z;
@@ -50,7 +52,12 @@ function fauxFond() {
 }
 
 async function rendre(
-  options: { catalogue?: MonumentResume[]; creer?: () => Promise<FondCarte> } = {},
+  options: {
+    catalogue?: MonumentResume[];
+    creer?: () => Promise<FondCarte>;
+    position?: EtatPosition;
+    plusProche?: Proche;
+  } = {},
 ) {
   const fond = fauxFond();
   const creer = vi.fn<(o: OptionsFond) => Promise<FondCarte>>(() =>
@@ -60,7 +67,14 @@ async function rendre(
     providers: [
       provideRouter([]),
       { provide: FOND_CARTE, useValue: creer },
-      { provide: Proximite, useValue: { monuments: signal(options.catalogue ?? CATALOGUE) } },
+      {
+        provide: Proximite,
+        useValue: {
+          monuments: signal(options.catalogue ?? CATALOGUE),
+          position: { etat: signal(options.position ?? { statut: 'attente' }) },
+          plusProche: signal(options.plusProche),
+        },
+      },
     ],
   });
   const fixture: ComponentFixture<Carte> = TestBed.createComponent(Carte);
@@ -152,5 +166,66 @@ describe('Carte', () => {
     const { fond } = await rendre();
     fond.deplacer(15);
     expect(localStorage.length + sessionStorage.length).toBe(0);
+  });
+
+  describe('position et monument le plus proche (#132)', () => {
+    const OK: EtatPosition = { statut: 'ok', coords: { latitude: 48.86, longitude: 2.3 } };
+    const LOUVRE = {
+      ...monument(4, null, 'Musée du Louvre'),
+      rarete: 'RARE',
+      image: { url: '/louvre.jpg' },
+      distance: 1234,
+      capture: false,
+    } as unknown as Proche;
+
+    it('point de position et halo, projetés comme les épingles', async () => {
+      const { el } = await rendre({ position: OK });
+      const point = el.querySelector('.position .repere') as SVGElement;
+      expect(point.getAttribute('transform')).toBe('translate(23 488.6)');
+      expect(point.querySelector('.halo')).not.toBeNull();
+    });
+
+    it.each(['attente', 'refus', 'indisponible'] as const)(
+      'statut %s : ni point ni Recentrer, carte utilisable',
+      async (statut) => {
+        const { el } = await rendre({ position: { statut } });
+        expect(el.querySelector('.position')).toBeNull();
+        expect(el.querySelector('.recentrer')).toBeNull();
+        expect(el.querySelectorAll('.epingles button').length).toBe(4);
+      },
+    );
+
+    it('Recentrer : centre la carte sur la position', async () => {
+      const { el, fond } = await rendre({ position: OK });
+      const bouton = el.querySelector('.recentrer') as HTMLButtonElement;
+      expect(bouton.getAttribute('aria-label')).toBe('Recentrer sur ma position');
+      bouton.click();
+      expect(fond.centrer).toHaveBeenCalledWith([2.3, 48.86]);
+    });
+
+    it('carte du plus proche : numéro, rareté, nom, distance, temps à pied, lien', async () => {
+      const { el } = await rendre({ position: OK, plusProche: LOUVRE });
+      const lien = el.querySelector('.proche') as HTMLAnchorElement;
+      expect(lien.getAttribute('href')).toBe('/monument/4');
+      const texte = lien.textContent ?? '';
+      expect(texte).toContain('N° 004 · Rare · À découvrir');
+      expect(texte).toContain('Musée du Louvre');
+      expect(texte).toContain('1,2 km · 15 min à pied');
+      expect(texte).toContain('Y aller');
+      expect(lien.querySelector('img')?.getAttribute('src')).toBe('/louvre.jpg');
+    });
+
+    it('rien à faire : pas de carte du plus proche', async () => {
+      const { el } = await rendre({ position: OK });
+      expect(el.querySelector('.proche')).toBeNull();
+    });
+
+    it('la sélection d’une épingle remplace la carte du plus proche', async () => {
+      const { el, fixture } = await rendre({ position: OK, plusProche: LOUVRE });
+      (el.querySelectorAll('.epingles button')[2] as HTMLElement).click();
+      fixture.detectChanges();
+      expect(el.querySelector('.proche')).toBeNull();
+      expect(el.querySelector('.selection')).not.toBeNull();
+    });
   });
 });

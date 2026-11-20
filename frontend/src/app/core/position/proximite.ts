@@ -118,6 +118,8 @@ export class Proximite {
     return coords ? proches(this.catalogue.value() ?? [], coords, Infinity) : [];
   });
   readonly proches = computed(() => this.tous().filter((m) => m.distance < RAYON_LISTE_METRES));
+  /** Monument à faire le plus proche (RG-054) ; absent sans position ou si tout est capturé. */
+  readonly plusProche = computed(() => this.tous().find((m) => !m.capture));
   readonly bouton = computed(() => etatBouton(this.proches(), this.position.etat(), this.tous()));
 
   recharger(): void {
