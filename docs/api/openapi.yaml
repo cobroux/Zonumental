@@ -598,6 +598,31 @@ paths:
               schema: { $ref: '#/components/schemas/DefiCourant' }
         '401': { $ref: '#/components/responses/NonAuthentifie' }
 
+  /api/classement/villes/{codeInsee}/lancement:
+    get:
+      tags: [competition]
+      operationId: lancementClassementVille
+      summary: Compteur de lancement du classement d'une ville (ADR 0024)
+      description: >
+        `explorateurs` compte les comptes consentant au classement (dernier consentement CLASSEMENT
+        accordé), e-mail vérifié, sans suppression demandée, avec au moins une capture dans la ville ;
+        plafonné au `seuil`. `moi.tampons` = captures de l'appelant depuis lundi 00:00 Paris, toutes
+        villes. Aucune identité ni position n'est exposée (RG-036).
+      parameters:
+        - { name: codeInsee, in: path, required: true, schema: { type: string } }
+      responses:
+        '200':
+          description: Compteur de lancement
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/LancementClassementVille' }
+        '401': { $ref: '#/components/responses/NonAuthentifie' }
+        '404':
+          description: '`introuvable` : ville absente du catalogue'
+          content:
+            application/problem+json:
+              schema: { $ref: '#/components/schemas/Probleme' }
+
   /api/progression/collections:
     get:
       tags: [progression]
@@ -844,6 +869,25 @@ components:
               libelle: { type: string }
               valeur: { type: integer, format: int64, minimum: 0, description: Plafonnée au seuil }
               seuil: { type: integer, minimum: 1 }
+    LancementClassementVille:
+      type: object
+      required: [ville, seuil, explorateurs, ouvert, consentementClassement, moi]
+      properties:
+        ville:
+          type: object
+          required: [codeInsee, nom]
+          properties:
+            codeInsee: { type: string }
+            nom: { type: string }
+        seuil: { type: integer, minimum: 1 }
+        explorateurs: { type: integer, minimum: 0, description: Plafonné au seuil }
+        ouvert: { type: boolean, description: explorateurs >= seuil }
+        consentementClassement: { type: boolean }
+        moi:
+          type: object
+          required: [tampons]
+          properties:
+            tampons: { type: integer, minimum: 0, description: Captures de la semaine, toutes villes }
     DefiCourant:
       type: object
       required: [defi]
