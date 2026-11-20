@@ -36,7 +36,8 @@
 | `finLe` | Le minuteur (« FIN DANS 3 J 04 H ») est calculé par le front ; à 0 il relit l'endpoint. |
 | `valeur` | `CAPTURES` : captures de l'appelant avec `capturee_le ∈ [debutLe, finLe)` répondant au critère. `MONUMENTS` : monuments de la liste capturés avant `finLe`, même avant la semaine (RG-034 interdit de recapturer ; Q-30). Plafonnée à `seuil`. |
 | `reussi` | `valeur >= seuil`. |
-| `pastilles` | Toujours `seuil` éléments. Critère `MONUMENTS` : un par monument, dans l'ordre de la config, libellé = nom du monument. Critère `CAPTURES` : nom des monuments comptés dans l'ordre de capture, puis `"?"` non faits. |
+| `pastilles` | Toujours `seuil` éléments. Critère `MONUMENTS` : un par monument, dans l'ordre de la config, libellé = nom du monument. Critère `CAPTURES` : nom des monuments comptés dans l'ordre de capture, puis `libelle: null` pour les pastilles non faites (le « ? » est un rendu front). |
+| `description`, `recompense` | Jamais nuls. |
 | `saison`, `semaine` | Lus dans la config (pas calculés). |
 
 Mise à jour après capture : le front relit `defiCourant` après une `CaptureReussie` (pas de champ ajouté à `CaptureReussie` pour #133).
