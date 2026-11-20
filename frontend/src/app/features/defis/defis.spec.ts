@@ -53,11 +53,11 @@ async function rendre(corps: object | { status: number }) {
 describe('écran Défis', () => {
   afterEach(() => vi.useRealTimers());
 
-  it('titre, retour, barre, classement « Bientôt » conservé (D6)', async () => {
+  it('titre, retour, barre, section classement', async () => {
     const { el } = await rendre({ defi: defi() });
     expect(el.querySelector('h1')?.textContent).toBe('Défis');
     expect(el.querySelector('a[aria-label="Retour"]')?.getAttribute('href')).toBe('/explorer');
-    expect(el.querySelector('zn-bientot-etat')?.textContent).toContain('Classement : bientôt');
+    expect(el.querySelector('section.classement app-classement-lancement')).not.toBeNull();
     expect(DEFIS_ROUTES[0].data?.['navigation']).toBe(true);
   });
 
