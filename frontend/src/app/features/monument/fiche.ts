@@ -1,4 +1,4 @@
-import { httpResource } from '@angular/common/http';
+import { HttpClient, httpResource } from '@angular/common/http';
 import {
   ChangeDetectionStrategy,
   Component,
@@ -13,6 +13,7 @@ import {
   signal,
 } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
+import { firstValueFrom } from 'rxjs';
 import { Position } from '../../core/position/position';
 import {
   POINTS,
@@ -23,13 +24,17 @@ import {
 } from '../../core/position/proximite';
 import { Monument } from '../../core/api/models/monument';
 import { ZnIcone } from '../../shared/ui/icone';
+import { ConsentementsFacultatifs } from '../../core/api/models/consentements-facultatifs';
+import { MaCollection } from '../../core/api/models/ma-collection';
 import { MesSucces } from '../../core/api/models/mes-succes';
+import { Profil } from '../../core/api/models/profil';
 import { styleMedaille } from '../../shared/ui/medaille-catalogue';
 import { ZnMedaille } from '../../shared/ui/medaille';
 import { placement } from '../../shared/ui/placement';
 import { ZnTampon } from '../../shared/ui/tampon';
 import { ENCRE_PAR_RARETE, FORME_PAR_TYPE, contenuTampon } from '../../shared/ui/tampon-monument';
 import { Celebration, CRITERE } from './celebration';
+import { genererImage, partager, pseudoPartage, rang } from './partage';
 import { formaterSiecle } from './siecle';
 
 /** Blob authentifié (intercepteur Bearer) -> URL objet, révoquée au changement et à la destruction (ADR 0021). */
@@ -44,6 +49,15 @@ function urlBlob(url: () => string | undefined): Signal<string | null> {
     onCleanup(() => URL.revokeObjectURL(u));
   });
   return objet;
+}
+
+function chargerImage(src: string): Promise<HTMLImageElement> {
+  return new Promise((ok, ko) => {
+    const i = new Image();
+    i.onload = () => ok(i);
+    i.onerror = ko;
+    i.src = src;
+  });
 }
 
 /** ISO -> jj/mm/aaaa, heure de Paris (RG-043). */
@@ -176,8 +190,21 @@ const TYPES = {
             }
           </p>
         }
+        <p class="sr-only" role="status">{{ statutPartage() }}</p>
+        @if (partageErreur()) {
+          <p class="erreur" role="alert">Impossible de préparer l'image. Réessaie.</p>
+        }
         <div class="actions">
           @if (m.captureeLe) {
+            <button
+              type="button"
+              class="principal"
+              [disabled]="partageEnCours()"
+              [attr.aria-busy]="partageEnCours()"
+              (click)="partagerPage(m)"
+            >
+              {{ partageEnCours() ? 'Préparation…' : 'Partager ma page' }}
+            </button>
             <button type="button" class="secondaire" (click)="aller(true)">
               Remplacer la photo
             </button>
@@ -249,6 +276,60 @@ export class Fiche {
     afterNextRender(() => this.hote.querySelector<HTMLElement>('h1')?.focus(), {
       injector: this.injector,
     });
+  }
+  private readonly http = inject(HttpClient);
+  protected readonly partageEnCours = signal(false);
+  protected readonly partageErreur = signal(false);
+  protected readonly statutPartage = signal('');
+  /** Image 1080 x 1920 de la page de carnet ; données lues à la demande (aucun endpoint dédié). */
+  protected async partagerPage(m: Monument): Promise<void> {
+    this.partageEnCours.set(true);
+    this.partageErreur.set(false);
+    this.statutPartage.set('Préparation de l’image.');
+    try {
+      const [collections, moi, consentements] = await Promise.all([
+        firstValueFrom(this.http.get<MaCollection[]>('/api/progression/collections')),
+        firstValueFrom(this.http.get<Profil>('/api/compte/moi')).catch(() => undefined),
+        firstValueFrom(this.http.get<ConsentementsFacultatifs>('/api/compte/consentements')).catch(
+          () => undefined,
+        ),
+      ]);
+      const css = getComputedStyle(document.documentElement);
+      const token = (t: string) => css.getPropertyValue(t).trim();
+      const source = this.photo() ?? this.couleur();
+      const photo = source ? await chargerImage(source).catch(() => null) : null;
+      const { n, total } = rang(collections);
+      const blob = await genererImage(
+        {
+          nom: m.nom,
+          ville: m.ville.nom,
+          numero: m.numero,
+          rarete: m.rarete === 'LEGENDAIRE' ? 'LÉGENDAIRE' : m.rarete,
+          encre: `--zn-tampon-${this.encres[m.rarete]}`,
+          iso: m.captureeLe!,
+          annee: m.stats?.annee ?? null,
+          pseudo: pseudoPartage(moi?.pseudo, consentements?.classement === true),
+          capturesFrance: n,
+          totalFrance: total,
+          photo,
+        },
+        {
+          couleur: token,
+          police: {
+            titre: token('--zn-police-titre'),
+            ui: token('--zn-police-ui'),
+            mono: token('--zn-police-mono'),
+          },
+        },
+      );
+      const mode = await partager(blob, `zonumental-${m.numero}`);
+      this.statutPartage.set(mode === 'partage' ? '' : 'Image téléchargée.');
+    } catch {
+      this.partageErreur.set(true);
+      this.statutPartage.set('');
+    } finally {
+      this.partageEnCours.set(false);
+    }
   }
   private readonly position = inject(Position).etat;
   private readonly router = inject(Router);
