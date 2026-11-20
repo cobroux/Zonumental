@@ -105,6 +105,36 @@ describe('Fiche', () => {
     expect(el.textContent).toContain('Remplacer la photo');
   });
 
+  it('capturée : bouton « Partager ma page » téléchargeant l image sans Web Share', async () => {
+    const { el, http, fixture } = await rendre(capture);
+    const bouton = [...el.querySelectorAll('button')].find((b) =>
+      b.textContent?.includes('Partager ma page'),
+    )!;
+    expect(bouton).toBeTruthy();
+    vi.stubGlobal('navigator', {});
+    HTMLCanvasElement.prototype.getContext = vi.fn(
+      () => new Proxy({}, { get: () => () => undefined, set: () => true }),
+    ) as never;
+    HTMLCanvasElement.prototype.toBlob = (f) => f(new Blob(['x'], { type: 'image/png' }));
+    Object.defineProperty(document, 'fonts', { value: { load: () => Promise.resolve([]) } });
+    const clic = vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(() => undefined);
+    bouton.click();
+    await attendre(fixture);
+    http.expectOne('/api/progression/collections').flush([]);
+    http.expectOne('/api/compte/moi').flush({ pseudo: 'lea' });
+    http.expectOne('/api/compte/consentements').flush({ classement: false, emails: false });
+    await new Promise((r) => setTimeout(r, 20));
+    await attendre(fixture);
+    expect(clic).toHaveBeenCalledOnce();
+    expect(el.textContent).toContain('Image téléchargée.');
+    vi.unstubAllGlobals();
+  });
+
+  it('verrouillée : pas de bouton Partager', async () => {
+    const { el } = await rendre(verrouille);
+    expect(el.textContent).not.toContain('Partager ma page');
+  });
+
   it('capturée : stats inconnues « — »', async () => {
     const { el } = await rendre({
       ...capture,

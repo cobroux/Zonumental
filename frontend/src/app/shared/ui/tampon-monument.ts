@@ -48,7 +48,7 @@ const FUSEAU = 'Europe/Paris';
 const tronquer = (s: string, max: number) => (s.length > max ? `${s.slice(0, max - 1)}…` : s);
 const majuscules = (s: string) => s.toLocaleUpperCase('fr-FR');
 const numero = (m: MonumentResume) => `N°${String(m.numero).padStart(3, '0')}`;
-const jjmmaa = (iso: string | null) =>
+export const jjmmaa = (iso: string | null) =>
   iso
     ? new Intl.DateTimeFormat('fr-FR', {
         day: '2-digit',

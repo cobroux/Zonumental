@@ -215,9 +215,10 @@ h1 {
 .actions {
   margin-block-start: auto;
   display: flex;
+  flex-direction: column;
+  gap: var(--zn-esp-3);
 }
 .actions button {
-  flex: 1;
   min-block-size: 54px;
   border-radius: var(--zn-rayon-14);
   font: 600 1rem / 1 var(--zn-police-ui);
