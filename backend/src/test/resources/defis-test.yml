@@ -1,0 +1,7 @@
+defis:
+  - { code: PAS, nom: "Pas", description: "3 tampons à Testville.", saison: "Saison test", semaine: 1,
+      debut: "2026-10-05", fin: "2026-10-12", critere: CAPTURES, seuil: 3, ville: "99004",
+      recompense: "Badge Pas" }
+  - { code: DOMES, nom: "Dômes", description: "Trois tours.", saison: "Saison test", semaine: 7,
+      debut: "2026-11-16", fin: "2026-11-23", critere: MONUMENTS, monuments: [9403, 9401, 9402],
+      recompense: "Tampon doré" }

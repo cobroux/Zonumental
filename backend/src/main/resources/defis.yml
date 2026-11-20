@@ -1,0 +1,9 @@
+# Défis hebdomadaires (ADR 0024). debut/fin = dates Paris, fin exclue. Ne jamais retirer un défi passé :
+# son code DEFI_<code> peut être déjà obtenu.
+defis:
+  - { code: PREMIERS_PAS, nom: "Premiers pas", description: "3 tampons cette semaine, où tu veux.",
+      saison: "Saison d'automne", semaine: 1, debut: "2026-10-05", fin: "2026-10-12",
+      critere: CAPTURES, seuil: 3, recompense: "Badge Pionnier" }
+  - { code: TROIS_DOMES, nom: "Les trois dômes", description: "Panthéon, Sacré-Cœur et Invalides.",
+      saison: "Saison d'automne", semaine: 7, debut: "2026-11-16", fin: "2026-11-23",
+      critere: MONUMENTS, monuments: [12, 31, 7], recompense: "Tampon doré" }

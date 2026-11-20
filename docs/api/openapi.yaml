@@ -31,6 +31,8 @@ tags:
     description: Capture d'un monument et photo souvenir (R1)
   - name: progression
     description: Succès du joueur connecté (R2)
+  - name: competition
+    description: Défis hebdomadaires et classement (R6)
 
 paths:
   /api/health:
@@ -579,6 +581,23 @@ paths:
               schema: { $ref: '#/components/schemas/MesSucces' }
         '401': { $ref: '#/components/responses/NonAuthentifie' }
 
+  /api/defis/courant:
+    get:
+      tags: [competition]
+      operationId: defiCourant
+      summary: Défi de la semaine et progression de l'appelant, dérivée de ses captures (ADR 0024)
+      description: >
+        200 dans tous les cas : aucun défi en cours = `defi: null`. `valeur` est plafonnée au `seuil`.
+        `pastilles` compte toujours `seuil` éléments ; pour un défi CAPTURES, `libelle` est null tant
+        que la pastille n'est pas faite. Aucune position n'est exposée (RG-036).
+      responses:
+        '200':
+          description: Défi courant ou null
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/DefiCourant' }
+        '401': { $ref: '#/components/responses/NonAuthentifie' }
+
   /api/progression/collections:
     get:
       tags: [progression]
@@ -825,6 +844,39 @@ components:
               libelle: { type: string }
               valeur: { type: integer, format: int64, minimum: 0, description: Plafonnée au seuil }
               seuil: { type: integer, minimum: 1 }
+    DefiCourant:
+      type: object
+      required: [defi]
+      properties:
+        defi:
+          type: object
+          nullable: true
+          required: [code, nom, description, saison, semaine, debutLe, finLe, seuil, valeur, reussi, recompense, pastilles]
+          properties:
+            code: { type: string }
+            nom: { type: string }
+            description: { type: string }
+            saison: { type: string }
+            semaine: { type: integer }
+            debutLe: { type: string, format: date-time }
+            finLe: { type: string, format: date-time, description: Exclusive ; le minuteur est calculé par le client }
+            seuil: { type: integer, minimum: 1 }
+            valeur: { type: integer, minimum: 0, description: Plafonnée au seuil }
+            reussi: { type: boolean }
+            recompense:
+              type: object
+              required: [code, libelle]
+              properties:
+                code: { type: string, description: 'DEFI_<code>' }
+                libelle: { type: string }
+            pastilles:
+              type: array
+              items:
+                type: object
+                required: [libelle, faite]
+                properties:
+                  libelle: { type: string, nullable: true, description: Null pour une pastille CAPTURES non faite }
+                  faite: { type: boolean }
     ConsentementsFacultatifs:
       type: object
       required: [classement, emails]
