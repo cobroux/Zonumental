@@ -11,9 +11,9 @@ import {
 } from '@angular/core';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { DefiCourant } from '../../core/api/models/defi-courant';
-import { ZnBientotEtat } from '../../shared/ui/bientot-etat';
 import { ZnIcone } from '../../shared/ui/icone';
 import { ZnMessage } from '../../shared/ui/message';
+import { ClassementLancement } from './classement-lancement';
 
 const MIN = 60_000;
 const deux = (n: number) => String(n).padStart(2, '0');
@@ -29,10 +29,10 @@ export function dureeRestante(ms: number): string {
   return `FIN DANS ${min} MIN`;
 }
 
-/** Écran Défis : défi de la semaine (#133). Le classement actif reste « Bientôt » (D6). */
+/** Écran Défis : défi de la semaine (#133). Classement : état de lancement (#134), actif « Bientôt » (D6). */
 @Component({
   selector: 'app-defis',
-  imports: [RouterLink, ZnBientotEtat, ZnIcone, ZnMessage],
+  imports: [ClassementLancement, RouterLink, ZnIcone, ZnMessage],
   template: `
     <header>
       <a class="retour" routerLink="/explorer" aria-label="Retour"><zn-icone nom="retour" /></a>
@@ -89,7 +89,7 @@ export function dureeRestante(ms: number): string {
     }
     <section class="classement">
       <h2>Classement</h2>
-      <zn-bientot-etat sujet="Classement" />
+      <app-classement-lancement />
     </section>
   `,
   styleUrl: './defis.css',
