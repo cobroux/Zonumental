@@ -30,7 +30,3 @@ h1:focus-visible {
   outline: 3px solid var(--zn-focus);
   outline-offset: 4px;
 }
-p {
-  margin: 12px 0 0;
-  color: var(--zn-gris-45);
-}

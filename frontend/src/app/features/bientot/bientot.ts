@@ -1,17 +1,18 @@
 import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { ActivatedRoute, RouterLink } from '@angular/router';
+import { ZnBientotEtat } from '../../shared/ui/bientot-etat';
 import { ZnIcone } from '../../shared/ui/icone';
 
-/** Écran générique des onglets Carte et Défis, pas encore construits (fidélité §6.2, décision n° 9). */
+/** Écran Défis : le classement actif est hors v1 (D6), état « Bientôt » à la place. */
 @Component({
   selector: 'app-bientot',
-  imports: [RouterLink, ZnIcone],
+  imports: [RouterLink, ZnBientotEtat, ZnIcone],
   template: `
     <header>
       <a class="retour" routerLink="/explorer" aria-label="Retour"><zn-icone nom="retour" /></a>
     </header>
     <h1 tabindex="-1">{{ titre }}</h1>
-    <p>Bientôt disponible. On y travaille.</p>
+    <zn-bientot-etat sujet="Classement" />
   `,
   styleUrl: './bientot.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
