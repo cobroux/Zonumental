@@ -85,7 +85,7 @@ export async function mockApi(page: Page) {
     ...m,
     captureeLe: etat.captures.has(m.numero) ? CAPTUREE_LE : null,
   });
-  await page.route(/\/api\/(auth|catalogue|captures|progression|compte)\b/, async (route) => {
+  await page.route(/\/api\/(auth|catalogue|captures|progression|compte|defis)\b/, async (route) => {
     const req = route.request();
     const { pathname } = new URL(req.url());
     const json = (body: unknown, status = 200) =>
@@ -159,6 +159,27 @@ export async function mockApi(page: Page) {
           })),
         },
       ]);
+    if (pathname === '/api/defis/courant')
+      return json({
+        defi: {
+          code: 'TROIS_DOMES',
+          nom: 'Les trois dômes',
+          description: 'Panthéon, Sacré-Cœur et Invalides.',
+          saison: "Saison d'automne",
+          semaine: 7,
+          debutLe: new Date(Date.now() - 3 * 86400_000).toISOString(),
+          finLe: new Date(Date.now() + (3 * 24 + 4) * 3600_000 + 60_000).toISOString(),
+          seuil: 3,
+          valeur: 2,
+          reussi: false,
+          recompense: { code: 'DEFI_TROIS_DOMES', libelle: 'Tampon doré' },
+          pastilles: [
+            { libelle: 'Panthéon', faite: true },
+            { libelle: 'Sacré-Cœur', faite: true },
+            { libelle: null, faite: false },
+          ],
+        },
+      });
     if (pathname === '/api/compte/moi')
       return json({
         id: '00000000-0000-4000-8000-000000000001',
