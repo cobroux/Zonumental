@@ -25,6 +25,8 @@ tags:
     description: Connexion, renouvellement, déconnexion
   - name: compte
     description: Inscription, vérification, mot de passe, profil, consentements, RGPD
+  - name: itineraire
+    description: Itinéraire à pied vers un monument
   - name: catalogue
     description: Monuments en lecture
   - name: capture
@@ -598,6 +600,57 @@ paths:
               schema: { $ref: '#/components/schemas/DefiCourant' }
         '401': { $ref: '#/components/responses/NonAuthentifie' }
 
+  /api/itineraire:
+    post:
+      tags: [itineraire]
+      operationId: calculerItineraire
+      summary: Itinéraire à pied jusqu'à un monument (ADR 0025)
+      description: >
+        POST pour que la position n'entre jamais dans une URL. La destination vient du catalogue.
+        Le départ est arrondi à ~10 m ; aucune position n'est stockée ni journalisée (RG-036).
+        `trace` est un GeoJSON LineString en [longitude, latitude]. 400 `validation` : champ manquant,
+        départ hors Île-de-France ou à plus de 10 km du monument. 429 `limite-frequence` : 30 calculs
+        par heure et par compte. 502/503 `indisponible` : moteur de routage en échec, sans détail.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/DemandeItineraire' }
+      responses:
+        '200':
+          description: Itinéraire
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Itineraire' }
+        '400': { $ref: '#/components/responses/Validation' }
+        '401': { $ref: '#/components/responses/NonAuthentifie' }
+        '404':
+          description: '`introuvable` : monument absent du catalogue'
+          content:
+            application/problem+json:
+              schema: { $ref: '#/components/schemas/Probleme' }
+        '429':
+          description: "`limite-frequence` : quota de calculs atteint ; réessayer après `Retry-After` (secondes)"
+          headers:
+            Retry-After: { schema: { type: integer } }
+          content:
+            application/problem+json:
+              schema: { $ref: '#/components/schemas/Probleme' }
+        '502':
+          description: "`indisponible` : le moteur a refusé la demande ou sa réponse est illisible"
+          headers:
+            Retry-After: { schema: { type: integer } }
+          content:
+            application/problem+json:
+              schema: { $ref: '#/components/schemas/Probleme' }
+        '503':
+          description: "`indisponible` : moteur injoignable ou en erreur"
+          headers:
+            Retry-After: { schema: { type: integer } }
+          content:
+            application/problem+json:
+              schema: { $ref: '#/components/schemas/Probleme' }
+
   /api/classement/villes/{codeInsee}/lancement:
     get:
       tags: [competition]
@@ -898,6 +951,45 @@ components:
               libelle: { type: string }
               valeur: { type: integer, format: int64, minimum: 0, description: Plafonnée au seuil }
               seuil: { type: integer, minimum: 1 }
+    DemandeItineraire:
+      type: object
+      required: [depart, numero]
+      properties:
+        depart:
+          type: object
+          required: [latitude, longitude]
+          properties:
+            latitude: { type: number, minimum: -90, maximum: 90 }
+            longitude: { type: number, minimum: -180, maximum: 180 }
+        numero: { type: integer, minimum: 1, description: Numéro du monument du catalogue }
+    Itineraire:
+      type: object
+      required: [distanceMetres, dureeSecondes, trace, etapes]
+      properties:
+        distanceMetres: { type: integer, minimum: 0 }
+        dureeSecondes: { type: integer, minimum: 0 }
+        trace:
+          type: object
+          description: GeoJSON LineString, coordonnées en [longitude, latitude]
+          required: [type, coordinates]
+          properties:
+            type: { type: string, enum: [LineString] }
+            coordinates:
+              type: array
+              items:
+                type: array
+                minItems: 2
+                maxItems: 2
+                items: { type: number }
+        etapes:
+          type: array
+          description: Instructions en français, alternative texte de la carte
+          items:
+            type: object
+            required: [instruction, distanceMetres]
+            properties:
+              instruction: { type: string }
+              distanceMetres: { type: integer, minimum: 0 }
     LancementClassementVille:
       type: object
       required: [ville, seuil, explorateurs, ouvert, consentementClassement, moi]
