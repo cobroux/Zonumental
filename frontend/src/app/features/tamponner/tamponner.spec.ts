@@ -8,7 +8,13 @@ import { Tamponner } from './tamponner';
 const proche = (numero: number, distance: number, capture = false) =>
   ({ numero, nom: `Monument ${numero}`, ville: { nom: 'Paris' }, distance, capture }) as Proche;
 
-function rendre(etat: EtatPosition, liste: Proche[] = [], erreur = false) {
+function rendre(
+  etat: EtatPosition,
+  liste: Proche[] = [],
+  erreur = false,
+  chargement = false,
+  plusProche?: Proche,
+) {
   const activer = vi.fn();
   const recharger = vi.fn();
   TestBed.configureTestingModule({
@@ -19,6 +25,8 @@ function rendre(etat: EtatPosition, liste: Proche[] = [], erreur = false) {
         useValue: {
           position: { etat: signal(etat), activer },
           proches: signal(liste),
+          monuments: signal(chargement ? [] : [{}]),
+          plusProche: signal(plusProche),
           erreur: signal(erreur),
           recharger,
         },
@@ -59,18 +67,53 @@ describe('Tamponner', () => {
     expect(el.querySelector('a')?.getAttribute('href')).toBe('/carnet');
   });
 
-  it.each(['attente', 'refus'] as const)('%s : bouton Activer déclenche la position', (statut) => {
-    const { el, activer } = rendre({ statut });
-    bouton(el, 'Activer')?.click();
+  it('attente : invitation avec bouton Activer du design system, déclenché par un geste', () => {
+    const { el, activer } = rendre({ statut: 'attente' });
+    expect(activer).not.toHaveBeenCalled();
+    const b = bouton(el, 'Activer la position') as HTMLButtonElement;
+    expect(b.hasAttribute('znBouton')).toBe(true);
+    b.click();
+    expect(activer).toHaveBeenCalledOnce();
+    expect(el.querySelector('.papier')).not.toBeNull();
+  });
+
+  it('refus : message d’erreur zn-message, réglages, Réessayer relance la demande (RG-057)', () => {
+    const { el, activer } = rendre({ statut: 'refus' });
+    expect(el.querySelector('zn-message[data-type="erreur"]')?.textContent).toContain('réglages');
+    bouton(el, 'Réessayer')?.click();
     expect(activer).toHaveBeenCalledOnce();
   });
 
-  it('refus : explique comment réactiver', () => {
-    expect(rendre({ statut: 'refus' }).el.textContent).toContain('réglages');
+  it('position indisponible : message et Réessayer', () => {
+    const { el, activer } = rendre({ statut: 'indisponible' });
+    expect(el.querySelector('zn-message')?.textContent).toContain('Position indisponible');
+    bouton(el, 'Réessayer')?.click();
+    expect(activer).toHaveBeenCalledOnce();
   });
 
-  it('position indisponible : message', () => {
-    expect(rendre({ statut: 'indisponible' }).el.textContent).toContain('Position indisponible');
+  it('catalogue en chargement : message de recherche annoncé, pas de « rien à tamponner »', () => {
+    const { el } = rendre(ok(), [], false, true);
+    expect(el.querySelector('[role="status"]')?.textContent).toContain('Recherche');
+    expect(el.textContent).not.toContain('Rien à tamponner');
+  });
+
+  it('liste mise en forme : numéro, nom, distance, état ; capturé marqué', () => {
+    const { el } = rendre(ok(), [proche(1, 30, true), proche(2, 420)]);
+    const lignes = el.querySelectorAll('ul.proches li');
+    expect(lignes.length).toBe(2);
+    expect(lignes[0].textContent).toContain('N°001');
+    expect(lignes[0].textContent).toContain('Déjà tamponné');
+    expect(lignes[1].textContent).toContain('N°002');
+    expect(lignes[1].textContent).toContain('Monument 2');
+    expect(lignes[1].textContent).toContain('420 m');
+    expect(lignes[1].textContent).toContain('À tamponner');
+  });
+
+  it('rien à proximité : distance du plus proche, sans son nom (RG-054)', () => {
+    const { el } = rendre(ok(), [], false, false, proche(7, 3400));
+    expect(el.textContent).toContain('3,4 km');
+    expect(el.textContent).toContain('N°007');
+    expect(el.textContent).not.toContain('Monument 7');
   });
 
   it('catalogue en erreur : « Pas de connexion. Réessayer » relance le chargement', () => {

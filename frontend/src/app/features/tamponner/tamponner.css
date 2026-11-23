@@ -1,0 +1,75 @@
+/* Écran Tamponner : feuille de papier, états de position (maquettes O2, nav). */
+:host {
+  display: block;
+  max-inline-size: 32rem;
+  margin-inline: auto;
+  padding: var(--zn-esp-4) 16px var(--zn-esp-6);
+}
+h1 {
+  margin: 0 0 var(--zn-esp-4);
+  font: 400 1.75rem / 1.05 var(--zn-police-titre);
+}
+.papier {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: var(--zn-esp-4);
+  padding: var(--zn-esp-6) var(--zn-esp-4);
+  border: 1px solid var(--zn-voile-10);
+  border-radius: var(--zn-rayon-18);
+  background-color: var(--zn-papier-clair);
+  box-shadow: var(--zn-ombre-planche);
+}
+.invite,
+.loin {
+  margin: 0;
+  color: var(--zn-texte);
+  font: 400 var(--zn-taille-0) / 1.4 var(--zn-police-ui);
+  text-wrap: pretty;
+}
+.proches {
+  display: flex;
+  flex-direction: column;
+  gap: var(--zn-esp-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.ligne {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 2px var(--zn-esp-3);
+  align-items: baseline;
+  min-block-size: var(--zn-cible);
+  padding: var(--zn-esp-3) var(--zn-esp-4);
+  border: 1px solid var(--zn-voile-14);
+  border-radius: var(--zn-rayon-12);
+  background-color: var(--zn-fond-clair);
+  color: var(--zn-texte);
+  text-decoration: none;
+}
+a.ligne {
+  border-color: var(--zn-bordeaux);
+}
+a.ligne:focus-visible {
+  outline: 3px solid var(--zn-focus);
+  outline-offset: 2px;
+}
+.fait {
+  color: var(--zn-gris-texte);
+}
+.num {
+  color: var(--zn-gris-libelle);
+  font: 500 var(--zn-fs-11) / 1 var(--zn-police-mono);
+  letter-spacing: var(--zn-ls-numero);
+}
+.nom {
+  font: 600 var(--zn-taille-0) / 1.25 var(--zn-police-ui);
+}
+.etat {
+  grid-column: 2;
+  font: 400 var(--zn-fs-12) / 1.25 var(--zn-police-ui);
+}
+a.ligne .etat {
+  color: var(--zn-bordeaux);
+}
