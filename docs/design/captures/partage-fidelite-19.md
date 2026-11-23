@@ -8,3 +8,8 @@ Captures : `partage-fidelite-19.png` (image générée 1080 x 1920, photo simul�
 4. Rang « N / total » : monuments distincts des collections de `/api/progression/collections` (seules les collections de 3 monuments ou plus) : le total peut différer de 118 tant que le catalogue n'y est pas entièrement rangé.
 5. Pseudo : « Explorateur » sans consentement « classement » (D5) ; « Explorateur » aussi si le profil ou les consentements sont indisponibles.
 6. Le bouton passe par Web Share avec fichier ; sans lui (ou en cas d'échec autre que l'annulation), téléchargement de `zonumental-N.png`.
+
+## Fidélité #149 : « cercle blanc vide » sous le titre
+
+Décision : voulu par la maquette, aucun médaillon à remplir, rien à retirer. V2-Partage trace 36 ellipses `cx=202 cy=590 rx=230 ry=54` tournées de 5° en 5° (lignes 27 et 65 du HTML) : leur enveloppe laisse un disque vide de rayon ry (54 x 2,67 = 144 px sur le PNG), l'oeil de la rosette. La maquette ne contient ni cercle, ni tampon, ni médaille à cet endroit (seuls le tampon « CAPTURÉ » penché et la MRZ). Le canvas reprend exactement ces paramètres ; la maquette est identique, mais son grain `paper` (absent du canvas, écart 2) estompe le disque. Test de non-régression : `partage.spec.ts` (36 ellipses 230 x 54, aucun cercle ajouté).
+Repli Safari iOS : inchangé (`roundRect` et `letterSpacing` toujours utilisés, comme avant ; non aggravé).

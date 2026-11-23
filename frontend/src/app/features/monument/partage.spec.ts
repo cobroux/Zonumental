@@ -61,6 +61,22 @@ describe('partage', () => {
       ]),
     );
   });
+
+  it("guillochis : 36 ellipses 230 x 54 en (202, 590) comme V2-Partage ; le disque central vide en est l'œil, pas un médaillon", () => {
+    const ellipses: unknown[][] = [];
+    const ctx = new Proxy(
+      { ellipse: (...a: unknown[]) => ellipses.push(a), canvas: {} },
+      {
+        get: (cible, cle) => (cle in cible ? (cible as never)[cle] : () => undefined),
+        set: () => true,
+      },
+    ) as unknown as CanvasRenderingContext2D;
+    dessiner(ctx, page, { couleur: (t) => t, police: { titre: 'T', ui: 'U', mono: 'M' } });
+    const guil = ellipses.filter((e) => e[0] === 202 && e[1] === 590);
+    expect(guil).toHaveLength(36);
+    expect(guil.every((e) => e[2] === 230 && e[3] === 54)).toBe(true);
+    expect(ellipses.some((e) => e[2] === 54 && e[3] === 54)).toBe(false); // aucun cercle ajouté
+  });
 });
 
 describe('partager', () => {
