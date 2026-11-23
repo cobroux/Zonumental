@@ -1,6 +1,6 @@
 import { lireCouleurs, styleCarte } from './style-carte';
 
-const couleurs = { fond: 'f0', rue: 'r1', rueFine: 'r2', eau: 'e0' };
+const couleurs = { fond: 'f0', rue: 'r1', rueFine: 'r2', eau: 'e0', itineraire: 'i0' };
 
 describe('style de la carte', () => {
   it('sans libellé, glyphe ni sprite (pas de requête tierce hors tuiles)', () => {
@@ -16,7 +16,9 @@ describe('style de la carte', () => {
       { type: 'vector', url: 'https://exemple.test/planet' },
     ]);
     const json = JSON.stringify(style.layers);
-    for (const c of Object.values(couleurs)) expect(json).toContain(c);
+    const { itineraire, ...carte } = couleurs; // le tracé est ajouté par FondCarte, pas par le style
+    expect(itineraire).toBe('i0');
+    for (const c of Object.values(carte)) expect(json).toContain(c);
   });
 
   it('lit les couleurs dans les variables CSS', () => {
@@ -26,11 +28,13 @@ describe('style de la carte', () => {
     el.style.setProperty('--zn-carte-rue', '#222222');
     el.style.setProperty('--zn-carte-rue-fine', '#333333');
     el.style.setProperty('--zn-carte-eau', '#444444');
+    el.style.setProperty('--zn-carte-itineraire', '#555555');
     expect(lireCouleurs(el)).toEqual({
       fond: '#111111',
       rue: '#222222',
       rueFine: '#333333',
       eau: '#444444',
+      itineraire: '#555555',
     });
     el.remove();
   });

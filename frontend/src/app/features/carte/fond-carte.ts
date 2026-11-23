@@ -1,5 +1,6 @@
 import { InjectionToken } from '@angular/core';
 import type { StyleSpecification } from 'maplibre-gl';
+import { Itineraire } from '../../core/api/models/itineraire';
 
 /** Ce que le composant utilise de MapLibre (ADR 0023 §5) : un faux suffit en test, sans WebGL. */
 export interface FondCarte {
@@ -8,6 +9,10 @@ export interface FondCarte {
   on(evenement: 'move', rappel: () => void): void;
   /** Recentre sur la position ; sans animation si `reduit` (prefers-reduced-motion). */
   centrer(lngLat: [number, number]): void;
+  /** Dessine l'itinéraire (GeoJSON LineString) et cadre la carte dessus ; sans animation si `reduit`. */
+  tracer(trace: Itineraire['trace']): void;
+  /** Retire le tracé ; sans effet s'il n'y en a pas. */
+  effacer(): void;
   remove(): void;
 }
 
@@ -20,6 +25,7 @@ export interface OptionsFond {
   zoomMin: number;
   zoomMax: number;
   reduit: boolean;
+  couleurItineraire: string;
 }
 
 export const FOND_CARTE = new InjectionToken<(options: OptionsFond) => Promise<FondCarte>>(
@@ -52,6 +58,8 @@ function autoriserWorker(url: string): void {
   });
 }
 
+const TRACE = 'itineraire';
+
 export async function creerFond(options: OptionsFond): Promise<FondCarte> {
   const maplibre = await import('maplibre-gl');
   const url = new URL(WORKER, document.baseURI).href;
@@ -71,8 +79,45 @@ export async function creerFond(options: OptionsFond): Promise<FondCarte> {
     dragRotate: false,
     touchPitch: false,
   });
+  const effacer = () => {
+    if (carte.getLayer(TRACE)) carte.removeLayer(TRACE);
+    if (carte.getSource(TRACE)) carte.removeSource(TRACE);
+  };
   return Object.assign(carte, {
     centrer: (centre: [number, number]) =>
       options.reduit ? carte.jumpTo({ center: centre }) : carte.easeTo({ center: centre }),
+    effacer,
+    tracer: (trace: Itineraire['trace']) => {
+      effacer();
+      // frontière de confiance : forme et plafond avant d'alimenter MapLibre
+      const ok =
+        trace?.type === 'LineString' &&
+        Array.isArray(trace.coordinates) &&
+        trace.coordinates.length >= 2 &&
+        trace.coordinates.length <= 20000 &&
+        trace.coordinates.every(
+          (c) =>
+            Array.isArray(c) && c.length >= 2 && Number.isFinite(c[0]) && Number.isFinite(c[1]),
+        );
+      if (!ok) return;
+      carte.addSource(TRACE, {
+        type: 'geojson',
+        data: { type: 'Feature', properties: {}, geometry: trace },
+      });
+      carte.addLayer({
+        id: TRACE,
+        type: 'line',
+        source: TRACE,
+        layout: { 'line-cap': 'round', 'line-join': 'round' },
+        paint: { 'line-color': options.couleurItineraire, 'line-width': 5 },
+      });
+      const bornes = new maplibre.LngLatBounds();
+      for (const [lng, lat] of trace.coordinates) bornes.extend([lng, lat]);
+      // marge basse : le panneau d'itinéraire recouvre le bas de la carte
+      carte.fitBounds(bornes, {
+        padding: { top: 90, bottom: 280, left: 32, right: 32 },
+        ...(options.reduit && { duration: 0 }),
+      });
+    },
   });
 }

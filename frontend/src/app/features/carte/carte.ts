@@ -5,7 +5,9 @@ import {
   ElementRef,
   afterNextRender,
   computed,
+  effect,
   inject,
+  untracked,
   signal,
   viewChild,
 } from '@angular/core';
@@ -17,10 +19,12 @@ import {
   contenuTampon,
   etiquetteTampon,
 } from '../../shared/ui/tampon-monument';
+import { ZnMessage } from '../../shared/ui/message';
 import { ZnBientotEtat } from '../../shared/ui/bientot-etat';
 import { ZnTampon } from '../../shared/ui/tampon';
 import { libelle, pourcentage, rayon } from './calque';
 import { FOND_CARTE, FondCarte } from './fond-carte';
+import { CalculItineraire, lienRepli, resume } from './itineraire';
 import { lireCouleurs, styleCarte } from './style-carte';
 
 const ZOOM_INITIAL = 12;
@@ -35,7 +39,7 @@ const ECHELLES = ['Paris', 'France'] as const;
 /** Carte de Paris : fond MapLibre, brouillard et épingles en calque Angular (ADR 0023). */
 @Component({
   selector: 'app-carte',
-  imports: [RouterLink, ZnBientotEtat, ZnTampon],
+  imports: [RouterLink, ZnBientotEtat, ZnMessage, ZnTampon],
   template: `
     <div class="canevas" #canevas></div>
     @if (echelle() === 'Paris') {
@@ -151,6 +155,63 @@ const ECHELLES = ['Paris', 'France'] as const;
           <strong>{{ s.nom }}</strong>
           <span class="voir">Voir la fiche</span>
         </a>
+        @if (mention()) {
+          <p class="mention">
+            Ta position arrondie (~10 m) est envoyée à notre serveur pour calculer le trajet. Elle
+            n'est pas conservée.
+            <a routerLink="/confidentialite">Politique de confidentialité</a>
+          </p>
+        }
+        @if (positionRefusee()) {
+          <zn-message type="erreur">
+            Active ta position pour obtenir un itinéraire.
+            <a [href]="lienOsm(s)" target="_blank" rel="noopener noreferrer"
+              >Ouvrir dans OpenStreetMap</a
+            >
+          </zn-message>
+        }
+        @if (erreur(); as e) {
+          <zn-message type="erreur">
+            {{ e.texte }}
+            @if (e.repli) {
+              <a [href]="lienOsm(s)" target="_blank" rel="noopener noreferrer"
+                >Ouvrir dans OpenStreetMap</a
+              >
+            }
+          </zn-message>
+        }
+        <div class="actions">
+          @if (mention()) {
+            <button type="button" class="action" (click)="confirmer()">Calculer</button>
+          } @else {
+            <button
+              #boutonItineraire
+              type="button"
+              class="action"
+              [disabled]="calcul.etat().statut === 'chargement'"
+              [attr.aria-busy]="calcul.etat().statut === 'chargement' || null"
+              (click)="lancer()"
+            >
+              {{ calcul.etat().statut === 'chargement' ? 'Calcul…' : 'Itinéraire' }}
+            </button>
+          }
+          @if (trajet()) {
+            <button type="button" class="action secondaire" (click)="effacer()">
+              Effacer l'itinéraire
+            </button>
+          }
+        </div>
+        @if (trajet(); as t) {
+          <p class="resume" role="status">{{ t.resume }}</p>
+          <details class="etapes">
+            <summary>Étapes ({{ t.etapes.length }})</summary>
+            <ol>
+              @for (e of t.etapes; track $index) {
+                <li>{{ e.instruction }} · {{ e.distance }}</li>
+              }
+            </ol>
+          </details>
+        }
       </div>
     }
     <p class="attribution">
@@ -170,6 +231,8 @@ export class Carte {
   private readonly proximite = inject(Proximite);
   private readonly monuments = this.proximite.monuments;
   private readonly canevas = viewChild.required<ElementRef<HTMLElement>>('canevas');
+  private readonly boutonItineraire = viewChild<ElementRef<HTMLButtonElement>>('boutonItineraire');
+  protected readonly calcul = inject(CalculItineraire);
 
   protected readonly echelles = ECHELLES;
   protected readonly echelle = signal<(typeof ECHELLES)[number]>('Paris');
@@ -236,23 +299,63 @@ export class Carte {
       distanceLibelle: formaterDistance(p.distance) + (duree ? ` · ${duree}` : ''),
     };
   });
+  // Mention RGPD (Q-43, provisoire) : en mémoire du composant seulement, jamais de stockage (RG-036).
+  private readonly mentionVue = signal(false);
+  protected readonly mention = signal(false);
+  private readonly attentePosition = signal(false);
+  protected readonly positionRefusee = computed(() => {
+    const { statut } = this.proximite.position.etat();
+    return this.attentePosition() && (statut === 'refus' || statut === 'indisponible');
+  });
+  protected readonly erreur = computed(() => {
+    const e = this.calcul.etat();
+    return e.statut === 'erreur' ? e : null;
+  });
+  protected readonly trajet = computed(() => {
+    const e = this.calcul.etat();
+    if (e.statut !== 'ok') return null;
+    return {
+      resume: resume(e.itineraire),
+      etapes: e.itineraire.etapes.map((x) => ({
+        instruction: x.instruction,
+        distance: formaterDistance(x.distanceMetres),
+      })),
+    };
+  });
+  protected readonly lienOsm = (m: { position: { latitude: number; longitude: number } }) =>
+    lienRepli(m.position);
   protected readonly selection = computed(
     () => this.deParis().find((m) => m.numero === this.choisi()) ?? null,
   );
 
   constructor() {
+    effect(() => {
+      const e = this.calcul.etat();
+      const fond = this.fond();
+      if (!fond) return;
+      if (e.statut === 'ok') fond.tracer(e.itineraire.trace);
+      else fond.effacer();
+    });
+    // la position demandée au clic arrive : le calcul peut partir
+    effect(() => {
+      const c = this.coords();
+      if (c && untracked(this.attentePosition)) untracked(() => this.demarrerCalcul(c));
+    });
     const detruit = inject(DestroyRef);
     let fond: FondCarte | undefined;
     let fini = false;
     detruit.onDestroy(() => {
+      this.calcul.effacer(); // itinéraire et position ne survivent pas à l'écran (RG-036)
       fini = true;
       fond?.remove();
     });
     afterNextRender(() => {
+      const couleurs = lireCouleurs();
       const reduit = globalThis.matchMedia?.('(prefers-reduced-motion: reduce)').matches ?? false;
       this.creer({
         conteneur: this.canevas().nativeElement,
-        style: styleCarte(lireCouleurs()),
+        style: styleCarte(couleurs),
+        couleurItineraire: couleurs.itineraire,
         centre: PARIS,
         zoom: ZOOM_INITIAL,
         limites: LIMITES_PARIS,
@@ -275,7 +378,41 @@ export class Carte {
     if (c) this.fond()?.centrer([c.longitude, c.latitude]);
   }
 
+  /** Premier clic : mention d'information, puis calcul (geste utilisateur : ADR 0020). */
+  protected lancer(): void {
+    if (this.mentionVue()) this.confirmer();
+    else this.mention.set(true);
+  }
+
+  protected confirmer(): void {
+    this.mentionVue.set(true);
+    this.mention.set(false);
+    const c = this.coords();
+    if (c) return this.demarrerCalcul(c);
+    this.attentePosition.set(true);
+    if (this.proximite.position.etat().statut === 'attente') this.proximite.position.activer();
+  }
+
+  private demarrerCalcul(c: { latitude: number; longitude: number }): void {
+    this.attentePosition.set(false);
+    const n = this.choisi();
+    if (n !== null) void this.calcul.calculer(n, c);
+  }
+
+  protected effacer(): void {
+    this.reinitialiser();
+    // « Effacer » disparaît avec la liste : le focus revient au bouton « Itinéraire »
+    this.boutonItineraire()?.nativeElement.focus();
+  }
+
+  private reinitialiser(): void {
+    this.calcul.effacer();
+    this.mention.set(false);
+    this.attentePosition.set(false);
+  }
+
   protected choisir(numero: number): void {
+    this.reinitialiser();
     this.choisi.update((n) => (n === numero ? null : numero));
   }
 

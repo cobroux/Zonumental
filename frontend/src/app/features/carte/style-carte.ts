@@ -5,6 +5,7 @@ export interface CouleursCarte {
   rue: string;
   rueFine: string;
   eau: string;
+  itineraire: string;
 }
 
 /** OpenFreeMap en développement ; PMTiles servi par notre origine en production (ADR 0023 §3). */
@@ -19,6 +20,7 @@ export function lireCouleurs(el: Element = document.documentElement): CouleursCa
     rue: lire('--zn-carte-rue'),
     rueFine: lire('--zn-carte-rue-fine'),
     eau: lire('--zn-carte-eau'),
+    itineraire: lire('--zn-carte-itineraire'),
   };
 }
 
