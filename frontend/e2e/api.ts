@@ -85,125 +85,138 @@ export async function mockApi(page: Page) {
     ...m,
     captureeLe: etat.captures.has(m.numero) ? CAPTUREE_LE : null,
   });
-  await page.route(/\/api\/(auth|catalogue|captures|progression|compte|defis)\b/, async (route) => {
-    const req = route.request();
-    const { pathname } = new URL(req.url());
-    const json = (body: unknown, status = 200) =>
-      route.fulfill({ status, contentType: 'application/json', body: JSON.stringify(body) });
+  await page.route(
+    /\/api\/(auth|catalogue|captures|progression|compte|defis|classement)\b/,
+    async (route) => {
+      const req = route.request();
+      const { pathname } = new URL(req.url());
+      const json = (body: unknown, status = 200) =>
+        route.fulfill({ status, contentType: 'application/json', body: JSON.stringify(body) });
 
-    if (pathname === '/api/auth/renouvellement')
-      return json({ jetonAcces: 'jeton', expireDans: 900 });
-    if (pathname === '/api/catalogue/monuments') return json(MONUMENTS.map(resume));
-    if (pathname === '/api/captures' && req.method() === 'POST') {
-      const corps = req.postDataBuffer()?.toString('latin1') ?? '';
-      const numero = Number(champ(corps, 'numero'));
-      etat.envois.push(numero);
-      const m = MONUMENTS.find((x) => x.numero === numero)!;
-      if (etat.refuser === numero) return route.fulfill(probleme(422, 'precision-insuffisante'));
-      const d = distance(
-        {
-          latitude: Number(champ(corps, 'latitude')),
-          longitude: Number(champ(corps, 'longitude')),
-        },
-        m.position,
-      );
-      if (d > m.rayonCaptureMetres)
-        return route.fulfill(
-          probleme(422, 'trop-loin', { distanceMetres: Math.ceil(d / 10) * 10 }),
+      if (pathname === '/api/auth/renouvellement')
+        return json({ jetonAcces: 'jeton', expireDans: 900 });
+      if (pathname === '/api/catalogue/monuments') return json(MONUMENTS.map(resume));
+      if (pathname === '/api/captures' && req.method() === 'POST') {
+        const corps = req.postDataBuffer()?.toString('latin1') ?? '';
+        const numero = Number(champ(corps, 'numero'));
+        etat.envois.push(numero);
+        const m = MONUMENTS.find((x) => x.numero === numero)!;
+        if (etat.refuser === numero) return route.fulfill(probleme(422, 'precision-insuffisante'));
+        const d = distance(
+          {
+            latitude: Number(champ(corps, 'latitude')),
+            longitude: Number(champ(corps, 'longitude')),
+          },
+          m.position,
         );
-      const avant = etat.captures.size;
-      etat.captures.add(numero);
-      const succesGagnes = SUCCES.filter(
-        (x) => avant < x.seuil && etat.captures.size >= x.seuil,
-      ).map(({ code, libelle }) => ({ code, libelle }));
-      return json(
-        {
-          numero,
-          captureeLe: CAPTUREE_LE,
-          distanceMetres: Math.round(d),
-          photoUrl: `/api/captures/${numero}/photo`,
-          histoire: HISTOIRE,
-          succesGagnes,
-        },
-        201,
-      );
-    }
-    if (pathname === '/api/progression/succes') {
-      const n = etat.captures.size;
-      return json({
-        obtenus: SUCCES.filter((x) => n >= x.seuil).map((x) => ({
-          code: x.code,
-          libelle: x.libelle,
-          obtenuLe: CAPTUREE_LE,
-        })),
-        enCours: SUCCES.filter((x) => n < x.seuil).map((x) => ({
-          code: x.code,
-          libelle: x.libelle,
-          valeur: n,
-          seuil: x.seuil,
-        })),
-      });
-    }
-    if (pathname === '/api/progression/collections')
-      return json([
-        {
-          code: 'GRANDS_SITES',
-          nom: 'Grands sites',
-          total: MONUMENTS.length,
-          captures: etat.captures.size,
-          complete: etat.captures.size === MONUMENTS.length,
-          monuments: MONUMENTS.map((x) => ({
-            numero: x.numero,
-            nom: x.nom,
-            capture: etat.captures.has(x.numero),
+        if (d > m.rayonCaptureMetres)
+          return route.fulfill(
+            probleme(422, 'trop-loin', { distanceMetres: Math.ceil(d / 10) * 10 }),
+          );
+        const avant = etat.captures.size;
+        etat.captures.add(numero);
+        const succesGagnes = SUCCES.filter(
+          (x) => avant < x.seuil && etat.captures.size >= x.seuil,
+        ).map(({ code, libelle }) => ({ code, libelle }));
+        return json(
+          {
+            numero,
+            captureeLe: CAPTUREE_LE,
+            distanceMetres: Math.round(d),
+            photoUrl: `/api/captures/${numero}/photo`,
+            histoire: HISTOIRE,
+            succesGagnes,
+          },
+          201,
+        );
+      }
+      if (pathname === '/api/progression/succes') {
+        const n = etat.captures.size;
+        return json({
+          obtenus: SUCCES.filter((x) => n >= x.seuil).map((x) => ({
+            code: x.code,
+            libelle: x.libelle,
+            obtenuLe: CAPTUREE_LE,
           })),
-        },
-      ]);
-    if (pathname === '/api/defis/courant')
-      return json({
-        defi: {
-          code: 'TROIS_DOMES',
-          nom: 'Les trois dômes',
-          description: 'Panthéon, Sacré-Cœur et Invalides.',
-          saison: "Saison d'automne",
-          semaine: 7,
-          debutLe: new Date(Date.now() - 3 * 86400_000).toISOString(),
-          finLe: new Date(Date.now() + (3 * 24 + 4) * 3600_000 + 60_000).toISOString(),
-          seuil: 3,
-          valeur: 2,
-          reussi: false,
-          recompense: { code: 'DEFI_TROIS_DOMES', libelle: 'Tampon doré' },
-          pastilles: [
-            { libelle: 'Panthéon', faite: true },
-            { libelle: 'Sacré-Cœur', faite: true },
-            { libelle: null, faite: false },
-          ],
-        },
-      });
-    if (pathname === '/api/compte/moi')
-      return json({
-        id: '00000000-0000-4000-8000-000000000001',
-        pseudo: 'Explorateur',
-        email: 'explorateur@example.fr',
-        emailVerifie: true,
-      });
-    if (pathname === '/api/compte/consentements') return json({ classement: false, emails: false });
-    const photo = /^\/api\/captures\/(\d+)\/photo$/.exec(pathname);
-    if (photo) return route.fulfill({ contentType: 'image/jpeg', body: JPEG });
-    const fiche = /^\/api\/catalogue\/monuments\/(\d+)$/.exec(pathname);
-    const m = MONUMENTS.find((x) => x.numero === Number(fiche?.[1]));
-    if (m) {
-      const prise = etat.captures.has(m.numero);
-      return json({
-        ...resume(m),
-        siecle: 19,
-        stats: prise ? { annee: 1889, style: 'Art nouveau', hauteurMetres: 330 } : null,
-        photoUrl: prise ? `/api/captures/${m.numero}/photo` : null,
-        histoire: prise ? HISTOIRE : null,
-      });
-    }
-    return route.fulfill(probleme(404, 'introuvable'));
-  });
+          enCours: SUCCES.filter((x) => n < x.seuil).map((x) => ({
+            code: x.code,
+            libelle: x.libelle,
+            valeur: n,
+            seuil: x.seuil,
+          })),
+        });
+      }
+      if (pathname === '/api/progression/collections')
+        return json([
+          {
+            code: 'GRANDS_SITES',
+            nom: 'Grands sites',
+            total: MONUMENTS.length,
+            captures: etat.captures.size,
+            complete: etat.captures.size === MONUMENTS.length,
+            monuments: MONUMENTS.map((x) => ({
+              numero: x.numero,
+              nom: x.nom,
+              capture: etat.captures.has(x.numero),
+            })),
+          },
+        ]);
+      if (pathname === '/api/classement/villes/75056/lancement')
+        return json({
+          ville: { codeInsee: '75056', nom: 'Paris' },
+          seuil: 50,
+          explorateurs: 23,
+          ouvert: false,
+          consentementClassement: false,
+          moi: { tampons: 1 },
+        });
+      if (pathname === '/api/defis/courant')
+        return json({
+          defi: {
+            code: 'TROIS_DOMES',
+            nom: 'Les trois dômes',
+            description: 'Panthéon, Sacré-Cœur et Invalides.',
+            saison: "Saison d'automne",
+            semaine: 7,
+            debutLe: new Date(Date.now() - 3 * 86400_000).toISOString(),
+            finLe: new Date(Date.now() + (3 * 24 + 4) * 3600_000 + 60_000).toISOString(),
+            seuil: 3,
+            valeur: 2,
+            reussi: false,
+            recompense: { code: 'DEFI_TROIS_DOMES', libelle: 'Tampon doré' },
+            pastilles: [
+              { libelle: 'Panthéon', faite: true },
+              { libelle: 'Sacré-Cœur', faite: true },
+              { libelle: null, faite: false },
+            ],
+          },
+        });
+      if (pathname === '/api/compte/moi')
+        return json({
+          id: '00000000-0000-4000-8000-000000000001',
+          pseudo: 'Explorateur',
+          email: 'explorateur@example.fr',
+          emailVerifie: true,
+        });
+      if (pathname === '/api/compte/consentements')
+        return json({ classement: false, emails: false });
+      const photo = /^\/api\/captures\/(\d+)\/photo$/.exec(pathname);
+      if (photo) return route.fulfill({ contentType: 'image/jpeg', body: JPEG });
+      const fiche = /^\/api\/catalogue\/monuments\/(\d+)$/.exec(pathname);
+      const m = MONUMENTS.find((x) => x.numero === Number(fiche?.[1]));
+      if (m) {
+        const prise = etat.captures.has(m.numero);
+        return json({
+          ...resume(m),
+          siecle: 19,
+          stats: prise ? { annee: 1889, style: 'Art nouveau', hauteurMetres: 330 } : null,
+          photoUrl: prise ? `/api/captures/${m.numero}/photo` : null,
+          histoire: prise ? HISTOIRE : null,
+        });
+      }
+      return route.fulfill(probleme(404, 'introuvable'));
+    },
+  );
   return etat;
 }
 
