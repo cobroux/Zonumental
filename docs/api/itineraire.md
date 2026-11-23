@@ -1,6 +1,8 @@
-# Contrat API — Itinéraire à pied (proposé)
+# Contrat API — Itinéraire à pied
 
-- **Statut :** implémenté par itineraire-1 (`openapi.yaml`, tag `itineraire`) ; à valider par `tech-lead-front` avant itineraire-3.
+> **Contrat validé** par `tech-lead-front` (2026-11-24) pour itineraire-3, sans changement. Usage front : `docs/design/plans/itineraire-3.md`.
+
+- **Statut :** implémenté par itineraire-1 (`openapi.yaml`, tag `itineraire`) ; validé par `tech-lead-front`.
 - **Décisions :** ADR 0025. **Story :** #158 (itineraire-1).
 - Conventions : Bearer obligatoire (401 `non-authentifie`), erreurs RFC 9457 (`Probleme`, `code` stable), pas de CSRF (jeton en en-tête, ADR 0004). Défauts appliqués tant que Q-39 à Q-44 ne sont pas tranchées : réservé aux comptes connectés (Q-39), 10 km maximum (Q-40).
 
