@@ -30,6 +30,25 @@ test.describe('à 100 m de A', () => {
     await expect(page.locator('a.vide')).toHaveCount(1);
   });
 
+  test('fidelite-25 : après capture, la carte (navigation SPA) montre le monument capturé', async ({
+    page,
+  }) => {
+    await mockApi(page);
+    await page.route('https://tiles.openfreemap.org/**', (r) => r.abort());
+    await page.goto('/explorer');
+    await expect(page.getByRole('heading', { name: 'Bienvenue' })).toBeVisible();
+    await page.getByRole('link', { name: /^Tamponner/ }).click();
+    await expect(page).toHaveURL(/\/monument\/4\/capturer$/);
+    await cameraPrete(page);
+    await page.getByRole('button', { name: 'Prendre la photo' }).click();
+    await page.getByRole('button', { name: 'Continuer' }).click();
+    await expect(page.getByRole('heading', { name: 'Arc D' })).toBeVisible();
+
+    await page.getByRole('link', { name: 'Retour au carnet' }).click(); // navigation SPA, sans rechargement
+    await page.getByRole('link', { name: 'Carte' }).click();
+    await expect(page.getByText('Paris dévoilé à 50 %')).toBeVisible();
+  });
+
   test('R1-52 : la photo prise pour A ne suit pas vers D', async ({ page }) => {
     const api = await mockApi(page);
     api.refuser = 1;
