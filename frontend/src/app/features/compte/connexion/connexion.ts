@@ -77,7 +77,8 @@ export class Connexion {
       // Le mot de passe ne reste pas en mémoire une fois la session ouverte.
       this.motDePasse.set('');
       const retour = retourSur(this.route.snapshot.queryParamMap.get('retour'));
-      await this.router.navigateByUrl(retour === '/' ? '/profil' : retour);
+      // replaceUrl : « retour » depuis le profil ne doit pas ramener sur /connexion.
+      await this.router.navigateByUrl(retour === '/' ? '/explorer' : retour, { replaceUrl: true });
     } catch (err) {
       const p = lireProbleme(err);
       const le = (p as Partial<ProblemeSuppression> | null)?.suppressionDefinitiveLe;
