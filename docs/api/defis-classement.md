@@ -100,8 +100,8 @@ Erreurs : 401 ; 404 `introuvable` si la ville n'existe pas dans `catalogue.ville
 
 - Score = captures de la semaine dans la portée. Rang = `row_number()` score décroissant puis dernière capture comptée croissante.
 - `tendance` = rang final semaine précédente − rang actuel ; `null` si non classé la semaine précédente (front : « = » pour 0, « +n », « −n »).
-- `podium` ≤ 3 ; `autourDeMoi` = rang−1..rang+1 sans doublon avec le podium, vide si l'appelant n'a pas de score. Front : « ··· » si `autourDeMoi[0].rang > 4`.
-- Appelant sans consentement : `podium` visible, `autourDeMoi` = sa seule ligne avec `rang: null`, `tendance: null`, `moi: true`.
+- `podium` ≤ 3 ; `autourDeMoi` = rang−1..rang+1 sans doublon avec le podium, vide si l'appelant classable n'a pas de score. Front : « ··· » si `autourDeMoi[0].rang > 4`.
+- Appelant sans consentement : `podium` visible, `autourDeMoi` = sa seule ligne avec `rang: null`, `tendance: null`, `moi: true` (même sans capture : `score: 0`).
 - `ouvert: false` → `podium` et `autourDeMoi` vides (le front affiche l'état de lancement).
 - `portee=AMIS` : 400 `validation` tant que le système d'amis n'existe pas.
 - Pas de pagination, pas d'UUID, ni niveau ni quartier (ADR 0024 §7).

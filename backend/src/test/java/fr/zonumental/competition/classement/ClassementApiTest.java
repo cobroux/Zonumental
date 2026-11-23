@@ -228,6 +228,16 @@ class ClassementApiTest {
   }
 
   @Test
+  void sansConsentementNiScoreSaLigneARangNul() throws Exception {
+    ouvrir();
+    lire(compte("moi", false), "portee=VILLE&ville=99007")
+        .andExpect(jsonPath("$.autourDeMoi.length()").value(1))
+        .andExpect(jsonPath("$.autourDeMoi[0].rang").doesNotExist())
+        .andExpect(jsonPath("$.autourDeMoi[0].score").value(0))
+        .andExpect(jsonPath("$.autourDeMoi[0].moi").value(true));
+  }
+
+  @Test
   void classableSansScoreAutourVide() throws Exception {
     ouvrir();
     capture(compte("a", true), 9601, SEMAINE);
