@@ -1,6 +1,7 @@
 import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
+import { provideRouter } from '@angular/router';
 import { ClassementLancement } from './classement-lancement';
 
 const URL = '/api/classement/villes/75056/lancement';
@@ -15,7 +16,9 @@ const lancement = (over: object = {}) => ({
 });
 
 async function rendre(corps?: object | { status: number }) {
-  TestBed.configureTestingModule({ providers: [provideHttpClient(), provideHttpClientTesting()] });
+  TestBed.configureTestingModule({
+    providers: [provideHttpClient(), provideHttpClientTesting(), provideRouter([])],
+  });
   const http = TestBed.inject(HttpTestingController);
   const f = TestBed.createComponent(ClassementLancement);
   f.detectChanges();
@@ -86,9 +89,21 @@ describe('classement : état de lancement', () => {
     expect(el.querySelector('.toi')?.textContent).not.toContain('Non classé');
   });
 
-  it('ouvert = true avant defis-2 : reste « Bientôt » (D6)', async () => {
-    const { el } = await rendre(lancement({ ouvert: true, explorateurs: 50 }));
-    expect(el.querySelector('zn-bientot-etat')?.textContent).toContain('Classement : bientôt');
+  it('ouvert = true : classement actif (requête dédiée), plus d’état de lancement', async () => {
+    TestBed.configureTestingModule({
+      providers: [provideHttpClient(), provideHttpClientTesting(), provideRouter([])],
+    });
+    const http = TestBed.inject(HttpTestingController);
+    const f = TestBed.createComponent(ClassementLancement);
+    f.detectChanges();
+    http.expectOne(URL).flush(lancement({ ouvert: true, explorateurs: 50 }));
+    await new Promise((r) => setTimeout(r));
+    TestBed.tick();
+    f.detectChanges();
+    await new Promise((r) => setTimeout(r));
+    http.expectOne('/api/classement?portee=VILLE&ville=75056');
+    const el = f.nativeElement as HTMLElement;
+    expect(el.querySelector('app-classement-actif')).not.toBeNull();
     expect(el.querySelector('[role="progressbar"]')).toBeNull();
   });
 
