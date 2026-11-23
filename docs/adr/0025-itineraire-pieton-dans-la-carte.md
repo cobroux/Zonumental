@@ -67,6 +67,11 @@ POST /api/itineraire            (authentifié, CSRF comme le reste de l'API)
 - **Échec et hors-ligne** : si `navigator.onLine` est faux ou si l'API répond 503 ou ne répond pas, un message s'affiche avec un lien de repli « Ouvrir dans mon app de plans ». Ce lien ne contient que les coordonnées du monument, jamais la position de l'utilisateur. Rien n'est mis en cache.
 - **RGPD** : avant le premier calcul, une mention courte explique que la position est utilisée pour calculer le trajet et n'est pas conservée. La base légale est l'exécution du service demandé, pas un consentement (à confirmer par `amoa`, Q-43). La politique de confidentialité est mise à jour.
 
+## Écarts à la mise en œuvre (itineraire-1)
+
+- **`numero` au lieu de `monumentId`** : le catalogue n'a pas d'autre identifiant public. Risque nul (même résolution côté serveur, entier validé `>= 1`).
+- **Quota en mémoire par compte** (30 par heure glissante) au lieu du mécanisme de r0-socle-9, qui écrit en base : il faudrait y consigner l'usage, contraire à RG-036 et à « rien en base ». Limites : compteur par instance, perdu au redémarrage (contournable seulement par un redémarrage ou une réplication), une entrée vide par compte ayant déjà appelé (borné par le nombre de comptes). À partager (Redis) si le backend est répliqué.
+
 ## Alternatives écartées
 
 - **A (front vers tiers)** : la position et l'IP partent chez un tiers, il faut ouvrir la CSP et, avec ORS, la clé est exposée. Les CGU des services gratuits excluent un usage de production.

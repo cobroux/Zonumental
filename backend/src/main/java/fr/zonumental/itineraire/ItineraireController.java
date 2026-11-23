@@ -8,8 +8,6 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
-import jakarta.validation.constraints.DecimalMax;
-import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
 import java.util.List;
@@ -34,8 +32,9 @@ import org.springframework.web.bind.annotation.RestController;
 class ItineraireController {
 
   record Point(
-      @NotNull @DecimalMin("-90") @DecimalMax("90") Double latitude,
-      @NotNull @DecimalMin("-180") @DecimalMax("180") Double longitude) {
+      // Pas de @DecimalMin/@DecimalMax : le message d'exception recopierait la valeur rejetée dans
+      // les journaux DEBUG (RG-036) ; la boîte englobante ci-dessous rejette déjà ces valeurs.
+      @NotNull Double latitude, @NotNull Double longitude) {
     // Spring journalise le corps lu en TRACE via toString : RG-036.
     @Override
     public String toString() {

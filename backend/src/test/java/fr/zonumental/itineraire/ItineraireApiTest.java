@@ -308,6 +308,8 @@ class ItineraireApiTest {
             .getResponse()
             .getContentAsString();
     assertThat(reponse).doesNotContain("45.76123", "4.83123");
+    // valeur rejetée par la validation : son message d'exception la recopierait en DEBUG
+    appeler("{\"latitude\":95.12345,\"longitude\":2.3}", 9701).andExpect(status().isBadRequest());
 
     for (ILoggingEvent e : journal.list) {
       String texte =
@@ -317,7 +319,7 @@ class ItineraireApiTest {
                   : ThrowableProxyUtil.asString(e.getThrowableProxy()))
               + e.getMDCPropertyMap();
       assertThat(texte).as(e.getLoggerName()).doesNotContainPattern(motifs);
-      assertThat(texte).doesNotContain("45.76123", "4.83123");
+      assertThat(texte).doesNotContain("45.76123", "4.83123", "95.12345");
     }
     assertThat(lignes()).isEqualTo(avant);
   }
