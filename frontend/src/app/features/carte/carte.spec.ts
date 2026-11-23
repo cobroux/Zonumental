@@ -1,10 +1,15 @@
+import { provideHttpClient } from '@angular/common/http';
+import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { signal } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
+import { provideApiConfiguration } from '../../core/api/api-configuration';
+import { Itineraire } from '../../core/api/models/itineraire';
 import { MonumentResume } from '../../core/api/models/monument-resume';
 import { EtatPosition } from '../../core/position/position';
 import { Proche, Proximite } from '../../core/position/proximite';
 import { Carte } from './carte';
+import { CalculItineraire } from './itineraire';
 import { FOND_CARTE, FondCarte, OptionsFond } from './fond-carte';
 
 const NOM_NON_CAPTURE = 'Louvre secret';
@@ -42,6 +47,8 @@ function fauxFond() {
     getZoom: () => zoom,
     on: (_evenement, cb) => (rappel = cb),
     centrer: vi.fn(),
+    tracer: vi.fn(),
+    effacer: vi.fn(),
     remove: vi.fn(),
     deplacer: (z) => {
       zoom = z;
@@ -63,15 +70,20 @@ async function rendre(
   const creer = vi.fn<(o: OptionsFond) => Promise<FondCarte>>(() =>
     options.creer ? options.creer() : Promise.resolve(fond),
   );
+  const etatPosition = signal<EtatPosition>(options.position ?? { statut: 'attente' });
+  const activer = vi.fn();
   TestBed.configureTestingModule({
     providers: [
       provideRouter([]),
+      provideHttpClient(),
+      provideHttpClientTesting(),
+      provideApiConfiguration(''),
       { provide: FOND_CARTE, useValue: creer },
       {
         provide: Proximite,
         useValue: {
           monuments: signal(options.catalogue ?? CATALOGUE),
-          position: { etat: signal(options.position ?? { statut: 'attente' }) },
+          position: { etat: etatPosition, activer },
           plusProche: signal(options.plusProche),
         },
       },
@@ -82,7 +94,15 @@ async function rendre(
   await fixture.whenStable();
   await new Promise((r) => setTimeout(r)); // laisse la promesse de création se résoudre
   fixture.detectChanges();
-  return { fixture, fond, creer, el: fixture.nativeElement as HTMLElement };
+  return {
+    fixture,
+    fond,
+    creer,
+    etatPosition,
+    activer,
+    http: TestBed.inject(HttpTestingController),
+    el: fixture.nativeElement as HTMLElement,
+  };
 }
 
 describe('Carte', () => {
@@ -228,6 +248,166 @@ describe('Carte', () => {
       fixture.detectChanges();
       expect(el.querySelector('.proche')).toBeNull();
       expect(el.querySelector('.selection')).not.toBeNull();
+    });
+  });
+  describe('itinéraire à pied (itineraire-3)', () => {
+    const OK: EtatPosition = { statut: 'ok', coords: { latitude: 48.86, longitude: 2.3 } };
+    const ITI: Itineraire = {
+      distanceMetres: 1840,
+      dureeSecondes: 1380,
+      trace: {
+        type: 'LineString',
+        coordinates: [
+          [2.3, 48.86],
+          [2.29, 48.85],
+        ],
+      },
+      etapes: [
+        { instruction: 'Marchez vers le nord.', distanceMetres: 220 },
+        { instruction: '<b>Vous êtes arrivé.</b>', distanceMetres: 0 },
+      ],
+    };
+    const bouton = (el: HTMLElement, texte: string) =>
+      [...el.querySelectorAll<HTMLButtonElement>('.selection button')].find((b) =>
+        b.textContent?.includes(texte),
+      );
+    async function choisir(options: Parameters<typeof rendre>[0] = { position: OK }) {
+      const r = await rendre(options);
+      (r.el.querySelectorAll('.epingles button')[2] as HTMLElement).click();
+      r.fixture.detectChanges();
+      return r;
+    }
+    const attendre = async (r: Awaited<ReturnType<typeof rendre>>) => {
+      await new Promise((f) => setTimeout(f)); // laisse la réponse HTTP se résoudre
+      r.fixture.detectChanges();
+    };
+    const clic = (r: Awaited<ReturnType<typeof rendre>>, texte: string) => {
+      bouton(r.el, texte)!.click();
+      r.fixture.detectChanges();
+    };
+    async function calculer(r: Awaited<ReturnType<typeof rendre>>, corps: Itineraire = ITI) {
+      clic(r, 'Itinéraire');
+      if (bouton(r.el, 'Calculer')) clic(r, 'Calculer'); // la mention ne s'affiche qu'une fois
+      r.http.expectOne('/api/itineraire').flush(corps);
+      await attendre(r);
+    }
+
+    it('le bouton « Itinéraire » n’existe que dans la sélection', async () => {
+      const { el, fixture } = await rendre({ position: OK });
+      expect(bouton(el, 'Itinéraire')).toBeUndefined();
+      (el.querySelectorAll('.epingles button')[2] as HTMLElement).click();
+      fixture.detectChanges();
+      expect(bouton(el, 'Itinéraire')).toBeDefined();
+    });
+
+    it('premier clic : mention RGPD sans appel ; « Calculer » lance l’appel ; ensuite plus de mention', async () => {
+      const r = await choisir();
+      clic(r, 'Itinéraire');
+      expect(r.el.querySelector('.mention')?.textContent).toContain('arrondie');
+      expect(r.el.querySelector('.mention a')?.getAttribute('href')).toBe('/confidentialite');
+      r.http.expectNone('/api/itineraire');
+      clic(r, 'Calculer');
+      const req = r.http.expectOne('/api/itineraire');
+      expect(req.request.body).toEqual({ depart: { latitude: 48.86, longitude: 2.3 }, numero: 3 });
+      req.flush(ITI);
+      await attendre(r);
+      expect(r.el.querySelector('.mention')).toBeNull();
+      clic(r, 'Itinéraire');
+      r.http.expectOne('/api/itineraire').flush(ITI);
+    });
+
+    it('sans position : active la position puis calcule dès qu’elle arrive', async () => {
+      const r = await choisir({ position: { statut: 'attente' } });
+      clic(r, 'Itinéraire');
+      clic(r, 'Calculer');
+      expect(r.activer).toHaveBeenCalled();
+      r.http.expectNone('/api/itineraire');
+      r.etatPosition.set(OK);
+      r.fixture.detectChanges();
+      await r.fixture.whenStable();
+      r.http.expectOne('/api/itineraire').flush(ITI);
+    });
+
+    it('position refusée : message et lien de repli, aucun appel', async () => {
+      const r = await choisir({ position: { statut: 'attente' } });
+      clic(r, 'Itinéraire');
+      clic(r, 'Calculer');
+      r.etatPosition.set({ statut: 'refus' });
+      r.fixture.detectChanges();
+      const alerte = r.el.querySelector('.selection [role="alert"]')!;
+      expect(alerte.textContent).toContain('Active ta position');
+      const lien = alerte.querySelector('a')!;
+      expect(lien.getAttribute('href')).toContain('openstreetmap.org/directions');
+      expect(lien.getAttribute('href')).not.toContain('48.86%2C2.3');
+      r.http.expectNone('/api/itineraire');
+    });
+
+    it('succès : tracé, résumé en role=status, étapes en liste ordonnée sans HTML', async () => {
+      const r = await choisir();
+      await calculer(r);
+      expect(r.fond.tracer).toHaveBeenCalledWith(ITI.trace);
+      expect(r.el.querySelector('.selection p[role="status"]')?.textContent).toContain(
+        '23 min · 1,8 km',
+      );
+      const etapes = r.el.querySelectorAll('.selection ol li');
+      expect(etapes.length).toBe(2);
+      expect(etapes[0].textContent).toContain('Marchez vers le nord. · 220 m');
+      expect(etapes[1].querySelector('b')).toBeNull();
+      expect(etapes[1].textContent).toContain('<b>Vous êtes arrivé.</b>');
+    });
+
+    it('« Effacer » et changement de sélection effacent le tracé ; focus rendu à « Itinéraire »', async () => {
+      const r = await choisir();
+      await calculer(r);
+      clic(r, 'Effacer');
+      expect(r.fond.effacer).toHaveBeenCalled();
+      expect(r.el.querySelector('.selection ol')).toBeNull();
+      expect(document.activeElement).toBe(bouton(r.el, 'Itinéraire'));
+      await calculer(r);
+      vi.mocked(r.fond.effacer).mockClear();
+      (r.el.querySelectorAll('.epingles button')[3] as HTMLElement).click();
+      r.fixture.detectChanges();
+      expect(r.fond.effacer).toHaveBeenCalled();
+      expect(r.el.querySelector('.selection ol')).toBeNull();
+    });
+
+    it('erreur 503 : role=alert et lien de repli sur le monument seul, pas de tracé', async () => {
+      const r = await choisir();
+      clic(r, 'Itinéraire');
+      clic(r, 'Calculer');
+      r.http
+        .expectOne('/api/itineraire')
+        .flush(JSON.stringify({ code: 'indisponible' }), { status: 503, statusText: 'x' });
+      await attendre(r);
+      const alerte = r.el.querySelector('.selection [role="alert"]')!;
+      expect(alerte.textContent).toContain('Itinéraire indisponible pour le moment.');
+      const lien = alerte.querySelector('a')!;
+      expect(lien.getAttribute('href')).toContain('%3B48.83%2C2.3');
+      expect(lien.getAttribute('rel')).toBe('noopener noreferrer');
+      expect(lien.getAttribute('target')).toBe('_blank');
+      expect(r.fond.tracer).not.toHaveBeenCalled();
+    });
+
+    it('destruction de l’écran : itinéraire effacé', async () => {
+      const r = await choisir();
+      await calculer(r);
+      r.fixture.destroy();
+      expect(TestBed.inject(CalculItineraire).etat().statut).toBe('inactif');
+    });
+
+    it('rien dans le stockage ni dans la console après un calcul (RG-036)', async () => {
+      const journal = [
+        vi.spyOn(console, 'log'),
+        vi.spyOn(console, 'warn'),
+        vi.spyOn(console, 'error'),
+        vi.spyOn(console, 'debug'),
+        vi.spyOn(console, 'info'),
+      ];
+      const r = await choisir();
+      await calculer(r);
+      expect(localStorage.length + sessionStorage.length).toBe(0);
+      for (const j of journal) expect(j).not.toHaveBeenCalled();
+      vi.restoreAllMocks();
     });
   });
 });

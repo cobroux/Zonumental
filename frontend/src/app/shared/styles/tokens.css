@@ -28,6 +28,9 @@
   --zn-carte-rue: #cfc6b2;
   --zn-carte-rue-fine: #d9d1bf;
   --zn-carte-eau: #bcc8cd;
+  --zn-carte-itineraire: var(
+    --zn-marine
+  ); /* tracé d'itinéraire (itineraire-3) : provisoire, à valider par ux-designer ; marine sur fond de carte 9:1 */
   --zn-halo-zone: #4cc38a; /* décor du bouton « zone » : jamais seul porteur d'info */
   --zn-blanc: #ffffff;
   --zn-bordeaux-voile: color-mix(in srgb, var(--zn-bordeaux) 22%, transparent);
