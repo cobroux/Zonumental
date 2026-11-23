@@ -623,6 +623,35 @@ paths:
             application/problem+json:
               schema: { $ref: '#/components/schemas/Probleme' }
 
+  /api/classement:
+    get:
+      tags: [competition]
+      operationId: classement
+      summary: Classement hebdomadaire d'une ville ou de la France (ADR 0024)
+      description: >
+        Semaine lundi 00:00 → lundi 00:00 Paris. Score = captures de la semaine dans la portée ;
+        rang = score décroissant puis dernière capture comptée croissante. `tendance` = rang final de
+        la semaine précédente − rang actuel, null si non classé. Seuls les comptes consentant
+        (CLASSEMENT), e-mail vérifié, sans suppression demandée sont classés. `ouvert: false` →
+        `podium` et `autourDeMoi` vides. Sans consentement, `autourDeMoi` = la seule ligne de
+        l'appelant (rang et tendance null). `portee=AMIS` : `validation` (non implémenté).
+      parameters:
+        - { name: portee, in: query, required: true, schema: { type: string, enum: [VILLE, FRANCE] } }
+        - { name: ville, in: query, required: false, schema: { type: string }, description: Code INSEE, obligatoire si portee=VILLE }
+      responses:
+        '200':
+          description: Classement
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Classement' }
+        '400': { $ref: '#/components/responses/Validation' }
+        '401': { $ref: '#/components/responses/NonAuthentifie' }
+        '404':
+          description: '`introuvable` : ville absente du catalogue'
+          content:
+            application/problem+json:
+              schema: { $ref: '#/components/schemas/Probleme' }
+
   /api/progression/collections:
     get:
       tags: [progression]
@@ -888,6 +917,37 @@ components:
           required: [tampons]
           properties:
             tampons: { type: integer, minimum: 0, description: Captures de la semaine, toutes villes }
+    LigneClassement:
+      type: object
+      required: [rang, pseudo, score, tendance, moi]
+      properties:
+        rang: { type: integer, nullable: true, minimum: 1, description: Null pour l'appelant non classé }
+        pseudo: { type: string }
+        score: { type: integer, minimum: 0 }
+        tendance: { type: integer, nullable: true }
+        moi: { type: boolean }
+    Classement:
+      type: object
+      required: [portee, ville, semaineDebutLe, ouvert, podium, autourDeMoi]
+      properties:
+        portee: { type: string, enum: [VILLE, FRANCE] }
+        ville:
+          type: object
+          nullable: true
+          required: [codeInsee, nom]
+          properties:
+            codeInsee: { type: string }
+            nom: { type: string }
+        semaineDebutLe: { type: string, format: date-time }
+        ouvert: { type: boolean }
+        podium:
+          type: array
+          maxItems: 3
+          items: { $ref: '#/components/schemas/LigneClassement' }
+        autourDeMoi:
+          type: array
+          maxItems: 3
+          items: { $ref: '#/components/schemas/LigneClassement' }
     DefiCourant:
       type: object
       required: [defi]
