@@ -5,6 +5,7 @@ import { TestBed } from '@angular/core/testing';
 import { Router, provideRouter } from '@angular/router';
 import { provideApiConfiguration } from '../../core/api/api-configuration';
 import { Position } from '../../core/position/position';
+import { Proximite } from '../../core/position/proximite';
 import { Camera, dimensionsReduites } from './camera';
 
 describe('dimensionsReduites', () => {
@@ -31,6 +32,7 @@ describe('Camera', () => {
   const coords = { latitude: 48.1, longitude: 2.2, precision: 12 };
   let etat: ReturnType<typeof signal<object>>;
   const relire = vi.fn();
+  const recharger = vi.fn();
   let getUserMedia: ReturnType<typeof vi.fn>;
   let piste: Record<string, unknown>;
   let peripheriques: { kind: string }[];
@@ -60,6 +62,7 @@ describe('Camera', () => {
         provideApiConfiguration(''),
         provideRouter([]),
         { provide: Position, useValue: { etat, relire } },
+        { provide: Proximite, useValue: { recharger } },
       ],
     });
     const fixture = TestBed.createComponent(Camera);
@@ -84,6 +87,7 @@ describe('Camera', () => {
     arreter.mockClear();
     piste = { stop: arreter };
     peripheriques = [{ kind: 'videoinput' }];
+    recharger.mockReset();
     relire.mockReset().mockResolvedValue(coords);
     HTMLCanvasElement.prototype.getContext = vi.fn(() => ({ drawImage: vi.fn() })) as never;
     HTMLCanvasElement.prototype.toBlob = vi.fn(function (cb: BlobCallback) {
@@ -260,6 +264,17 @@ describe('Camera', () => {
     http.expectOne('/api/captures').flush({ succesGagnes: succes });
     await vide();
     expect(navigate).toHaveBeenCalledWith(['/monument', '7'], { state: { capture: true, succes } });
+  });
+
+  it('relit le catalogue partagé après une capture réussie, pas avant (fidelite-25)', async () => {
+    const { el, fixture, http } = await rendre();
+    vi.spyOn(TestBed.inject(Router), 'navigate').mockResolvedValue(true);
+    declencher(el).click();
+    await fixture.whenStable();
+    expect(recharger).not.toHaveBeenCalled();
+    http.expectOne('/api/captures').flush({});
+    await vide();
+    expect(recharger).toHaveBeenCalledTimes(1);
   });
 
   it('envoie id, position et précision lus à la prise, bouton bloqué pendant l’envoi', async () => {

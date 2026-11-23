@@ -15,6 +15,7 @@ import { Router, RouterLink } from '@angular/router';
 import { Api } from '../../core/api/api';
 import { capturer } from '../../core/api/fn/capture/capturer';
 import { Position } from '../../core/position/position';
+import { Proximite } from '../../core/position/proximite';
 import { Monument } from '../../core/api/models/monument';
 import {
   POINTS,
@@ -305,6 +306,7 @@ export class Camera implements OnInit {
   private readonly api = inject(Api);
   private readonly router = inject(Router);
   private readonly pos = inject(Position);
+  private readonly proximite = inject(Proximite);
   private readonly position = inject(Position).etat;
   private flux: MediaStream | null = null;
   protected readonly feuille = signal(false);
@@ -507,6 +509,7 @@ export class Camera implements OnInit {
           ...(this.remplacement && { remplacer: true }),
         },
       });
+      this.proximite.recharger(); // catalogue partagé (carte, bouton) périmé sinon
       // la fiche joue l'animation du tampon (r1-capturer-17), sauf remplacement : pas de récompense
       await this.router.navigate(
         ['/monument', this.numero()],
