@@ -108,19 +108,19 @@ describe('Connexion', () => {
     req.flush({ jetonAcces: 'J', expireDans: 900 });
     await apres();
     expect(TestBed.inject(Session).jeton()).toBe('J');
-    expect(router.navigateByUrl).toHaveBeenCalledWith('/profil');
+    expect(router.navigateByUrl).toHaveBeenCalledWith('/explorer', { replaceUrl: true });
   });
 
   it('succès avec ?retour=/profil : retourne à la page demandée', async () => {
     await ouvrir({ retour: '/profil' });
     await envoyer(200, { jetonAcces: 'J', expireDans: 900 });
-    expect(router.navigateByUrl).toHaveBeenCalledWith('/profil');
+    expect(router.navigateByUrl).toHaveBeenCalledWith('/profil', { replaceUrl: true });
   });
 
   it('?retour=//evil.com est refusé : pas de navigation', async () => {
     await ouvrir({ retour: '//evil.com' });
     await envoyer(200, { jetonAcces: 'J', expireDans: 900 });
-    expect(router.navigateByUrl).toHaveBeenCalledWith('/profil');
+    expect(router.navigateByUrl).toHaveBeenCalledWith('/explorer', { replaceUrl: true });
   });
 
   it('401 identifiants-invalides : message annoncé (role=alert), focus dessus, pas de navigation', async () => {
@@ -174,7 +174,7 @@ describe('Connexion', () => {
       req.flush({ jetonAcces: 'J2', expireDans: 900 });
       await apres();
       expect(TestBed.inject(Session).jeton()).toBe('J2');
-      expect(router.navigateByUrl).toHaveBeenCalledWith('/profil');
+      expect(router.navigateByUrl).toHaveBeenCalledWith('/profil', { replaceUrl: true });
     });
 
     it('pas de double envoi, bouton aria-busy', async () => {
