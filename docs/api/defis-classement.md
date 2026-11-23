@@ -1,6 +1,6 @@
 # Contrat API — Défis et classement (proposé)
 
-- **Statut :** proposé par tech-lead-back le 2026-11-20 ; à valider par tech-lead-front. Une fois validé, dev-backend le reporte dans `openapi.yaml` (tag `competition`) dans la story d'implémentation.
+- **Statut :** §3 implémenté (defis-2, `openapi.yaml`) ; reste proposé par tech-lead-back le 2026-11-20 ; à valider par tech-lead-front. Une fois validé, dev-backend le reporte dans `openapi.yaml` (tag `competition`) dans la story d'implémentation.
 - **Décisions :** ADR 0024. **Stories :** #133 (fidelite-22), #134 (fidelite-23), defis-2 (classement actif, à créer).
 - Conventions existantes : Bearer obligatoire (401 `non-authentifie`), erreurs RFC 9457 (`Probleme`, `code` stable), dates ISO 8601 UTC, semaine = lundi 00:00 → lundi 00:00 heure de Paris.
 
@@ -81,7 +81,7 @@ Erreurs : 401 ; 404 `introuvable` si la ville n'existe pas dans `catalogue.ville
 
 « Inviter des amis » : partage natif (`navigator.share`, repli copie du lien) de l'URL publique de l'appli. Aucun endpoint (pas de parrainage, Q-34).
 
-## 3. Proposé pour defis-2, non validé : `GET /api/classement?portee=VILLE&ville=75056` | `portee=FRANCE`
+## 3. Implémenté (defis-2) — operationId `classement` : `GET /api/classement?portee=VILLE&ville=75056` | `portee=FRANCE`
 
 ```json
 {
@@ -100,8 +100,8 @@ Erreurs : 401 ; 404 `introuvable` si la ville n'existe pas dans `catalogue.ville
 
 - Score = captures de la semaine dans la portée. Rang = `row_number()` score décroissant puis dernière capture comptée croissante.
 - `tendance` = rang final semaine précédente − rang actuel ; `null` si non classé la semaine précédente (front : « = » pour 0, « +n », « −n »).
-- `podium` ≤ 3 ; `autourDeMoi` = rang−1..rang+1 sans doublon avec le podium, vide si l'appelant n'a pas de score. Front : « ··· » si `autourDeMoi[0].rang > 4`.
-- Appelant sans consentement : `podium` visible, `autourDeMoi` = sa seule ligne avec `rang: null`, `tendance: null`, `moi: true`.
+- `podium` ≤ 3 ; `autourDeMoi` = rang−1..rang+1 sans doublon avec le podium, vide si l'appelant classable n'a pas de score. Front : « ··· » si `autourDeMoi[0].rang > 4`.
+- Appelant sans consentement : `podium` visible, `autourDeMoi` = sa seule ligne avec `rang: null`, `tendance: null`, `moi: true` (même sans capture : `score: 0`).
 - `ouvert: false` → `podium` et `autourDeMoi` vides (le front affiche l'état de lancement).
 - `portee=AMIS` : 400 `validation` tant que le système d'amis n'existe pas.
 - Pas de pagination, pas d'UUID, ni niveau ni quartier (ADR 0024 §7).
@@ -116,7 +116,7 @@ Erreurs : 401 ; 404 `introuvable` si la ville n'existe pas dans `catalogue.ville
 | Ville restée ouverte | Nouvelle : `competition.ville_ouverte` (defis-2) |
 | Amis, invitations | Nouvelles : `competition.invitation`, `competition.amitie` (contrat séparé) |
 
-Migrations proposées, non écrites : `V11__capture_index_date.sql` (`CREATE INDEX capture_capturee_le_idx ON capture.capture (capturee_le)`, avec #133) ; `V12__competition.sql` (schéma `competition`, `ville_ouverte`, avec defis-2).
+Migrations : `V11__capture_index_date.sql` (écrite) ; `V12__competition.sql` (schéma `competition`, `ville_ouverte`, écrite avec defis-2).
 
 RGPD : #133 et #134 n'ajoutent aucune donnée personnelle stockée. Export et effacement inchangés (récompense déjà couverte par `succes_obtenu`).
 

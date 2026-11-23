@@ -1,16 +1,16 @@
 import { httpResource } from '@angular/common/http';
 import { ChangeDetectionStrategy, Component, computed, signal } from '@angular/core';
 import { LancementClassementVille } from '../../core/api/models/lancement-classement-ville';
-import { ZnBientotEtat } from '../../shared/ui/bientot-etat';
 import { ZnMessage } from '../../shared/ui/message';
+import { ClassementActif } from './classement-actif';
 
 // Q-36 : le classement est celui de Paris tant que la ville de l'appelant n'est pas exposée.
 const CODE_INSEE_PARIS = '75056';
 
-/** Classement : état de lancement « n / 50 » (#134). Ouvert = « Bientôt » jusqu'à defis-2 (D6). */
+/** Classement : état de lancement « n / 50 » (#134). Ouvert : classement actif (defis-2). */
 @Component({
   selector: 'app-classement-lancement',
-  imports: [ZnBientotEtat, ZnMessage],
+  imports: [ClassementActif, ZnMessage],
   template: `
     @if (api.error()) {
       <zn-message type="erreur">
@@ -22,7 +22,7 @@ const CODE_INSEE_PARIS = '75056';
       <div class="carte fantome" aria-hidden="true"></div>
     } @else if (l(); as d) {
       @if (d.ouvert) {
-        <zn-bientot-etat sujet="Classement" />
+        <app-classement-actif />
       } @else {
         <div class="carte">
           <h3>Le classement de {{ d.ville.nom }} s'ouvre à {{ d.seuil }} explorateurs</h3>

@@ -44,8 +44,10 @@ class LancementClassementController {
 
   private final JdbcClient jdbc;
   private final Clock horloge;
+  private final OuvertureClassement ouverture;
 
-  LancementClassementController(JdbcClient jdbc, Clock horloge) {
+  LancementClassementController(JdbcClient jdbc, Clock horloge, OuvertureClassement ouverture) {
+    this.ouverture = ouverture;
     this.jdbc = jdbc;
     this.horloge = horloge;
   }
@@ -66,31 +68,15 @@ class LancementClassementController {
             .query((r, i) -> new Ville(r.getString(1), r.getString(2)))
             .optional()
             .orElseThrow(() -> new ErreurMetier(HttpStatus.NOT_FOUND, "introuvable"));
-    // Dernier consentement CLASSEMENT accordé (journal en ajout seul, ADR 0008).
-    String classable =
-        "(select c.accorde from compte.consentement c where c.utilisateur_id = u.id"
-            + " and c.type = 'CLASSEMENT' order by c.horodatage desc, c.id desc limit 1)";
-    int explorateurs =
-        jdbc.sql(
-                "select count(*) from compte.utilisateur u where u.email_verifie_le is not null"
-                    + " and u.suppression_demandee_le is null and coalesce("
-                    + classable
-                    + ", false) and exists (select 1 from capture.capture c"
-                    + " join catalogue.monument m on m.numero = c.numero_monument"
-                    + " where c.utilisateur_id = u.id and m.ville_code_insee = :c)")
-            .param("c", codeInsee)
-            .query(Integer.class)
-            .single();
+    int explorateurs = ouverture.explorateurs(codeInsee);
     boolean consentement =
         jdbc.sql(
-                "select coalesce("
-                    + classable
-                    + ", false) from compte.utilisateur u"
-                    + " where u.id = :moi")
+                "select coalesce((select c.accorde from compte.consentement c"
+                    + " where c.utilisateur_id = :moi and c.type = 'CLASSEMENT'"
+                    + " order by c.horodatage desc, c.id desc limit 1), false)")
             .param("moi", moi)
             .query(Boolean.class)
-            .optional()
-            .orElse(false);
+            .single();
     LocalDate lundi =
         LocalDate.now(horloge.withZone(PARIS))
             .with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY));
@@ -102,7 +88,13 @@ class LancementClassementController {
             .param("debut", Timestamp.from(lundi.atStartOfDay(PARIS).toInstant()))
             .query(Integer.class)
             .single();
-    int compte = Math.min(explorateurs, SEUIL);
-    return new Reponse(ville, SEUIL, compte, compte >= SEUIL, consentement, new Moi(tampons));
+    int seuil = ouverture.seuil();
+    return new Reponse(
+        ville,
+        seuil,
+        Math.min(explorateurs, seuil),
+        ouverture.ouverte(codeInsee, explorateurs),
+        consentement,
+        new Moi(tampons));
   }
 }
