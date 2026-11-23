@@ -38,6 +38,14 @@ describe('CalculItineraire', () => {
     expect(s.etat()).toEqual({ statut: 'ok', itineraire: ITI });
   });
 
+  it('résultat périmé après effacer() : ignoré', async () => {
+    const { s, http } = service();
+    const fin = s.calculer(9, { latitude: 48.85, longitude: 2.29, precision: 12 });
+    s.effacer();
+    http.expectOne('/api/itineraire').flush(ITI);
+    await fin;
+    expect(s.etat().statut).toBe('inactif');
+  });
   it('hors ligne : aucun appel, erreur « Pas de connexion »', async () => {
     const { s, http } = service();
     vi.spyOn(navigator, 'onLine', 'get').mockReturnValue(false);

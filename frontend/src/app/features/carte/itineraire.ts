@@ -75,7 +75,10 @@ export class CalculItineraire {
   private readonly _etat = signal<EtatItineraire>({ statut: 'inactif' });
   readonly etat = this._etat.asReadonly();
 
+  private rang = 0;
+
   async calculer(numero: number, depart: Coords): Promise<void> {
+    const mien = ++this.rang;
     if (!navigator.onLine) {
       this._etat.set({ statut: 'erreur', texte: 'Pas de connexion.', repli: true });
       return;
@@ -85,14 +88,16 @@ export class CalculItineraire {
       const itineraire = await this.api.invoke(calculerItineraire, {
         body: { depart: { latitude: depart.latitude, longitude: depart.longitude }, numero },
       });
-      this._etat.set({ statut: 'ok', itineraire });
+      if (mien === this.rang) this._etat.set({ statut: 'ok', itineraire });
     } catch (e) {
+      if (mien !== this.rang) return; // résultat périmé (monument changé, écran quitté)
       const m = messageDe(e);
       this._etat.set(m ? { statut: 'erreur', ...m } : { statut: 'inactif' });
     }
   }
 
   effacer(): void {
+    this.rang++;
     this._etat.set({ statut: 'inactif' });
   }
 }

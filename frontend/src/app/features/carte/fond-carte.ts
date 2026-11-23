@@ -89,6 +89,17 @@ export async function creerFond(options: OptionsFond): Promise<FondCarte> {
     effacer,
     tracer: (trace: Itineraire['trace']) => {
       effacer();
+      // frontière de confiance : forme et plafond avant d'alimenter MapLibre
+      const ok =
+        trace?.type === 'LineString' &&
+        Array.isArray(trace.coordinates) &&
+        trace.coordinates.length >= 2 &&
+        trace.coordinates.length <= 20000 &&
+        trace.coordinates.every(
+          (c) =>
+            Array.isArray(c) && c.length >= 2 && Number.isFinite(c[0]) && Number.isFinite(c[1]),
+        );
+      if (!ok) return;
       carte.addSource(TRACE, {
         type: 'geojson',
         data: { type: 'Feature', properties: {}, geometry: trace },
