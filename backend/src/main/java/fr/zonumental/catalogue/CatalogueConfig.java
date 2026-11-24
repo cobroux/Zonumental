@@ -29,15 +29,15 @@ class CatalogueConfig {
 
   @Bean
   SourceMonuments sourceMonuments(
-      RestClient.Builder builder,
       @Value("${zonumental.contact:}") String contact,
       @Value("${zonumental.catalogue.delai-ms:200}") long delaiMs,
       @Value("${zonumental.catalogue.connexion-timeout:10s}") Duration connexion,
       @Value("${zonumental.catalogue.sparql-lecture-timeout:60s}") Duration lectureSparql,
       @Value("${zonumental.catalogue.lecture-timeout:30s}") Duration lecture) {
+    // pas de RestClient.Builder injectable ici (absent du contexte de l'import)
     return new SourceWikimedia(
-        builder.clone().requestFactory(SourceWikimedia.fabrique(connexion, lecture)),
-        builder.clone().requestFactory(SourceWikimedia.fabrique(connexion, lectureSparql)),
+        RestClient.builder().requestFactory(SourceWikimedia.fabrique(connexion, lecture)),
+        RestClient.builder().requestFactory(SourceWikimedia.fabrique(connexion, lectureSparql)),
         Clock.systemUTC(),
         contact,
         delaiMs);
