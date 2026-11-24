@@ -379,11 +379,12 @@ header {
   inset: auto auto 4px 4px;
   max-inline-size: 34%;
   margin: 0;
-  padding: 2px 6px;
-  border-radius: 6px;
-  background: var(--zn-papier-clair);
+  padding: 1px 4px;
+  border-radius: 4px;
+  background: color-mix(in srgb, var(--zn-papier-clair) 70%, transparent);
   color: var(--zn-gris-45);
-  font-size: 0.6875rem;
+  font-size: 0.5625rem;
+  line-height: 1.2;
 }
 .attribution a {
   color: inherit;
