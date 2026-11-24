@@ -431,6 +431,7 @@ describe('Carte', () => {
         r.etatPosition.set(LOIN);
         r.fixture.detectChanges();
         clic(r, 'Recalculer');
+        expect(document.activeElement).toBe(r.el.querySelector('.selection'));
         const req = r.http.expectOne('/api/itineraire');
         expect(req.request.body.depart).toEqual({ latitude: 48.87, longitude: 2.3 });
         req.flush(ITI);

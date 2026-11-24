@@ -156,7 +156,7 @@ const ECHELLES = ['Paris', 'France'] as const;
       </a>
     }
     @if (selection(); as s) {
-      <div class="selection">
+      <div class="selection" #selectionZone tabindex="-1">
         <a [routerLink]="['/monument', s.numero]">
           <span class="num">{{ libelleDe(s) }}</span>
           <strong>{{ s.nom }}</strong>
@@ -246,6 +246,7 @@ export class Carte {
   private readonly proximite = inject(Proximite);
   private readonly monuments = this.proximite.monuments;
   private readonly canevas = viewChild.required<ElementRef<HTMLElement>>('canevas');
+  private readonly zoneSelection = viewChild<ElementRef<HTMLElement>>('selectionZone');
   private readonly boutonItineraire = viewChild<ElementRef<HTMLButtonElement>>('boutonItineraire');
   protected readonly calcul = inject(CalculItineraire);
 
@@ -426,7 +427,10 @@ export class Carte {
 
   protected recalculer(): void {
     const c = this.coords();
-    if (c) this.demarrerCalcul(c);
+    if (!c) return;
+    // le bouton disparaît pendant le calcul : le focus reste dans la zone de sélection
+    this.zoneSelection()?.nativeElement.focus();
+    this.demarrerCalcul(c);
   }
 
   protected effacer(): void {
