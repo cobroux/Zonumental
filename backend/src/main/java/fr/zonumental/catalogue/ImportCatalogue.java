@@ -247,6 +247,8 @@ public class ImportCatalogue {
     ImageWriteParam param = w.getDefaultWriteParam();
     param.setCompressionMode(ImageWriteParam.MODE_EXPLICIT);
     param.setCompressionQuality(0.85f);
+    // le flux ne tronque pas : sans ça, un ancien fichier plus grand garde sa queue d'octets
+    Files.deleteIfExists(cible);
     try (ImageOutputStream out = ImageIO.createImageOutputStream(cible.toFile())) {
       w.setOutput(out);
       w.write(null, new IIOImage(gris, null, null), param);

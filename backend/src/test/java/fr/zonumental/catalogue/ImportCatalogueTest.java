@@ -162,8 +162,14 @@ class ImportCatalogueTest {
         new java.awt.image.BufferedImage(1600, 400, java.awt.image.BufferedImage.TYPE_BYTE_GRAY),
         "jpg",
         nb.toFile());
+    Files.write(
+        nb,
+        new byte[300_000],
+        java.nio.file.StandardOpenOption.APPEND); // queue héritée qui doit disparaître
+    long avant = Files.size(nb);
     imp.figer(relire(imp));
     assertThat(javax.imageio.ImageIO.read(nb.toFile()).getWidth()).isEqualTo(800);
+    assertThat(Files.size(nb)).isLessThan(avant - 250_000);
   }
 
   @Test
