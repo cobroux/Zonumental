@@ -72,6 +72,10 @@ POST /api/itineraire            (authentifié, CSRF comme le reste de l'API)
 - **`numero` au lieu de `monumentId`** : le catalogue n'a pas d'autre identifiant public. Risque nul (même résolution côté serveur, entier validé `>= 1`).
 - **Quota en mémoire par compte** (30 par heure glissante) au lieu du mécanisme de r0-socle-9, qui écrit en base : il faudrait y consigner l'usage, contraire à RG-036 et à « rien en base ». Limites : compteur par instance, perdu au redémarrage (contournable seulement par un redémarrage ou une réplication), une entrée vide par compte ayant déjà appelé (borné par le nombre de comptes). À partager (Redis) si le backend est répliqué.
 
+## Mise en œuvre (itineraire-2)
+
+`deploy/valhalla/` : `compose.yaml` (image `valhalla-scripted` 3.5.1, aucun port publié, réseau `zonumental-interne`, 2 Go), `prepare-donnees.sh` (extrait IDF Geofabrik vérifié par MD5, tuiles piétonnes, idempotent), `rafraichir.sh` (mensuel, coupure de quelques secondes). Aucun hébergeur choisi ni déploiement en CI (Q-42, #5/#21). Non exécuté de bout en bout à la livraison.
+
 ## Alternatives écartées
 
 - **A (front vers tiers)** : la position et l'IP partent chez un tiers, il faut ouvrir la CSP et, avec ORS, la clé est exposée. Les CGU des services gratuits excluent un usage de production.
