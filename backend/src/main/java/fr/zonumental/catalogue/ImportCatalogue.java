@@ -262,10 +262,10 @@ public class ImportCatalogue {
     jdbc.sql(
             "insert into catalogue.monument (numero, wikidata_id, merimee_id, nom, type,"
                 + " ville_code_insee, latitude, longitude, rayon_capture_m, rarete, popularite,"
-                + " annee, style, hauteur_m, histoire_texte, histoire_source_url,"
-                + " histoire_licence, image_url, image_source_url, image_licence,"
+                + " annee, style, hauteur_m, materiau, histoire_texte,"
+                + " histoire_source_url, histoire_licence, image_url, image_source_url, image_licence,"
                 + " image_licence_url, image_auteur)"
-                + " values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)")
+                + " values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)")
         .params(
             n.numero(),
             c.wikidataId(),
@@ -281,6 +281,7 @@ public class ImportCatalogue {
             c.annee(),
             c.style(),
             c.hauteurM(),
+            c.materiau(),
             c.histoireTexte(),
             c.histoireSourceUrl(),
             c.histoireLicence(),
@@ -305,7 +306,7 @@ public class ImportCatalogue {
     }
     jdbc.sql(
             "update catalogue.monument set merimee_id=?, nom=?, type=?, latitude=?, longitude=?,"
-                + " popularite=?, annee=?, style=?, hauteur_m=?, histoire_texte=?,"
+                + " popularite=?, annee=?, style=?, hauteur_m=?, materiau=?, histoire_texte=?,"
                 + " histoire_source_url=?, histoire_licence=?, mis_a_jour_le=now()"
                 + " where wikidata_id=?")
         .params(
@@ -318,6 +319,7 @@ public class ImportCatalogue {
             c.annee(),
             c.style(),
             c.hauteurM(),
+            c.materiau(),
             c.histoireTexte(),
             c.histoireSourceUrl(),
             c.histoireLicence(),

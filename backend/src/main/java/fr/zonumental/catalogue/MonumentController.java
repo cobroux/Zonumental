@@ -56,7 +56,7 @@ class MonumentController {
       Image image,
       OffsetDateTime captureeLe) {}
 
-  record Stats(Integer annee, String style, BigDecimal hauteurMetres) {}
+  record Stats(Integer annee, String style, BigDecimal hauteurMetres, String materiau) {}
 
   record Histoire(String texte, String sourceUrl, String licence) {}
 
@@ -196,7 +196,10 @@ class MonumentController {
         image,
         captureeLe,
         annee == null ? null : siecle(annee),
-        capturee ? new Stats(annee, r.getString("style"), r.getBigDecimal("hauteur_m")) : null,
+        capturee
+            ? new Stats(
+                annee, r.getString("style"), r.getBigDecimal("hauteur_m"), r.getString("materiau"))
+            : null,
         capturee ? "/api/captures/" + numero + "/photo" : null,
         histoire);
   }

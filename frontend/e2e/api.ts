@@ -215,7 +215,9 @@ export async function mockApi(page: Page) {
         return json({
           ...resume(m),
           siecle: 19,
-          stats: prise ? { annee: 1889, style: 'Art nouveau', hauteurMetres: 330 } : null,
+          stats: prise
+            ? { annee: 1889, style: 'Art nouveau', hauteurMetres: 330, materiau: 'Fer puddlé' }
+            : null,
           photoUrl: prise ? `/api/captures/${m.numero}/photo` : null,
           histoire: prise ? HISTOIRE : null,
         });

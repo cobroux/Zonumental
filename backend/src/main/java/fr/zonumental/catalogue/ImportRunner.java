@@ -9,13 +9,15 @@ import org.springframework.boot.ApplicationRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.ApplicationContext;
+import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 
 /**
- * Tâche ponctuelle : {@code --zonumental.catalogue.importer=relecture|figer}, puis arrêt de
- * l'application (code 0 si succès, 1 sinon).
+ * Tâche ponctuelle : {@code --zonumental.catalogue.importer=relecture|figer|figer-dev}, puis arrêt
+ * de l'application (sauf figer-dev, réservé au lancement local) (code 0 si succès, 1 sinon).
  */
 @Component
+@Order(0) // avant les runners de dev (jeu de données local)
 @ConditionalOnProperty("zonumental.catalogue.importer")
 class ImportRunner implements ApplicationRunner {
 
@@ -40,7 +42,10 @@ class ImportRunner implements ApplicationRunner {
   @Override
   public void run(ApplicationArguments args) {
     int code = executer();
-    System.exit(SpringApplication.exit(contexte, () -> code));
+    // figer-dev : charge le fichier puis laisse l'appli tourner (base de dev éphémère)
+    if (!"figer-dev".equals(mode)) {
+      System.exit(SpringApplication.exit(contexte, () -> code));
+    }
   }
 
   int executer() {
@@ -55,7 +60,7 @@ class ImportRunner implements ApplicationRunner {
               p.absentsDesSources().size(),
               fichier);
         }
-        case "figer" -> {
+        case "figer", "figer-dev" -> {
           importCatalogue.figer(importCatalogue.lire(fichier));
           LOG.info("Catalogue figé depuis {}", fichier);
         }

@@ -32,6 +32,7 @@ public class SourceWikimedia implements SourceMonuments {
       """
       SELECT ?item ?label ?merimee ?coord ?article ?image ?inception ?precision ?styleLabel
              ?height ?unit
+             (SAMPLE(?matLabel) AS ?materiau)
              (GROUP_CONCAT(DISTINCT STRAFTER(STR(?type), "entity/"); separator=",") AS ?types)
       WHERE {
         ?commune wdt:P374 "%s".
@@ -45,6 +46,8 @@ public class SourceWikimedia implements SourceMonuments {
                    FILTER(LANG(?styleLabel) = "fr") }
         OPTIONAL { ?item p:P2048/psv:P2048 [wikibase:quantityAmount ?height;
                                              wikibase:quantityUnit ?unit] }
+        OPTIONAL { ?item wdt:P186 ?mat. ?mat rdfs:label ?matLabel.
+                   FILTER(LANG(?matLabel) = "fr") }
       }
       GROUP BY ?item ?label ?merimee ?coord ?article ?image ?inception ?precision ?styleLabel
                ?height ?unit
@@ -184,6 +187,7 @@ public class SourceWikimedia implements SourceMonuments {
         annee,
         style,
         hauteur,
+        valeur(l, "materiau").isEmpty() ? null : valeur(l, "materiau"),
         texte,
         texteUrl,
         texte == null ? null : LICENCE_TEXTE,

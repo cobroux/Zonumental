@@ -64,6 +64,7 @@ class ImportCatalogueTest {
         1900,
         null,
         null,
+        null,
         "Histoire " + nom,
         "https://fr.wikipedia.org/wiki/" + nom,
         "CC BY-SA 4.0",

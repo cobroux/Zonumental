@@ -15,6 +15,7 @@ public record Candidat(
     Integer annee,
     String style,
     BigDecimal hauteurM,
+    String materiau,
     String histoireTexte,
     String histoireSourceUrl,
     String histoireLicence,

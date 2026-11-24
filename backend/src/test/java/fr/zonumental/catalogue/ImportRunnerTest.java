@@ -36,6 +36,14 @@ class ImportRunnerTest {
   }
 
   @Test
+  void figerDev_ecrit_comme_figer() {
+    Proposition p = new Proposition(List.of(), List.of(), List.of());
+    when(importCatalogue.lire(fichier)).thenReturn(p);
+    assertThat(runner("figer-dev").executer()).isZero();
+    verify(importCatalogue).figer(p);
+  }
+
+  @Test
   void mode_inconnu_ou_erreur_donne_le_code_1() {
     assertThat(runner("autre").executer()).isEqualTo(1);
     when(importCatalogue.preparer(any())).thenThrow(new IllegalStateException("source HS"));
