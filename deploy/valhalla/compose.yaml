@@ -1,0 +1,26 @@
+# Valhalla pieton INTERNE (RG-036) : aucun port publie ici.
+# Le backend le joint par le reseau "zonumental-interne" (http://valhalla:8002).
+# Dev local sur l'hote : docker compose -f compose.yaml -f compose.dev.yaml up -d
+services:
+  valhalla:
+    image: ghcr.io/valhalla/valhalla-scripted:3.5.1
+    command: ["valhalla_service", "/data/valhalla.json", "1"]
+    restart: unless-stopped
+    read_only: true
+    cap_drop: [ALL]
+    security_opt: ["no-new-privileges:true"]
+    tmpfs: [/tmp]
+    volumes:
+      - ./data/current:/data:ro
+    networks: [interne]
+    mem_limit: 2g
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS http://127.0.0.1:8002/status >/dev/null"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+
+networks:
+  interne:
+    name: zonumental-interne

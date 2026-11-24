@@ -1,0 +1,5 @@
+# Dev local uniquement : expose Valhalla sur la boucle locale de l'hote.
+services:
+  valhalla:
+    ports:
+      - "127.0.0.1:8002:8002"
