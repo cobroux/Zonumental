@@ -338,7 +338,7 @@ header {
   border-radius: 12px;
   background: var(--zn-papier-sombre);
   object-fit: cover;
-  filter: grayscale(0.85);
+  filter: url(#zn-duo) contrast(1.5) brightness(0.55) blur(5px);
   outline: 1px solid var(--zn-voile-10);
   outline-offset: -1px;
 }

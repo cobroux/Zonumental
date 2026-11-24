@@ -81,7 +81,8 @@ describe('Fiche', () => {
     http.expectNone('/api/catalogue/monuments/7/image');
     expect(el.textContent).toContain('Tour Eiffel');
     expect(el.textContent).toContain('XIXe siècle');
-    expect(el.textContent).toContain('image modifiée : noir et blanc');
+    expect(el.textContent).toContain('image modifiée : noir et blanc, teintée et floutée');
+    expect(el.querySelector('img')?.classList).toContain('avant');
     expect(el.querySelector('img')?.getAttribute('src')).toBe('/api/catalogue/images/7-nb.jpg');
     expect(el.textContent).not.toContain('Histoire à venir');
     expect(el.textContent).not.toContain('1889');

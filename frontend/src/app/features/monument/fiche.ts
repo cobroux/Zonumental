@@ -94,7 +94,7 @@ const TYPES = {
         @if (!m.image) {
           <div class="photo" data-silhouette role="img" aria-label="Image indisponible"></div>
         } @else if (m.image; as i) {
-          <img class="photo" [src]="couleur() ?? i.url" [alt]="m.nom" />
+          <img class="photo" [class.avant]="!couleur()" [src]="couleur() ?? i.url" [alt]="m.nom" />
         }
         @if (m.captureeLe) {
           <!-- illustration : la date et le nom sont déjà dans la fiche (RG-043) -->
@@ -186,7 +186,7 @@ const TYPES = {
             >,
             {{ i.licence }}
             @if (!couleur()) {
-              <span>(image modifiée : noir et blanc)</span>
+              <span>(image modifiée : noir et blanc, teintée et floutée)</span>
             }
           </p>
         }
