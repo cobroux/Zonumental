@@ -14,6 +14,10 @@
   object-position: 50% 28%;
   background: var(--zn-papier-sombre);
 }
+/* avant capture : même voile que la liste (image publique en noir et blanc) */
+.photo.avant {
+  filter: url(#zn-duo) contrast(1.5) brightness(0.55) blur(5px);
+}
 .hero {
   position: relative;
 }

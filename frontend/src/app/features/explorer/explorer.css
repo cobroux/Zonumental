@@ -119,6 +119,8 @@ article img,
 }
 article img {
   object-fit: cover;
+  filter: url(#zn-duo) contrast(1.5) brightness(0.55) blur(5px);
+  transform: scale(1.12); /* masque le bord clair du flou */
 }
 .silhouette {
   box-sizing: border-box;
@@ -226,9 +228,7 @@ article[inert] .haut,
 article[inert] .bas {
   visibility: hidden;
 }
-article[inert] img {
-  filter: saturate(0.6);
-}
+
 .apercu {
   position: absolute;
   inset: 0;

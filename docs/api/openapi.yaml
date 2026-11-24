@@ -1227,7 +1227,7 @@ components:
       description: >
         Image de référence ; absente (null) si sa licence est inconnue → silhouette (RG-022).
         Attribution : la variante noir et blanc est une œuvre modifiée, le front l'indique
-        (« image modifiée : noir et blanc ») à côté de la licence.
+        (« image modifiée : noir et blanc, teintée et floutée ») à côté de la licence.
       required: [url, urlCouleur, sourceUrl, licence]
       properties:
         url: { type: string, format: uri, description: 'Noir et blanc, publique (`<img src>`) : `/api/catalogue/images/<numéro>-nb.jpg`' }
