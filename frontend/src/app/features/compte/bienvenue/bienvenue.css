@@ -23,6 +23,13 @@
   display: block;
 }
 
+.visuel .arc {
+  position: absolute;
+  inset: auto 0 40px;
+  inline-size: 100%;
+  block-size: 320px;
+}
+
 .etiquette {
   position: absolute;
   inset: var(--zn-esp-6) auto auto 1.25rem;
