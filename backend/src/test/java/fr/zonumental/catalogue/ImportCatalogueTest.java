@@ -138,6 +138,34 @@ class ImportCatalogueTest {
     assertThat(img.getRGB(1, 1) & 0xFF).isLessThan(200); // rouge -> gris plus sombre
   }
 
+  static byte[] pngTaille(int w, int h) throws IOException {
+    java.awt.image.BufferedImage img =
+        new java.awt.image.BufferedImage(w, h, java.awt.image.BufferedImage.TYPE_INT_RGB);
+    java.io.ByteArrayOutputStream o = new java.io.ByteArrayOutputStream();
+    javax.imageio.ImageIO.write(img, "png", o);
+    return o.toByteArray();
+  }
+
+  @Test
+  void figer_reduit_le_noir_et_blanc_a_800_px_et_refait_un_fichier_trop_grand() throws Exception {
+    imageSource = pngTaille(1600, 400);
+    donnees.put(LYON, List.of(c("Q1", "A", 10, true)));
+    ImportCatalogue imp = importeur(10, Map.of());
+    imp.figer(relire(imp));
+    Path nb = dossier.resolve("images/1-nb.jpg");
+    java.awt.image.BufferedImage img = javax.imageio.ImageIO.read(nb.toFile());
+    assertThat(img.getWidth()).isEqualTo(800);
+    assertThat(img.getHeight()).isEqualTo(200);
+
+    // un fichier hérité d'avant la réduction (1600 px) est régénéré au prochain passage
+    javax.imageio.ImageIO.write(
+        new java.awt.image.BufferedImage(1600, 400, java.awt.image.BufferedImage.TYPE_BYTE_GRAY),
+        "jpg",
+        nb.toFile());
+    imp.figer(relire(imp));
+    assertThat(javax.imageio.ImageIO.read(nb.toFile()).getWidth()).isEqualTo(800);
+  }
+
   @Test
   void figer_genere_les_noir_et_blanc_manquants_sans_reecrire_les_existants() throws Exception {
     imageSource = png(0xFF00FF00);
