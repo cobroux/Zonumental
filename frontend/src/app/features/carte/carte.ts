@@ -24,7 +24,14 @@ import { ZnBientotEtat } from '../../shared/ui/bientot-etat';
 import { ZnTampon } from '../../shared/ui/tampon';
 import { libelle, pourcentage, rayon } from './calque';
 import { FOND_CARTE, FondCarte } from './fond-carte';
-import { CalculItineraire, lienRepli, resume } from './itineraire';
+import {
+  CalculItineraire,
+  SEUIL_ECART_M,
+  ecarte,
+  ecartMetres,
+  lienRepli,
+  resume,
+} from './itineraire';
 import { lireCouleurs, styleCarte } from './style-carte';
 
 const ZOOM_INITIAL = 12;
@@ -203,6 +210,14 @@ const ECHELLES = ['Paris', 'France'] as const;
         </div>
         @if (trajet(); as t) {
           <p class="resume" role="status">{{ t.resume }}</p>
+          <p class="ecart" role="status">
+            @if (ecart()) {
+              Tu t'es écarté de l'itinéraire
+            }
+          </p>
+          @if (ecart()) {
+            <button type="button" class="action" (click)="recalculer()">Recalculer</button>
+          }
           <details class="etapes">
             <summary>Étapes ({{ t.etapes.length }})</summary>
             <ol>
@@ -322,6 +337,8 @@ export class Carte {
       })),
     };
   });
+  /** Écart au tracé (> 50 m, hystérésis) ; évalué seulement tant qu'un itinéraire est affiché. */
+  protected readonly ecart = signal(false);
   protected readonly lienOsm = (m: { position: { latitude: number; longitude: number } }) =>
     lienRepli(m.position);
   protected readonly selection = computed(
@@ -335,6 +352,14 @@ export class Carte {
       if (!fond) return;
       if (e.statut === 'ok') fond.tracer(e.itineraire.trace);
       else fond.effacer();
+    });
+    // suivi : calcul local pur, aucune requête ; s'arrête avec l'itinéraire (effacer, monument, destruction)
+    effect(() => {
+      const e = this.calcul.etat();
+      const c = this.coords();
+      if (e.statut !== 'ok') return this.ecart.set(false);
+      if (!c || (c.precision ?? 0) > SEUIL_ECART_M) return; // lecture trop imprécise : on ne conclut pas
+      this.ecart.update((d) => ecarte(d, ecartMetres(c, e.itineraire.trace)));
     });
     // la position demandée au clic arrive : le calcul peut partir
     effect(() => {
@@ -397,6 +422,11 @@ export class Carte {
     this.attentePosition.set(false);
     const n = this.choisi();
     if (n !== null) void this.calcul.calculer(n, c);
+  }
+
+  protected recalculer(): void {
+    const c = this.coords();
+    if (c) this.demarrerCalcul(c);
   }
 
   protected effacer(): void {

@@ -5,7 +5,10 @@ import { aMetres, mockApi } from './api';
 test.use({ geolocation: aMetres(100), viewport: { width: 390, height: 844 } });
 
 // Capture locale avec les vraies tuiles : CAPTURE=1 PORT=4312 npx playwright test itineraire
-test('Itinéraire : mention, tracé, résumé, étapes, accessibilité', async ({ page }, info) => {
+test('Itinéraire : mention, tracé, résumé, étapes, écart, accessibilité', async ({
+  page,
+  context,
+}, info) => {
   const api = await mockApi(page);
   api.captures.add(1);
   if (!process.env['CAPTURE'])
@@ -50,6 +53,12 @@ test('Itinéraire : mention, tracé, résumé, étapes, accessibilité', async (
     .withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa'])
     .analyze();
   expect(violations).toEqual([]);
+  // itineraire-4 : position simulée à ~1 km du tracé -> annonce et « Recalculer », sans appel réseau
+  await context.setGeolocation({ latitude: 48.87, longitude: 2.3 });
+  await expect(page.getByText("Tu t'es écarté de l'itinéraire")).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Recalculer' })).toBeVisible();
+  if (process.env['CAPTURE'])
+    await page.screenshot({ path: info.outputPath('itineraire-itineraire-4-390.png') });
   await page.getByRole('button', { name: "Effacer l'itinéraire" }).click();
   await expect(page.getByRole('button', { name: 'Itinéraire', exact: true })).toBeFocused();
 });

@@ -395,6 +395,66 @@ describe('Carte', () => {
       expect(TestBed.inject(CalculItineraire).etat().statut).toBe('inactif');
     });
 
+    describe('suivi et écart (itineraire-4)', () => {
+      const LOIN: EtatPosition = { statut: 'ok', coords: { latitude: 48.87, longitude: 2.3 } };
+      const statut = (el: HTMLElement) => el.querySelector('.selection .ecart')!;
+
+      it('sur le tracé : ni bouton « Recalculer », ni annonce', async () => {
+        const r = await choisir();
+        await calculer(r);
+        expect(bouton(r.el, 'Recalculer')).toBeUndefined();
+        expect(statut(r.el).getAttribute('role')).toBe('status');
+        expect(statut(r.el).textContent!.trim()).toBe('');
+      });
+
+      it('à plus de 50 m : annonce polie et bouton « Recalculer » (44 px), sans requête', async () => {
+        const r = await choisir();
+        await calculer(r);
+        r.etatPosition.set(LOIN);
+        r.fixture.detectChanges();
+        expect(statut(r.el).textContent).toContain("Tu t'es écarté de l'itinéraire");
+        expect(bouton(r.el, 'Recalculer')).toBeDefined();
+        r.http.expectNone('/api/itineraire');
+      });
+
+      it('lecture imprécise (> 50 m) ignorée', async () => {
+        const r = await choisir();
+        await calculer(r);
+        r.etatPosition.set({ statut: 'ok', coords: { ...LOIN.coords!, precision: 200 } });
+        r.fixture.detectChanges();
+        expect(bouton(r.el, 'Recalculer')).toBeUndefined();
+      });
+
+      it('« Recalculer » relance avec la position courante, puis le bouton disparaît', async () => {
+        const r = await choisir();
+        await calculer(r);
+        r.etatPosition.set(LOIN);
+        r.fixture.detectChanges();
+        clic(r, 'Recalculer');
+        const req = r.http.expectOne('/api/itineraire');
+        expect(req.request.body.depart).toEqual({ latitude: 48.87, longitude: 2.3 });
+        req.flush(ITI);
+        await attendre(r);
+        r.etatPosition.set({ statut: 'ok', coords: { latitude: 48.86, longitude: 2.3 } });
+        r.fixture.detectChanges();
+        expect(bouton(r.el, 'Recalculer')).toBeUndefined();
+      });
+
+      it('« Effacer » et changement de monument arrêtent le suivi', async () => {
+        const r = await choisir();
+        await calculer(r);
+        r.etatPosition.set(LOIN);
+        r.fixture.detectChanges();
+        clic(r, 'Effacer');
+        expect(bouton(r.el, 'Recalculer')).toBeUndefined();
+        await calculer(r);
+        expect(bouton(r.el, 'Recalculer')).toBeDefined(); // position toujours loin : nouveau suivi
+        (r.el.querySelectorAll('.epingles button')[3] as HTMLElement).click();
+        r.fixture.detectChanges();
+        expect(bouton(r.el, 'Recalculer')).toBeUndefined();
+      });
+    });
+
     it('rien dans le stockage ni dans la console après un calcul (RG-036)', async () => {
       const journal = [
         vi.spyOn(console, 'log'),
