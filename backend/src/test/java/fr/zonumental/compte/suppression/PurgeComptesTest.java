@@ -117,8 +117,13 @@ class PurgeComptesTest {
 
   @Test
   void efface_comptes_echus_et_donnees_liees_seulement() {
+    jdbc.update("update compte.utilisateur set mode_facile = true where id = ?", du);
     purge.purger();
 
+    assertThat(
+            jdbc.queryForObject(
+                "select count(*) from compte.utilisateur where mode_facile", Integer.class))
+        .isZero();
     assertThat(pseudos()).containsExactly("actif", "pasencore");
     assertThat(lignes("consentement")).isEqualTo(2);
     assertThat(lignes("jeton")).isEqualTo(2);

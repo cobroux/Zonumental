@@ -111,6 +111,7 @@ class ExportTest {
     assertThat(json.at("/compte/dateNaissance").asText()).isEqualTo("2000-01-01");
     assertThat(json.at("/compte/emailVerifieLe").asText()).startsWith("2026-01-02");
     assertThat(json.at("/compte/creeLe").asText()).startsWith("2026-01-01");
+    assertThat(json.at("/compte/modeFacile").isBoolean()).isTrue();
 
     JsonNode consentements = json.get("consentements");
     assertThat(consentements).hasSize(3);
