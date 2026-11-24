@@ -34,7 +34,8 @@ class Export {
       String email,
       LocalDate dateNaissance,
       OffsetDateTime emailVerifieLe,
-      OffsetDateTime creeLe) {}
+      OffsetDateTime creeLe,
+      boolean modeFacile) {}
 
   record Consentement(
       String type, boolean accorde, String versionTexte, OffsetDateTime horodatage) {}
@@ -70,7 +71,7 @@ class Export {
   Archive archive(UUID utilisateur) {
     Compte compte =
         jdbc.sql(
-                "select pseudo, email, date_naissance, email_verifie_le, cree_le"
+                "select pseudo, email, date_naissance, email_verifie_le, cree_le, mode_facile"
                     + " from compte.utilisateur where id = ?")
             .param(utilisateur)
             .query(
@@ -80,7 +81,8 @@ class Export {
                         r.getString("email"),
                         r.getObject("date_naissance", LocalDate.class),
                         r.getObject("email_verifie_le", OffsetDateTime.class),
-                        r.getObject("cree_le", OffsetDateTime.class)))
+                        r.getObject("cree_le", OffsetDateTime.class),
+                        r.getBoolean("mode_facile")))
             .optional()
             .orElseThrow(() -> new ErreurMetier(HttpStatus.UNAUTHORIZED, "non-authentifie"));
     List<Consentement> consentements =

@@ -64,6 +64,7 @@ async function rendre(
     creer?: () => Promise<FondCarte>;
     position?: EtatPosition;
     plusProche?: Proche;
+    modeFacile?: boolean | 'erreur';
   } = {},
 ) {
   const fond = fauxFond();
@@ -92,6 +93,16 @@ async function rendre(
   const fixture: ComponentFixture<Carte> = TestBed.createComponent(Carte);
   fixture.detectChanges();
   await fixture.whenStable();
+  const moi = TestBed.inject(HttpTestingController).expectOne('/api/compte/moi');
+  if (options.modeFacile === 'erreur') moi.flush('', { status: 401, statusText: '' });
+  else
+    moi.flush({
+      id: '1',
+      email: 'a@b.fr',
+      emailVerifie: true,
+      pseudo: 'm',
+      modeFacile: !!options.modeFacile,
+    });
   await new Promise((r) => setTimeout(r)); // laisse la promesse de création se résoudre
   fixture.detectChanges();
   return {
@@ -272,7 +283,7 @@ describe('Carte', () => {
         b.textContent?.includes(texte),
       );
     async function choisir(options: Parameters<typeof rendre>[0] = { position: OK }) {
-      const r = await rendre(options);
+      const r = await rendre({ modeFacile: true, ...options });
       (r.el.querySelectorAll('.epingles button')[2] as HTMLElement).click();
       r.fixture.detectChanges();
       return r;
@@ -293,11 +304,49 @@ describe('Carte', () => {
     }
 
     it('le bouton « Itinéraire » n’existe que dans la sélection', async () => {
-      const { el, fixture } = await rendre({ position: OK });
+      const { el, fixture } = await rendre({ position: OK, modeFacile: true });
       expect(bouton(el, 'Itinéraire')).toBeUndefined();
       (el.querySelectorAll('.epingles button')[2] as HTMLElement).click();
       fixture.detectChanges();
       expect(bouton(el, 'Itinéraire')).toBeDefined();
+    });
+
+    it.each([false, 'erreur'] as const)(
+      'mode facile %s : aucun bouton itinéraire',
+      async (mode) => {
+        const r = await choisir({ position: OK, modeFacile: mode });
+        expect(r.el.querySelector('.selection')).not.toBeNull();
+        expect(bouton(r.el, 'Itinéraire')).toBeUndefined();
+        expect(r.el.querySelector('.selection .actions')).toBeNull();
+      },
+    );
+
+    it('mode facile : bouton masqué tant que la préférence charge', async () => {
+      TestBed.configureTestingModule({
+        providers: [
+          provideRouter([]),
+          provideHttpClient(),
+          provideHttpClientTesting(),
+          provideApiConfiguration(''),
+          { provide: FOND_CARTE, useValue: () => Promise.resolve(fauxFond()) },
+          {
+            provide: Proximite,
+            useValue: {
+              monuments: signal(CATALOGUE),
+              position: { etat: signal<EtatPosition>(OK), activer: vi.fn() },
+              plusProche: signal(undefined),
+            },
+          },
+        ],
+      });
+      const f = TestBed.createComponent(Carte);
+      f.detectChanges();
+      await f.whenStable();
+      await new Promise((r) => setTimeout(r));
+      f.detectChanges();
+      (f.nativeElement.querySelectorAll('.epingles button')[2] as HTMLElement).click();
+      f.detectChanges();
+      expect(bouton(f.nativeElement, 'Itinéraire')).toBeUndefined();
     });
 
     it('premier clic : mention RGPD sans appel ; « Calculer » lance l’appel ; ensuite plus de mention', async () => {
