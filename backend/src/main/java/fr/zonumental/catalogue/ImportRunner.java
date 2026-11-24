@@ -9,6 +9,7 @@ import org.springframework.boot.ApplicationRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.ApplicationContext;
+import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 
 /**
@@ -16,6 +17,7 @@ import org.springframework.stereotype.Component;
  * de l'application (sauf figer-dev, réservé au lancement local) (code 0 si succès, 1 sinon).
  */
 @Component
+@Order(0) // avant les runners de dev (jeu de données local)
 @ConditionalOnProperty("zonumental.catalogue.importer")
 class ImportRunner implements ApplicationRunner {
 
