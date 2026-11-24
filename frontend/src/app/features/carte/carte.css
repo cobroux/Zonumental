@@ -287,6 +287,11 @@ header {
   margin: 0;
   font: 600 1rem var(--zn-police-ui);
 }
+.selection .ecart {
+  margin: 0;
+  color: var(--zn-encre);
+  font: 600 0.875rem var(--zn-police-ui);
+}
 .selection .etapes summary {
   display: flex;
   align-items: center;

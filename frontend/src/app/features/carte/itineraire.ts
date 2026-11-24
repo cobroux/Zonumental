@@ -60,6 +60,34 @@ export function resume(it: Itineraire): string {
   return `${duree} · ${formaterDistance(it.distanceMetres)}`;
 }
 
+const R_TERRE = 6_371_000;
+export const SEUIL_ECART_M = 50;
+const SEUIL_RETOUR_M = 40; // hystérésis : pas de clignotement autour de 50 m
+
+/** Distance (m) d'un point à la polyligne : projection locale plane, point-segment, aucun appel réseau. */
+export function ecartMetres(p: Coords, trace: Itineraire['trace']): number {
+  const k = Math.cos((p.latitude * Math.PI) / 180);
+  const xy = ([lng, lat]: number[]) => [
+    ((lng - p.longitude) * Math.PI * R_TERRE * k) / 180,
+    ((lat - p.latitude) * Math.PI * R_TERRE) / 180,
+  ];
+  const pts = trace.coordinates.map(xy);
+  let min = pts.length ? Infinity : 0;
+  pts.forEach(([x, y], i) => {
+    const [x2, y2] = pts[i + 1] ?? [x, y];
+    const dx = x2 - x;
+    const dy = y2 - y;
+    const t = dx || dy ? Math.max(0, Math.min(1, -(x * dx + y * dy) / (dx * dx + dy * dy))) : 0;
+    min = Math.min(min, Math.hypot(x + t * dx, y + t * dy));
+  });
+  return min;
+}
+
+/** Écart avec hystérésis : s'allume au-dessus de 50 m, s'éteint sous 40 m. */
+export function ecarte(deja: boolean, distance: number): boolean {
+  return distance > (deja ? SEUIL_RETOUR_M : SEUIL_ECART_M);
+}
+
 /** Q-44 (repli OpenStreetMap) : à retirer en une ligne si refusé. Destination seule, jamais la position de l'utilisateur. */
 export function lienRepli(m: { latitude: number; longitude: number }): string {
   return `https://www.openstreetmap.org/directions?engine=fossgis_valhalla_foot&route=%3B${m.latitude}%2C${m.longitude}`;

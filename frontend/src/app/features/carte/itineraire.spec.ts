@@ -3,7 +3,7 @@ import { HttpTestingController, provideHttpClientTesting } from '@angular/common
 import { TestBed } from '@angular/core/testing';
 import { provideApiConfiguration } from '../../core/api/api-configuration';
 import { Itineraire } from '../../core/api/models/itineraire';
-import { CalculItineraire, lienRepli, messageDe, resume } from './itineraire';
+import { CalculItineraire, ecarte, ecartMetres, lienRepli, messageDe, resume } from './itineraire';
 
 const ITI: Itineraire = {
   distanceMetres: 1840,
@@ -124,5 +124,35 @@ describe('lienRepli', () => {
     expect(url).toBe(
       'https://www.openstreetmap.org/directions?engine=fossgis_valhalla_foot&route=%3B48.8584%2C2.2945',
     );
+  });
+});
+
+describe('ecartMetres', () => {
+  const trace = {
+    type: 'LineString' as const,
+    coordinates: [
+      [2.3, 48.86],
+      [2.3, 48.85],
+      [2.31, 48.85],
+    ],
+  };
+  const pt = (latitude: number, longitude: number) => ({ latitude, longitude });
+  it('sur le tracé : ~0 m', () => expect(ecartMetres(pt(48.855, 2.3), trace)).toBeLessThan(1));
+  it('distance au segment, pas au sommet', () =>
+    // 0,001° de longitude à 48,85° ≈ 73 m, à l'est du segment vertical
+    expect(ecartMetres(pt(48.855, 2.301), trace)).toBeCloseTo(73, -1));
+  it('au-delà de l’extrémité : distance au point final', () =>
+    // 0,001° au nord du départ ≈ 111 m
+    expect(ecartMetres(pt(48.861, 2.3), trace)).toBeCloseTo(111, -1));
+  it('trace vide : 0', () =>
+    expect(ecartMetres(pt(48, 2), { type: 'LineString', coordinates: [] })).toBe(0));
+});
+
+describe('ecarte (hystérésis)', () => {
+  it('s’écarte au-dessus de 50 m, revient sous 40 m, tient entre les deux', () => {
+    expect(ecarte(false, 49)).toBe(false);
+    expect(ecarte(false, 51)).toBe(true);
+    expect(ecarte(true, 45)).toBe(true);
+    expect(ecarte(true, 39)).toBe(false);
   });
 });
