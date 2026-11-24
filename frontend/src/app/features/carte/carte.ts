@@ -145,7 +145,7 @@ const ECHELLES = ['Paris', 'France'] as const;
     @if (echelle() === 'Paris' && !selection() && procheAffiche(); as p) {
       <a class="proche" [routerLink]="['/monument', p.numero]">
         @if (p.image; as img) {
-          <img [src]="img.url" alt="" />
+          <img [src]="img.url" alt="" loading="lazy" />
         } @else {
           <span class="vignette"></span>
         }

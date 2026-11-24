@@ -18,8 +18,10 @@ import java.util.Map;
 import java.util.Set;
 import javax.imageio.IIOImage;
 import javax.imageio.ImageIO;
+import javax.imageio.ImageReader;
 import javax.imageio.ImageWriteParam;
 import javax.imageio.ImageWriter;
+import javax.imageio.stream.ImageInputStream;
 import javax.imageio.stream.ImageOutputStream;
 import org.springframework.jdbc.core.simple.JdbcClient;
 import org.springframework.transaction.PlatformTransactionManager;
@@ -35,6 +37,9 @@ import tools.jackson.databind.SerializationFeature;
  * dans une seule transaction.
  */
 public class ImportCatalogue {
+
+  /** Images publiques (liste, carte, fiche avant capture) : 800 px couvrent un écran 2x. */
+  static final int COTE_NB_MAX = 800;
 
   static final int RAYON_DEFAUT_M = 150;
 
@@ -188,7 +193,7 @@ public class ImportCatalogue {
       String url = (String) m.get("image_url");
       Path couleur = dossierImages.resolve(url.substring(url.lastIndexOf('/') + 1));
       Path nb = dossierImages.resolve(m.get("numero") + "-nb.jpg");
-      if (Files.exists(nb) || !Files.isRegularFile(couleur)) {
+      if ((Files.exists(nb) && largeurMax(nb) <= COTE_NB_MAX) || !Files.isRegularFile(couleur)) {
         continue;
       }
       try {
@@ -202,14 +207,41 @@ public class ImportCatalogue {
     }
   }
 
-  /** Niveaux de gris sur fond blanc (transparence PNG), JPEG 0,85. */
+  /**
+   * Plus grand côté d'une image déjà écrite, sans la décoder ; MAX_VALUE si illisible (à refaire).
+   */
+  private static int largeurMax(Path fichier) {
+    try (ImageInputStream in = ImageIO.createImageInputStream(fichier.toFile())) {
+      var lecteurs = ImageIO.getImageReaders(in);
+      if (!lecteurs.hasNext()) {
+        return Integer.MAX_VALUE;
+      }
+      ImageReader r = lecteurs.next();
+      try {
+        r.setInput(in);
+        return Math.max(r.getWidth(0), r.getHeight(0));
+      } finally {
+        r.dispose();
+      }
+    } catch (IOException e) {
+      return Integer.MAX_VALUE;
+    }
+  }
+
+  /** Niveaux de gris sur fond blanc (transparence PNG), réduit à COTE_NB_MAX, JPEG 0,85. */
   private static void ecrireNoirEtBlanc(BufferedImage source, Path cible) throws IOException {
-    BufferedImage gris =
-        new BufferedImage(source.getWidth(), source.getHeight(), BufferedImage.TYPE_BYTE_GRAY);
+    double echelle =
+        Math.min(1.0, (double) COTE_NB_MAX / Math.max(source.getWidth(), source.getHeight()));
+    int largeur = Math.max(1, (int) Math.round(source.getWidth() * echelle));
+    int hauteur = Math.max(1, (int) Math.round(source.getHeight() * echelle));
+    BufferedImage gris = new BufferedImage(largeur, hauteur, BufferedImage.TYPE_BYTE_GRAY);
     Graphics2D g = gris.createGraphics();
+    g.setRenderingHint(
+        java.awt.RenderingHints.KEY_INTERPOLATION,
+        java.awt.RenderingHints.VALUE_INTERPOLATION_BICUBIC);
     g.setColor(Color.WHITE);
-    g.fillRect(0, 0, gris.getWidth(), gris.getHeight());
-    g.drawImage(source, 0, 0, null);
+    g.fillRect(0, 0, largeur, hauteur);
+    g.drawImage(source, 0, 0, largeur, hauteur, null);
     g.dispose();
     ImageWriter w = ImageIO.getImageWritersByFormatName("jpeg").next();
     ImageWriteParam param = w.getDefaultWriteParam();

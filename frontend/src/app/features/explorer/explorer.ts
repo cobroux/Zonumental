@@ -58,7 +58,7 @@ const PAS = 350; // carte 340 px + écart 10 px (maquette)
           <li class="carte" [class.j0]="jour0()">
             <article [attr.inert]="i === courant() ? null : ''" [attr.data-rarete]="h.m.rarete">
               @if (h.m.image; as img) {
-                <img [src]="img.url" alt="" />
+                <img [src]="img.url" alt="" loading="lazy" />
               } @else {
                 <svg class="silhouette" viewBox="0 0 48 48" aria-hidden="true" focusable="false">
                   <path [attr.d]="silhouette[h.m.type]" />
