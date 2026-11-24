@@ -283,6 +283,26 @@ paths:
         '400': { $ref: '#/components/responses/Validation' }
         '401': { $ref: '#/components/responses/NonAuthentifie' }
 
+  /api/compte/preferences:
+    put:
+      tags: [compte]
+      operationId: modifierPreferences
+      summary: Modifie les préférences du compte (« Mode facile », reglages-1)
+      description: État complet, idempotent. Lecture via `monCompte`. `modeFacile` booléen strict (pas de coercition).
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/Preferences' }
+      responses:
+        '200':
+          description: Nouvel état
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Preferences' }
+        '400': { $ref: '#/components/responses/Validation' }
+        '401': { $ref: '#/components/responses/NonAuthentifie' }
+
   # ---------------------------------------------------------------- RGPD
   /api/compte/export:
     get:
@@ -904,12 +924,15 @@ components:
         expireDans: { type: integer, description: Durée de validité en secondes, examples: [900] }
     Profil:
       type: object
-      required: [id, pseudo, email, emailVerifie]
+      required: [id, pseudo, email, emailVerifie, modeFacile]
       properties:
         id: { type: string, format: uuid }
         pseudo: { type: string }
         email: { type: string, format: email }
         emailVerifie: { type: boolean }
+        modeFacile:
+          type: boolean
+          description: Préférence « Mode facile » (itinéraire proposé sur la carte), `false` par défaut.
     MaCollection:
       type: object
       required: [code, nom, total, captures, complete, monuments]
@@ -1079,6 +1102,11 @@ components:
       properties:
         classement: { type: boolean }
         emails: { type: boolean }
+    Preferences:
+      type: object
+      required: [modeFacile]
+      properties:
+        modeFacile: { type: boolean }
     SuppressionProgrammee:
       type: object
       required: [suppressionDefinitiveLe]
@@ -1095,13 +1123,14 @@ components:
         exporteLe: { type: string, format: date-time }
         compte:
           type: object
-          required: [pseudo, email, dateNaissance, emailVerifieLe, creeLe]
+          required: [pseudo, email, dateNaissance, emailVerifieLe, creeLe, modeFacile]
           properties:
             pseudo: { type: string }
             email: { type: string, format: email }
             dateNaissance: { type: string, format: date }
             emailVerifieLe: { type: [string, 'null'], format: date-time }
             creeLe: { type: string, format: date-time }
+            modeFacile: { type: boolean }
         consentements:
           type: array
           description: Historique complet, du plus ancien au plus récent
