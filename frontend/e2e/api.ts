@@ -80,6 +80,7 @@ export async function mockApi(page: Page) {
     captures: new Set<number>(),
     envois: [] as number[],
     refuser: null as number | null,
+    modeFacile: false,
   };
   const resume = (m: (typeof MONUMENTS)[number]) => ({
     ...m,
@@ -197,7 +198,12 @@ export async function mockApi(page: Page) {
           pseudo: 'Explorateur',
           email: 'explorateur@example.fr',
           emailVerifie: true,
+          modeFacile: etat.modeFacile,
         });
+      if (pathname === '/api/compte/preferences' && req.method() === 'PUT') {
+        etat.modeFacile = req.postDataJSON().modeFacile;
+        return json({ modeFacile: etat.modeFacile });
+      }
       if (pathname === '/api/compte/consentements')
         return json({ classement: false, emails: false });
       const photo = /^\/api\/captures\/(\d+)\/photo$/.exec(pathname);

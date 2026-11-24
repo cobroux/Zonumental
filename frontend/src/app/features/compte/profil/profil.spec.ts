@@ -28,6 +28,7 @@ describe('Profil', () => {
     emails = false,
     succes: object = VIDE,
     monuments: object[] = [],
+    modeFacile = false,
   ) {
     TestBed.configureTestingModule({
       providers: [
@@ -42,7 +43,7 @@ describe('Profil', () => {
     await fixture.whenStable();
     http
       .expectOne('/api/compte/moi')
-      .flush({ id: '1', email: 'a@b.fr', emailVerifie: true, pseudo: 'marco' });
+      .flush({ id: '1', email: 'a@b.fr', emailVerifie: true, pseudo: 'marco', modeFacile });
     http.expectOne('/api/compte/consentements').flush({ classement, emails });
     http.expectOne('/api/catalogue/monuments').flush(monuments);
     const req = http.expectOne('/api/progression/succes');
@@ -100,6 +101,43 @@ describe('Profil', () => {
     const reqs = http.match('/api/compte/consentements');
     expect(reqs).toHaveLength(1);
     reqs[0].flush({ classement: true, emails: true });
+  });
+
+  describe('préférence Mode facile', () => {
+    it('interrupteur nommé par son libellé visible, état lu depuis le compte', async () => {
+      await ouvrir(true, false, VIDE, [], true);
+      const sw = interrupteur(2);
+      expect(sw.checked).toBe(true);
+      expect(sw.getAttribute('aria-checked')).toBe('true');
+      const lib = racine().querySelector(`#${sw.getAttribute('aria-labelledby')}`);
+      expect(lib?.textContent?.trim()).toBe('Mode facile');
+      expect(racine().querySelector('#titre-preferences')?.textContent).toContain('PRÉFÉRENCES');
+      expect(
+        racine().querySelector(`#${sw.getAttribute('aria-describedby')}`)?.textContent,
+      ).toBeTruthy();
+    });
+
+    it('bascule : PUT de l’état complet, sans bouton Enregistrer', async () => {
+      await ouvrir();
+      expect(interrupteur(2).checked).toBe(false);
+      await cliquer(2);
+      const req = http.expectOne('/api/compte/preferences');
+      expect(req.request.method).toBe('PUT');
+      expect(req.request.body).toEqual({ modeFacile: true });
+      req.flush({ modeFacile: true });
+      await apres();
+      expect(interrupteur(2).getAttribute('aria-checked')).toBe('true');
+    });
+
+    it('échec : état précédent rétabli et message annoncé', async () => {
+      await ouvrir();
+      await cliquer(2);
+      http.expectOne('/api/compte/preferences').flush('', { status: 500, statusText: '' });
+      await apres();
+      expect(interrupteur(2).checked).toBe(false);
+      expect(interrupteur(2).getAttribute('aria-checked')).toBe('false');
+      expect(racine().querySelector('zn-message')?.getAttribute('role')).toBe('alert');
+    });
   });
 
   it('Mes données, liens légaux et déconnexion', async () => {

@@ -12,6 +12,8 @@ import {
   viewChild,
 } from '@angular/core';
 import { RouterLink } from '@angular/router';
+import { Api } from '../../core/api/api';
+import { monCompte } from '../../core/api/fn/compte/mon-compte';
 import { Proximite, dureeAPied, formaterDistance } from '../../core/position/proximite';
 import {
   ENCRE_PAR_RARETE,
@@ -162,70 +164,72 @@ const ECHELLES = ['Paris', 'France'] as const;
           <strong>{{ s.nom }}</strong>
           <span class="voir">Voir la fiche</span>
         </a>
-        @if (mention()) {
-          <p class="mention">
-            Ta position arrondie (~10 m) est envoyée à notre serveur pour calculer le trajet. Elle
-            n'est pas conservée.
-            <a routerLink="/confidentialite">Politique de confidentialité</a>
-          </p>
-        }
-        @if (positionRefusee()) {
-          <zn-message type="erreur">
-            Active ta position pour obtenir un itinéraire.
-            <a [href]="lienOsm(s)" target="_blank" rel="noopener noreferrer"
-              >Ouvrir dans OpenStreetMap</a
-            >
-          </zn-message>
-        }
-        @if (erreur(); as e) {
-          <zn-message type="erreur">
-            {{ e.texte }}
-            @if (e.repli) {
+        @if (modeFacile()) {
+          @if (mention()) {
+            <p class="mention">
+              Ta position arrondie (~10 m) est envoyée à notre serveur pour calculer le trajet. Elle
+              n'est pas conservée.
+              <a routerLink="/confidentialite">Politique de confidentialité</a>
+            </p>
+          }
+          @if (positionRefusee()) {
+            <zn-message type="erreur">
+              Active ta position pour obtenir un itinéraire.
               <a [href]="lienOsm(s)" target="_blank" rel="noopener noreferrer"
                 >Ouvrir dans OpenStreetMap</a
               >
-            }
-          </zn-message>
-        }
-        <div class="actions">
-          @if (mention()) {
-            <button type="button" class="action" (click)="confirmer()">Calculer</button>
-          } @else {
-            <button
-              #boutonItineraire
-              type="button"
-              class="action"
-              [disabled]="calcul.etat().statut === 'chargement'"
-              [attr.aria-busy]="calcul.etat().statut === 'chargement' || null"
-              (click)="lancer()"
-            >
-              {{ calcul.etat().statut === 'chargement' ? 'Calcul…' : 'Itinéraire' }}
-            </button>
+            </zn-message>
           }
-          @if (trajet()) {
-            <button type="button" class="action secondaire" (click)="effacer()">
-              Effacer l'itinéraire
-            </button>
-          }
-        </div>
-        @if (trajet(); as t) {
-          <p class="resume" role="status">{{ t.resume }}</p>
-          <p class="ecart" role="status">
-            @if (ecart()) {
-              Tu t'es écarté de l'itinéraire
-            }
-          </p>
-          @if (ecart()) {
-            <button type="button" class="action" (click)="recalculer()">Recalculer</button>
-          }
-          <details class="etapes">
-            <summary>Étapes ({{ t.etapes.length }})</summary>
-            <ol>
-              @for (e of t.etapes; track $index) {
-                <li>{{ e.instruction }} · {{ e.distance }}</li>
+          @if (erreur(); as e) {
+            <zn-message type="erreur">
+              {{ e.texte }}
+              @if (e.repli) {
+                <a [href]="lienOsm(s)" target="_blank" rel="noopener noreferrer"
+                  >Ouvrir dans OpenStreetMap</a
+                >
               }
-            </ol>
-          </details>
+            </zn-message>
+          }
+          <div class="actions">
+            @if (mention()) {
+              <button type="button" class="action" (click)="confirmer()">Calculer</button>
+            } @else {
+              <button
+                #boutonItineraire
+                type="button"
+                class="action"
+                [disabled]="calcul.etat().statut === 'chargement'"
+                [attr.aria-busy]="calcul.etat().statut === 'chargement' || null"
+                (click)="lancer()"
+              >
+                {{ calcul.etat().statut === 'chargement' ? 'Calcul…' : 'Itinéraire' }}
+              </button>
+            }
+            @if (trajet()) {
+              <button type="button" class="action secondaire" (click)="effacer()">
+                Effacer l'itinéraire
+              </button>
+            }
+          </div>
+          @if (trajet(); as t) {
+            <p class="resume" role="status">{{ t.resume }}</p>
+            <p class="ecart" role="status">
+              @if (ecart()) {
+                Tu t'es écarté de l'itinéraire
+              }
+            </p>
+            @if (ecart()) {
+              <button type="button" class="action" (click)="recalculer()">Recalculer</button>
+            }
+            <details class="etapes">
+              <summary>Étapes ({{ t.etapes.length }})</summary>
+              <ol>
+                @for (e of t.etapes; track $index) {
+                  <li>{{ e.instruction }} · {{ e.distance }}</li>
+                }
+              </ol>
+            </details>
+          }
         }
       </div>
     }
@@ -249,6 +253,8 @@ export class Carte {
   private readonly zoneSelection = viewChild<ElementRef<HTMLElement>>('selectionZone');
   private readonly boutonItineraire = viewChild<ElementRef<HTMLButtonElement>>('boutonItineraire');
   protected readonly calcul = inject(CalculItineraire);
+  /** Préférence « Mode facile », lue une fois à l'ouverture ; faux tant qu'inconnue, anonyme ou en erreur. */
+  protected readonly modeFacile = signal(false);
 
   protected readonly echelles = ECHELLES;
   protected readonly echelle = signal<(typeof ECHELLES)[number]>('Paris');
@@ -367,6 +373,10 @@ export class Carte {
       const c = this.coords();
       if (c && untracked(this.attentePosition)) untracked(() => this.demarrerCalcul(c));
     });
+    inject(Api)
+      .invoke(monCompte)
+      .then((moi) => this.modeFacile.set(moi.modeFacile === true))
+      .catch(() => undefined);
     const detruit = inject(DestroyRef);
     let fond: FondCarte | undefined;
     let fini = false;

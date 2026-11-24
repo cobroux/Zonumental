@@ -126,6 +126,32 @@
     }
   </section>
 
+  @if (modeFacile() !== null) {
+    <section aria-labelledby="titre-preferences">
+      <h2 id="titre-preferences" class="rubrique">PRÉFÉRENCES</h2>
+      <div class="carte">
+        <div class="ligne">
+          <label id="lib-mode-facile" for="sw-mode-facile" class="texte">Mode facile</label>
+          <input
+            znInterrupteur
+            id="sw-mode-facile"
+            type="checkbox"
+            role="switch"
+            aria-labelledby="lib-mode-facile"
+            aria-describedby="aide-mode-facile"
+            [checked]="modeFacile()"
+            [attr.aria-checked]="modeFacile()"
+            [attr.aria-busy]="occupe() ? 'true' : null"
+            (change)="basculerModeFacile($event)"
+          />
+          <span id="aide-mode-facile" class="aide"
+            >Affiche l'itinéraire à pied vers un monument sur la carte.</span
+          >
+        </div>
+      </div>
+    </section>
+  }
+
   <section aria-labelledby="titre-donnees">
     <h2 id="titre-donnees" class="rubrique">MES DONNÉES</h2>
     <div class="carte">

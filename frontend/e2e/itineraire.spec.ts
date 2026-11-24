@@ -11,6 +11,7 @@ test('Itinéraire : mention, tracé, résumé, étapes, écart, accessibilité',
 }, info) => {
   const api = await mockApi(page);
   api.captures.add(1);
+  api.modeFacile = true;
   if (!process.env['CAPTURE'])
     await page.route('https://tiles.openfreemap.org/**', (r) => r.abort());
   let corps = '';
@@ -61,4 +62,21 @@ test('Itinéraire : mention, tracé, résumé, étapes, écart, accessibilité',
     await page.screenshot({ path: info.outputPath('itineraire-itineraire-4-390.png') });
   await page.getByRole('button', { name: "Effacer l'itinéraire" }).click();
   await expect(page.getByRole('button', { name: 'Itinéraire', exact: true })).toBeFocused();
+});
+
+test('Mode facile désactivé : pas de bouton Itinéraire ; activé depuis le Profil : il apparaît', async ({
+  page,
+}) => {
+  await mockApi(page);
+  await page.route('https://tiles.openfreemap.org/**', (r) => r.abort());
+  await page.goto('/carte');
+  await page.locator('.epingles button').nth(1).click();
+  await expect(page.locator('.selection')).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Itinéraire', exact: true })).toHaveCount(0);
+  await page.goto('/profil');
+  await page.getByRole('switch', { name: 'Mode facile' }).check();
+  await expect(page.getByRole('switch', { name: 'Mode facile' })).toBeChecked();
+  await page.goto('/carte');
+  await page.locator('.epingles button').nth(1).click();
+  await expect(page.getByRole('button', { name: 'Itinéraire', exact: true })).toBeVisible();
 });

@@ -11,6 +11,7 @@ import {
 } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { Api } from '../../../core/api/api';
+import { modifierPreferences } from '../../../core/api/fn/compte/modifier-preferences';
 import { mesConsentements } from '../../../core/api/fn/compte/mes-consentements';
 import { exporterMesDonnees } from '../../../core/api/fn/compte/exporter-mes-donnees';
 import { modifierConsentements } from '../../../core/api/fn/compte/modifier-consentements';
@@ -41,6 +42,7 @@ export class Profil {
 
   protected readonly pseudo = signal('');
   protected readonly consentements = signal<ConsentementsFacultatifs | null>(null);
+  protected readonly modeFacile = signal<boolean | null>(null);
   protected readonly succes = signal<MesSucces | null>(null);
   protected readonly succesHorsLigne = signal(false);
   /** Tampons et villes viennent du catalogue (captureeLe) ; absent = ligne de stats omise. */
@@ -88,6 +90,32 @@ export class Profil {
       this.consentements.set(await this.api.invoke(modifierConsentements, { body: apres }));
     } catch {
       this.consentements.set(avant);
+      this.erreur.set("Ton choix n'a pas pu être enregistré. Réessaie dans un instant.");
+      this.focaliser('zn-message');
+    } finally {
+      this.occupe.set(false);
+    }
+  }
+
+  protected async basculerModeFacile(e: Event) {
+    const case_ = e.target as HTMLInputElement;
+    const avant = this.modeFacile();
+    if (avant === null) return;
+    if (this.occupe()) {
+      case_.checked = avant;
+      return;
+    }
+    this.erreur.set(null);
+    this.occupe.set(true);
+    this.modeFacile.set(case_.checked);
+    try {
+      this.modeFacile.set(
+        (await this.api.invoke(modifierPreferences, { body: { modeFacile: case_.checked } }))
+          .modeFacile,
+      );
+    } catch {
+      this.modeFacile.set(avant);
+      case_.checked = avant;
       this.erreur.set("Ton choix n'a pas pu être enregistré. Réessaie dans un instant.");
       this.focaliser('zn-message');
     } finally {
@@ -144,6 +172,7 @@ export class Profil {
         this.api.invoke(mesConsentements),
       ]);
       this.pseudo.set(moi.pseudo);
+      this.modeFacile.set(moi.modeFacile === true);
       this.consentements.set(consentements);
     } catch {
       this.erreur.set('Ton profil ne se charge pas. Réessaie dans un instant.');
