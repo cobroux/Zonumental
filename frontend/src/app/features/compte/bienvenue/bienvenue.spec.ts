@@ -21,8 +21,12 @@ describe('Bienvenue', () => {
     expect(lien?.textContent).toContain('J’ai déjà un carnet');
     expect(lien?.hasAttribute('znBouton')).toBe(false);
     expect(r.querySelector('.visuel')?.getAttribute('aria-hidden')).toBe('true');
+    expect(r.querySelector('.visuel img.photo')?.getAttribute('src')).toBe(
+      'accueil/tour-eiffel.jpg',
+    );
+    expect(r.textContent).toContain('Photo : Benh Lieu Song, domaine public');
     expect(r.querySelector('.visuel linearGradient')).not.toBeNull();
     expect(r.querySelector('.grain rect')?.getAttribute('filter')).toBe('url(#zn-papier)');
-    expect(r.querySelectorAll('img')).toHaveLength(0);
+    expect(r.querySelectorAll('img')).toHaveLength(1); // la photo du domaine public, décorative
   });
 });

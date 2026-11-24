@@ -20,14 +20,26 @@
 }
 
 .visuel svg {
+  position: relative; /* voile au-dessus de la photo */
   display: block;
 }
 
-.visuel .arc {
+.visuel .photo {
   position: absolute;
-  inset: auto 0 40px;
+  inset: 0;
   inline-size: 100%;
-  block-size: 320px;
+  block-size: 100%;
+  object-fit: cover;
+  object-position: 50% 22%;
+  filter: url(#zn-duo) brightness(0.8);
+}
+
+.credit {
+  position: relative;
+  margin: 0;
+  color: var(--zn-gris-45);
+  font-size: 0.625rem;
+  text-align: center;
 }
 
 .etiquette {
