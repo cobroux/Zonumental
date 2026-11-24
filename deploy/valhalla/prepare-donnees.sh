@@ -21,7 +21,8 @@ fi
 pbf=data/cache/ile-de-france.osm.pbf
 md5_local() { if command -v md5sum >/dev/null; then md5sum "$1" | awk '{print $1}'; else md5 -q "$1"; fi; }
 if [ ! -f "$pbf" ] || [ "$(md5_local "$pbf")" != "$md5_attendu" ]; then
-  curl -fL --retry 3 -C - -o "$pbf" "$URL"
+  rm -f "$pbf"  # pas de reprise (-C) : un ancien extrait complet serait complete par du nouveau
+  curl -fL --retry 3 -o "$pbf" "$URL"
 fi
 [ "$(md5_local "$pbf")" = "$md5_attendu" ] || { echo "Somme de controle invalide" >&2; rm -f "$pbf"; exit 1; }
 
