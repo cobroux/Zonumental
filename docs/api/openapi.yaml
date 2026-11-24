@@ -1269,11 +1269,12 @@ components:
               description: Null tant que le monument n'est pas capturé (RG-054). Capturé - valeur inconnue = null, affichée « — » (RG-023)
               oneOf:
                 - type: object
-                  required: [annee, style, hauteurMetres]
+                  required: [annee, style, hauteurMetres, materiau]
                   properties:
                     annee: { type: [integer, 'null'] }
                     style: { type: [string, 'null'] }
                     hauteurMetres: { type: [number, 'null'] }
+                    materiau: { type: [string, 'null'] }
                 - type: 'null'
             photoUrl:
               type: [string, 'null']

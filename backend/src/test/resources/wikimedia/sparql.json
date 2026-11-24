@@ -13,6 +13,7 @@
       "styleLabel": {"type": "literal", "value": "Art nouveau", "xml:lang": "fr"},
       "height": {"type": "literal", "value": "330"},
       "unit": {"type": "uri", "value": "http://www.wikidata.org/entity/Q11573"},
+      "materiau": {"type": "literal", "value": "fer", "xml:lang": "fr"},
       "types": {"type": "literal", "value": "Q12518,Q41176"}
     },
     {

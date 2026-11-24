@@ -91,6 +91,7 @@ class SourceWikimediaTest {
     assertThat(tour.annee()).isEqualTo(1889);
     assertThat(tour.style()).isEqualTo("Art nouveau");
     assertThat(tour.hauteurM()).isEqualByComparingTo("330");
+    assertThat(tour.materiau()).isEqualTo("fer");
     assertThat(tour.histoireTexte()).isEqualTo("La Tour Test est un monument de test.");
     assertThat(tour.histoireLicence()).isEqualTo("CC BY-SA 4.0");
     assertThat(tour.histoireSourceUrl()).isEqualTo("https://fr.wikipedia.org/wiki/Tour_Test");
@@ -181,6 +182,7 @@ class SourceWikimediaTest {
             0,
             0,
             0,
+            null,
             null,
             null,
             null,

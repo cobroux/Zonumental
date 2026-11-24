@@ -130,8 +130,7 @@ const TYPES = {
             </div>
             <div>
               <dt>Matériau</dt>
-              <!-- le contrat ne porte pas encore stats.materiau (D3) -->
-              <dd>—</dd>
+              <dd>{{ m.stats?.materiau ?? '—' }}</dd>
             </div>
           </dl>
           <h2>Histoire</h2>

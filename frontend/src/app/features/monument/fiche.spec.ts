@@ -37,7 +37,7 @@ const capture = {
   type: 'TOUR',
   rarete: 'RARE',
   image: image('/api/catalogue/monuments/7/image'),
-  stats: { annee: 1889, style: 'Métallique', hauteurMetres: 330 },
+  stats: { annee: 1889, style: 'Métallique', hauteurMetres: 330, materiau: 'Pierre' },
   histoire: { texte: 'Construite pour 1889.', sourceUrl: 'https://h.example', licence: 'CC BY-SA' },
 };
 
@@ -138,20 +138,20 @@ describe('Fiche', () => {
   it('capturée : stats inconnues « — »', async () => {
     const { el } = await rendre({
       ...capture,
-      stats: { annee: null, style: null, hauteurMetres: null },
+      stats: { annee: null, style: null, hauteurMetres: null, materiau: null },
     });
     expect(el.querySelectorAll('dd')[0].textContent).toBe('—');
     expect(el.querySelectorAll('dd')[2].textContent).toBe('—');
   });
 
-  it('capturée : trio ANNÉE / HAUTEUR / MATÉRIAU, matériau « — » tant que l’API ne l’expose pas', async () => {
+  it('capturée : trio ANNÉE / HAUTEUR / MATÉRIAU, matériau issu de l’API', async () => {
     const { el } = await rendre(capture);
     const dt = [...el.querySelectorAll('dt')].map((x) => x.textContent);
     expect(dt).toEqual(['Année', 'Hauteur', 'Matériau']);
     expect([...el.querySelectorAll('dd')].map((x) => x.textContent)).toEqual([
       '1889',
       '330 m',
-      '—',
+      'Pierre',
     ]);
   });
 

@@ -31,6 +31,7 @@ class SelectionCatalogueTest {
         null,
         null,
         null,
+        null,
         null);
   }
 

@@ -44,10 +44,11 @@ class FicheMonumentTest {
     monument(
         1,
         "Tour A",
-        "1889, 'Art nouveau', 330.5, 'Un texte.', 'https://fr.wikipedia.org/wiki/A', 'CC BY-SA 4.0',"
+        "1889, 'Art nouveau', 330.5, 'fer', 'Un texte.', 'https://fr.wikipedia.org/wiki/A', 'CC BY-SA 4.0',"
             + " '/api/catalogue/images/1.jpg', 'https://commons.wikimedia.org/wiki/File:A.jpg',"
             + " 'CC BY 3.0', 'https://creativecommons.org/licenses/by/3.0', 'Jean'");
-    monument(2, "Basilique B", "null, null, null, null, null, null, null, null, null, null, null");
+    monument(
+        2, "Basilique B", "null, null, null, null, null, null, null, null, null, null, null, null");
 
     jdbc.update(
         "insert into compte.utilisateur (id, email, pseudo, mot_de_passe_hash, date_naissance,"
@@ -79,7 +80,7 @@ class FicheMonumentTest {
   void monument(int numero, String nom, String champs) {
     jdbc.execute(
         "insert into catalogue.monument (numero, wikidata_id, nom, type, ville_code_insee,"
-            + " latitude, longitude, rarete, popularite, annee, style, hauteur_m, histoire_texte,"
+            + " latitude, longitude, rarete, popularite, annee, style, hauteur_m, materiau, histoire_texte,"
             + " histoire_source_url, histoire_licence, image_url, image_source_url, image_licence,"
             + " image_licence_url, image_auteur) values ("
             + numero
@@ -111,6 +112,7 @@ class FicheMonumentTest {
         .andExpect(jsonPath("$.stats.annee").value(1889))
         .andExpect(jsonPath("$.stats.style").value("Art nouveau"))
         .andExpect(jsonPath("$.stats.hauteurMetres").value(330.5))
+        .andExpect(jsonPath("$.stats.materiau").value("fer"))
         .andExpect(jsonPath("$.histoire.texte").value("Un texte."))
         .andExpect(jsonPath("$.histoire.sourceUrl").value("https://fr.wikipedia.org/wiki/A"))
         .andExpect(jsonPath("$.histoire.licence").value("CC BY-SA 4.0"))
@@ -173,7 +175,7 @@ class FicheMonumentTest {
             content()
                 .string(
                     containsString(
-                        "\"stats\":{\"annee\":null,\"style\":null,\"hauteurMetres\":null}")));
+                        "\"stats\":{\"annee\":null,\"style\":null,\"hauteurMetres\":null,\"materiau\":null}")));
   }
 
   @Test
