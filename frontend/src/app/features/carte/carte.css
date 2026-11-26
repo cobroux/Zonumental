@@ -84,8 +84,9 @@
 .plein {
   fill: var(--zn-blanc);
 }
+/* Bord adouci par dégradé radial : un filtre de flou SVG recalculé à chaque image saccade sur iOS. */
 .trou {
-  fill: var(--zn-nuit);
+  stop-color: var(--zn-nuit);
 }
 .voile {
   fill: var(--zn-papier);

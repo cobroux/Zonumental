@@ -60,21 +60,27 @@ const ECHELLES = ['Paris', 'France'] as const;
       }
       <svg class="brouillard" aria-hidden="true" focusable="false">
         <defs>
-          <filter id="zn-flou-carte"><feGaussianBlur stdDeviation="14" /></filter>
+          <radialGradient id="zn-trou-doux">
+            <stop offset="0.6" class="trou" stop-opacity="1" />
+            <stop offset="1" class="trou" stop-opacity="0" />
+          </radialGradient>
           <mask id="zn-masque-carte">
             <rect class="plein" width="100%" height="100%" />
-            <g filter="url(#zn-flou-carte)">
-              @for (z of zones(); track z.numero) {
-                <circle class="trou" [attr.cx]="z.x" [attr.cy]="z.y" [attr.r]="rayonPx()" />
-              }
-            </g>
+            @for (z of zones(); track z.numero) {
+              <circle
+                fill="url(#zn-trou-doux)"
+                [attr.cx]="z.x"
+                [attr.cy]="z.y"
+                [attr.r]="rayonPx() * 1.5"
+              />
+            }
           </mask>
         </defs>
         <rect class="voile" width="100%" height="100%" mask="url(#zn-masque-carte)" />
       </svg>
       <ul class="epingles" aria-label="Monuments de Paris">
         @for (p of epingles(); track p.m.numero) {
-          <li [style.transform]="'translate(' + p.x + 'px,' + p.y + 'px)'">
+          <li [style.transform]="decaler(p.m.numero)">
             <button
               type="button"
               [class.obtenu]="p.obtenu"
@@ -273,33 +279,42 @@ export class Carte {
     this.mouvement();
     return rayon(this.fond()?.getZoom() ?? ZOOM_INITIAL, ZOOM_INITIAL);
   });
-  private readonly projetes = computed(() => {
+  /** Seules les positions changent à chaque `move` ; les épingles (données, tampons) restent stables. */
+  private readonly positions = computed(() => {
     this.mouvement();
     const fond = this.fond();
-    if (!fond) return [];
-    return this.deParis().map((m) => ({
-      m,
-      ...fond.project([m.position.longitude, m.position.latitude]),
-    }));
+    const pos = new Map<number, { x: number; y: number }>();
+    if (fond)
+      for (const m of this.deParis())
+        pos.set(m.numero, fond.project([m.position.longitude, m.position.latitude]));
+    return pos;
   });
-  protected readonly zones = computed(() =>
-    this.projetes()
-      .filter((p) => p.m.captureeLe !== null)
-      .map((p) => ({ numero: p.m.numero, x: p.x, y: p.y })),
-  );
+  protected decaler(numero: number): string {
+    const p = this.positions().get(numero);
+    return p ? `translate(${p.x}px,${p.y}px)` : 'translate(-9999px,-9999px)';
+  }
+  protected readonly zones = computed(() => {
+    const pos = this.positions();
+    return this.deParis()
+      .filter((m) => m.captureeLe !== null && pos.has(m.numero))
+      .map((m) => ({ numero: m.numero, ...pos.get(m.numero)! }));
+  });
   protected readonly epingles = computed(() =>
-    this.projetes().map((p) => {
-      const obtenu = p.m.captureeLe !== null;
-      return {
-        ...p,
-        obtenu,
-        numero: String(p.m.numero).padStart(3, '0'),
-        etiquette: obtenu ? etiquetteTampon(p.m) : libelle(p.m),
-        forme: FORME_PAR_TYPE[p.m.type],
-        encre: ENCRE_PAR_RARETE[p.m.rarete],
-        contenu: obtenu ? contenuTampon(p.m) : { haut: '', centre: '', bas: '' },
-      };
-    }),
+    this.fond()
+      ? this.deParis().map((m) => {
+          const p = { m };
+          const obtenu = p.m.captureeLe !== null;
+          return {
+            ...p,
+            obtenu,
+            numero: String(p.m.numero).padStart(3, '0'),
+            etiquette: obtenu ? etiquetteTampon(p.m) : libelle(p.m),
+            forme: FORME_PAR_TYPE[p.m.type],
+            encre: ENCRE_PAR_RARETE[p.m.rarete],
+            contenu: obtenu ? contenuTampon(p.m) : { haut: '', centre: '', bas: '' },
+          };
+        })
+      : [],
   );
   /** Position en mémoire seulement, jamais copiée ailleurs (RG-036). */
   private readonly coords = computed(() => {
