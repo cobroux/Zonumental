@@ -148,10 +148,10 @@ describe('Carte', () => {
   it('recalcule positions et rayon quand la carte bouge', async () => {
     const { el, fixture, fond } = await rendre();
     const cercle = () => el.querySelector('mask circle') as SVGCircleElement;
-    expect(cercle().getAttribute('r')).toBe('62');
+    expect(cercle().getAttribute('r')).toBe('93'); // rayon × 1,5 : marge du bord adouci
     fond.deplacer(13);
     fixture.detectChanges();
-    expect(cercle().getAttribute('r')).toBe('124');
+    expect(cercle().getAttribute('r')).toBe('186');
   });
 
   it('pastille : capturés de Paris sur catalogue de Paris, arrondi inférieur', async () => {
